@@ -199,7 +199,7 @@ Uploaded institutional document or past report.
 - `created_at`: DateTime
 
 ### 15. DocumentChunk
-Vectorized chunk of an institutional document.
+Text chunk of an institutional document for keyword search.
 - `id`: UUID (String 36), Primary Key
 - `document_id`: Foreign Key -> `Document.id`
 - `chunk_text`: Text, Nullable=False
