@@ -1,199 +1,579 @@
 import React, { useState } from 'react';
-import { 
-  CheckCircle2, 
-  Server, 
-  Cpu, 
-  Database, 
-  KeyRound, 
-  RefreshCw, 
-  Workflow, 
-  Layers, 
-  AlertCircle,
-  LogIn
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  Sparkles,
+  ArrowRight,
+  CheckCircle2,
+  Calendar,
+  CheckSquare,
+  Users,
+  FileText,
+  AlertTriangle,
+  Bell,
+  ShieldCheck,
+  ChevronRight,
+  Play,
+  Layers,
+  Zap,
+  Terminal,
+  Clock,
+  ArrowUpRight,
+  Award,
+  BookOpen,
+  Cpu,
+  Workflow
 } from 'lucide-react';
-import { loginUser } from '../services/api';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
+import { Card } from '../components/ui/Card';
+import Tabs from '../components/ui/Tabs';
+import { APP_NAME } from '../utils/constants';
 
-export default function LandingPage({ health, loading, error, refetch }) {
-  const [authTesting, setAuthTesting] = useState(false);
-  const [authResult, setAuthResult] = useState(null);
+export default function LandingPage() {
+  const navigate = useNavigate();
+  const [activeWorkflowStep, setActiveWorkflowStep] = useState(0);
+  const [activeRolePerspective, setActiveRolePerspective] = useState('PRESIDENT');
 
-  const handleTestAuth = async () => {
-    try {
-      setAuthTesting(true);
-      const res = await loginUser('president@clubops.ai', 'ClubOps2026!');
-      setAuthResult({ success: true, token: res.data.access_token });
-      localStorage.setItem('clubops_token', res.data.access_token);
-    } catch (err) {
-      setAuthResult({ success: false, error: err.message || 'Login test failed' });
-    } finally {
-      setAuthTesting(false);
-    }
+  const workflowSteps = [
+    {
+      id: 0,
+      title: '1. Create Event',
+      badge: 'Event Init',
+      desc: 'Club organizers initialize an event with title, tentative dates, venue preferences, and preliminary budget.',
+      simulation: {
+        input: 'Event: "HackOut 2026: 36-hour Inter-College Hackathon"',
+        state: 'Event initialized with status "NEW" in Google Developer Student Club.',
+        highlight: 'Event record persisted into PostgreSQL with UUID.',
+      },
+    },
+    {
+      id: 1,
+      title: '2. Meeting Minutes',
+      badge: 'Input',
+      desc: 'Team leads conduct a kickoff meeting and paste unstructured meeting minutes or bullet notes.',
+      simulation: {
+        input: '"Rahul books main auditorium before Friday. Priya finishes sponsor deck. Kabir handles judge outreach."',
+        state: 'Unstructured notes ingested by meeting intelligence pipeline.',
+        highlight: 'Natural language transcript awaiting Groq LLM parsing.',
+      },
+    },
+    {
+      id: 2,
+      title: '3. AI Extracts Tasks',
+      badge: 'Extraction',
+      desc: 'The backend workflow decomposes notes into atomic task records with deterministic validation.',
+      simulation: {
+        input: '3 distinct tasks generated: [Book Auditorium], [Finalize Sponsor Deck], [Contact Hackathon Judges].',
+        state: 'Tasks validated against Pydantic schema.',
+        highlight: 'Zero raw SQL executed; processed via LangGraph node.',
+      },
+    },
+    {
+      id: 3,
+      title: '4. Assign Owners',
+      badge: 'Assignment',
+      desc: 'Club roster is cross-referenced to automatically link tasks to qualified club leads and volunteers.',
+      simulation: {
+        input: 'Rahul Sharma -> Auditorium Booking | Priya Patel -> Sponsor Deck | Kabir Das -> Judges',
+        state: 'User IDs matched and assigned with notifications queued.',
+        highlight: 'Backend verifies permissions before state changes.',
+      },
+    },
+    {
+      id: 4,
+      title: '5. Detect Deadlines',
+      badge: 'Temporal AI',
+      desc: 'Relative dates ("before Friday", "in 2 weeks") are resolved into absolute timestamps.',
+      simulation: {
+        input: '"Before Friday" -> Resolved to Friday, 5:00 PM (April 17, 2026).',
+        state: 'Deadlines attached to Kanban cards with automated alerts.',
+        highlight: 'Timezone-aware date parsing.',
+      },
+    },
+    {
+      id: 5,
+      title: '6. Risk Guardrails',
+      badge: 'Radar Alert',
+      desc: 'AI detects dependency bottlenecks and resource shortages before they jeopardize the event.',
+      simulation: {
+        input: 'WARNING: "Banner printing is blocked by Sponsor payment confirmation delay."',
+        state: 'Risk score elevated to HIGH. Mitigation suggested to President.',
+        highlight: 'Explainable AI alerts with proactive recommendations.',
+      },
+    },
+    {
+      id: 6,
+      title: '7. AI Announcement',
+      badge: 'Communication',
+      desc: 'AI drafts targeted multi-channel announcements for college broadcast via Brevo email.',
+      simulation: {
+        input: 'Subject: "HackOut 2026 Registration Open! 🚀 $5,000 in Prizes"',
+        state: 'Email template generated and staged for President approval.',
+        highlight: 'Human-in-the-loop approval ensures club brand safety.',
+      },
+    },
+    {
+      id: 7,
+      title: '8. Dashboard Sync',
+      badge: 'Live Sync',
+      desc: 'Kanban boards, executive KPIs, and volunteer rosters update synchronously across all devices.',
+      simulation: {
+        input: 'Dashboard metrics refreshed: Completion +12%, 3 Tasks active, 0 unassigned items.',
+        state: 'All role-based views synced via real-time telemetry.',
+        highlight: 'Centralized single source of truth.',
+      },
+    },
+  ];
+
+  const rolePerspectives = {
+    PRESIDENT: {
+      role: 'Club President',
+      tagline: 'High-level operational oversight and risk governance.',
+      features: [
+        'Approve high-budget expenditures and critical event phases',
+        'Real-time proactive risk radar across all sub-committees',
+        'Access immutable audit logs of all club operations',
+        'Generate executive summary reports for faculty advisors',
+      ],
+      previewStats: [
+        { label: 'Managed Events', val: '4 Active' },
+        { label: 'Pending Approvals', val: '2' },
+        { label: 'Risk Score', val: 'Low (94%)' },
+      ],
+    },
+    ORGANIZER: {
+      role: 'Event Organizer',
+      tagline: 'End-to-end event execution, meeting intelligence, and tasks.',
+      features: [
+        'Generate end-to-end event checklists with Groq AI Planner',
+        'Convert meeting minutes into Kanban tasks in seconds',
+        'Automate Brevo email announcements with one click',
+        'Track multi-tier task dependencies with block warnings',
+      ],
+      previewStats: [
+        { label: 'Tasks in Progress', val: '18' },
+        { label: 'Meetings Processed', val: '7 Notes' },
+        { label: 'Deadlines Today', val: '3' },
+      ],
+    },
+    TEAM_LEAD: {
+      role: 'Team Lead (Technical / Media / PR)',
+      tagline: 'Sub-team delegation, volunteer tracking, and velocity.',
+      features: [
+        'Match open tasks to volunteers based on declared skills',
+        'Resolve blocked dependencies before deadlines hit',
+        'Review sub-team task completion velocity',
+        'Coordinate shift handovers during live event days',
+      ],
+      previewStats: [
+        { label: 'Assigned Volunteers', val: '14' },
+        { label: 'Team Velocity', val: '92%' },
+        { label: 'Blocked Items', val: '1 Flag' },
+      ],
+    },
+    VOLUNTEER: {
+      role: 'Student Volunteer',
+      tagline: 'Clear responsibilities, schedule clarity, and check-ins.',
+      features: [
+        'Dedicated task inbox with deadline notifications',
+        'One-tap event check-in via web and mobile',
+        'Access event brief, emergency contacts, and maps',
+        'Earn automated volunteer certificates and recognition',
+      ],
+      previewStats: [
+        { label: 'My Tasks', val: '3 Active' },
+        { label: 'Next Shift', val: 'Tomorrow 9 AM' },
+        { label: 'Badges Earned', val: '5' },
+      ],
+    },
   };
 
-  const foundationPillars = [
+  const featureCards = [
     {
-      title: 'FastAPI Backend',
-      desc: 'High performance async Python 3.10 framework with Pydantic v2 schemas and CORS isolation.',
-      icon: Server,
-      badge: 'Active (v1.0)',
-      color: 'emerald',
+      title: 'AI Event Planning',
+      desc: 'Prompt: "Organize a Hackathon". Groq Llama 3.3 automatically generates a multi-phase timeline, sponsor checklist, judge roster, and volunteer requirements.',
+      icon: Sparkles,
+      tag: 'Generative AI',
     },
     {
-      title: 'SQLAlchemy & Alembic',
-      desc: 'Robust schema versioning with automatic migrations and cross-database ORM engine.',
-      icon: Database,
-      badge: health?.database ? `DB: ${health.database}` : 'Connected',
-      color: 'emerald',
+      title: 'Kanban Task Management',
+      desc: 'Interactive boards with Todo, In Progress, and Done. Built-in dependency tracking alerts you when a task is blocked by another uncompleted item.',
+      icon: CheckSquare,
+      tag: 'Core Operations',
     },
     {
-      title: 'JWT Authentication',
-      desc: 'HMAC-SHA256 stateless token lifecycle, bcrypt password hashing, and role validation.',
-      icon: KeyRound,
-      badge: 'Ready',
-      color: 'emerald',
+      title: 'Meeting Intelligence',
+      desc: 'Paste raw, informal meeting minutes. The AI extracts action items, identifies task owners, resolves relative deadlines, and creates real tasks.',
+      icon: FileText,
+      tag: 'NLP Extraction',
     },
     {
-      title: 'React + Vite UI',
-      desc: 'Fast HMR single-page client configured with Tailwind CSS White & Green enterprise design system.',
-      icon: Cpu,
-      badge: 'Running',
-      color: 'emerald',
+      title: 'Volunteer Matchmaking',
+      desc: 'Volunteer profiles store skills, availability calendars, and experience. AI suggests ideal assignments to eliminate team burnout.',
+      icon: Users,
+      tag: 'Resource Engine',
+    },
+    {
+      title: 'Proactive Risk Detection',
+      desc: 'Identifies understaffed shifts, overdue tasks, and sponsor payment delays with human-readable explanations and suggested mitigations.',
+      icon: AlertTriangle,
+      tag: 'Decision Support',
+    },
+    {
+      title: 'Institutional Knowledge (RAG)',
+      desc: 'Upload past budgets, sponsor decks, and faculty permissions. Ask questions like "What was last year\'s catering cost?" and get grounded answers.',
+      icon: BookOpen,
+      tag: 'Knowledge Base',
     },
   ];
 
   return (
-    <div className="space-y-10">
-      {/* Hero Header */}
-      <div className="bg-white rounded-2xl p-8 sm:p-10 border border-slate-200/80 shadow-xs relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
-        
-        <div className="relative z-10 max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100/70 text-emerald-800 border border-emerald-200">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            Phase 1: Project Foundation Ready
-          </div>
-          
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            Centralized AI-Powered Event Operations Platform
+    <div className="space-y-24">
+      {/* Hero Section */}
+      <section className="relative pt-6 pb-12 sm:pb-16 text-center space-y-8">
+        {/* Subtle decorative glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-emerald-100/60 rounded-full blur-3xl pointer-events-none -z-10" />
+
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 text-xs font-semibold text-emerald-800 shadow-2xs">
+          <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Bit N Build'26 Gujarat Round • PS-3</span>
+        </div>
+
+        <div className="max-w-4xl mx-auto space-y-4 px-4">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.15]">
+            The Centralized AI Operating System for <span className="text-emerald-600 underline decoration-emerald-300 decoration-wavy underline-offset-8">Campus Events</span>
           </h1>
-          
-          <p className="text-slate-600 text-base sm:text-lg leading-relaxed">
-            Eliminating fragmented spreadsheets, WhatsApp groups, and lost notes. Built for university clubs to streamline events, volunteers, meeting intelligence, risks, and proactive workflows.
+          <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Eliminate lost WhatsApp messages, scattered spreadsheets, and missed deadlines. ClubOps AI unites planning, meeting intelligence, volunteer matchmaking, and automated risk prevention in one enterprise platform.
           </p>
+        </div>
 
-          <div className="pt-2 flex flex-wrap items-center gap-3">
-            <button
-              onClick={refetch}
-              disabled={loading}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              Verify Backend Health
-            </button>
-            
-            <button
-              onClick={handleTestAuth}
-              disabled={authTesting}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-800 text-sm font-semibold rounded-xl border border-slate-300 shadow-xs transition-all cursor-pointer"
-            >
-              <LogIn className="w-4 h-4 text-emerald-600" />
-              {authTesting ? 'Testing Auth...' : 'Test Foundation JWT Auth'}
-            </button>
-          </div>
+        <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+          <Button
+            size="lg"
+            variant="primary"
+            rightIcon={ArrowRight}
+            onClick={() => navigate('/app')}
+          >
+            Enter Operations Dashboard
+          </Button>
+          <a
+            href="#workflow"
+            className="inline-flex items-center justify-center font-medium rounded-xl transition-all text-base px-5 py-2.5 gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-2xs cursor-pointer"
+          >
+            <Workflow className="w-4 h-4 text-emerald-600" />
+            Explore 8-Step Workflow
+          </a>
+        </div>
 
-          {/* Auth Result Preview */}
-          {authResult && (
-            <div className={`mt-4 p-4 rounded-xl text-xs font-mono border ${authResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'}`}>
-              {authResult.success ? (
-                <div>
-                  <div className="font-bold mb-1 flex items-center gap-1.5 text-emerald-800">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    JWT Foundation Test Passed (Logged in as demo Club President)
-                  </div>
-                  <div className="truncate text-slate-600">
-                    Token: {authResult.token}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 text-rose-800 font-semibold">
-                  <AlertCircle className="w-4 h-4" />
-                  Auth Error: {authResult.error}
-                </div>
-              )}
+        {/* Live Event Operations Simulation Card */}
+        <div className="max-w-4xl mx-auto pt-6 px-4">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden text-left">
+            {/* Window chrome header */}
+            <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-rose-400" />
+                <div className="w-3 h-3 rounded-full bg-amber-400" />
+                <div className="w-3 h-3 rounded-full bg-emerald-400" />
+                <span className="text-xs font-mono text-slate-500 ml-2">
+                  clubops-ai // live-operations-preview
+                </span>
+              </div>
+              <Badge variant="emerald" size="sm" dot pulse>
+                AI Agent Active
+              </Badge>
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* Architecture Foundation Grid */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <Layers className="w-5 h-5 text-emerald-600" />
-            Phase 1 Deliverables & Architecture
+            {/* Mockup Body */}
+            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50/30">
+              <div className="space-y-3">
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  1. Natural Input
+                </div>
+                <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs font-mono text-slate-700 shadow-2xs">
+                  "Organize HackOut 2026. Rahul handles auditorium. Sponsor payment is delayed."
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  Input captured via notes, web app, or meeting transcripts.
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5" /> 2. Groq AI Workflow
+                </div>
+                <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200 text-xs font-mono text-emerald-900 space-y-1 shadow-2xs">
+                  <div>✓ Extracted 4 tasks</div>
+                  <div>✓ Assigned: Rahul Sharma</div>
+                  <div>✓ Deadline: Friday 5:00 PM</div>
+                  <div className="text-amber-700 font-bold">⚠ Risk: Banner blocked</div>
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  Tool calling with zero direct database execution.
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  3. Application Action
+                </div>
+                <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs text-slate-800 space-y-2 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold">Kanban Updated</span>
+                    <Badge variant="success" size="sm">Synced</Badge>
+                  </div>
+                  <div className="text-[11px] text-slate-600">
+                    Audit log recorded #5821. Brevo email notification dispatched to Rahul.
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  rightIcon={ArrowUpRight}
+                  onClick={() => navigate('/app')}
+                >
+                  Inspect in Live Dashboard
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Core Workflow Stepper (8-Step Product Vision) */}
+      <section id="workflow" className="scroll-mt-20 space-y-8">
+        <div className="text-center space-y-3 max-w-3xl mx-auto px-4">
+          <Badge variant="emerald" size="md">
+            Product Vision in Action
+          </Badge>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            The Autonomous Event Operations Pipeline
           </h2>
-          <span className="text-xs text-slate-500 font-medium">All systems initialized</span>
+          <p className="text-sm sm:text-base text-slate-600">
+            From initial meeting notes to real application actions. Click through the 8 stages to see how ClubOps AI automates club execution.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {foundationPillars.map((pillar, idx) => {
-            const Icon = pillar.icon;
+        {/* Stepper Navigation Pills */}
+        <div className="flex items-center justify-start lg:justify-center gap-2 overflow-x-auto pb-4 px-4 scrollbar-none">
+          {workflowSteps.map((step) => (
+            <button
+              key={step.id}
+              onClick={() => setActiveWorkflowStep(step.id)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                activeWorkflowStep === step.id
+                  ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20'
+                  : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
+              }`}
+            >
+              {step.title}
+            </button>
+          ))}
+        </div>
+
+        {/* Active Step Showcase Card */}
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-md p-6 sm:p-8 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">
+                  Stage {activeWorkflowStep + 1} of 8
+                </span>
+                <h3 className="text-xl font-bold text-slate-900 mt-0.5">
+                  {workflowSteps[activeWorkflowStep].title}
+                </h3>
+              </div>
+              <Badge variant="emerald" size="md">
+                {workflowSteps[activeWorkflowStep].badge}
+              </Badge>
+            </div>
+
+            <p className="text-sm text-slate-600 leading-relaxed">
+              {workflowSteps[activeWorkflowStep].desc}
+            </p>
+
+            <div className="bg-slate-50 rounded-xl p-5 border border-slate-200/80 space-y-3 font-mono text-xs">
+              <div className="text-slate-500 font-bold uppercase tracking-wider">Simulation Payload:</div>
+              <div className="p-3 bg-white rounded-lg border border-slate-200 text-slate-800">
+                {workflowSteps[activeWorkflowStep].simulation.input}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div className="p-3 bg-emerald-50/80 rounded-lg border border-emerald-200 text-emerald-900">
+                  <span className="font-bold block mb-1">Workflow State:</span>
+                  {workflowSteps[activeWorkflowStep].simulation.state}
+                </div>
+                <div className="p-3 bg-white rounded-lg border border-slate-200 text-slate-700">
+                  <span className="font-bold block mb-1">Architecture Guarantee:</span>
+                  {workflowSteps[activeWorkflowStep].simulation.highlight}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <button
+                disabled={activeWorkflowStep === 0}
+                onClick={() => setActiveWorkflowStep((prev) => Math.max(0, prev - 1))}
+                className="text-xs font-semibold text-slate-600 hover:text-slate-900 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+              >
+                ← Previous Stage
+              </button>
+              <button
+                disabled={activeWorkflowStep === workflowSteps.length - 1}
+                onClick={() => setActiveWorkflowStep((prev) => Math.min(workflowSteps.length - 1, prev + 1))}
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+              >
+                Next Stage →
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Role-Based Experience Explorer */}
+      <section className="space-y-8">
+        <div className="text-center space-y-3 max-w-3xl mx-auto px-4">
+          <Badge variant="purple" size="md">
+            Role-Based Access & Architecture
+          </Badge>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            Designed for Every Club Member
+          </h2>
+          <p className="text-sm sm:text-base text-slate-600">
+            Tailored interfaces with deny-by-default permissions ensure presidents, organizers, team leads, and volunteers see exactly what they need.
+          </p>
+        </div>
+
+        {/* Role Segmented Tabs */}
+        <div className="flex justify-center px-4">
+          <Tabs
+            tabs={[
+              { id: 'PRESIDENT', label: 'Club President' },
+              { id: 'ORGANIZER', label: 'Event Organizer' },
+              { id: 'TEAM_LEAD', label: 'Team Lead' },
+              { id: 'VOLUNTEER', label: 'Volunteer' },
+            ]}
+            activeTab={activeRolePerspective}
+            onChange={setActiveRolePerspective}
+          />
+        </div>
+
+        {/* Active Role Content Card */}
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">
+                  {rolePerspectives[activeRolePerspective].role}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {rolePerspectives[activeRolePerspective].tagline}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => navigate('/app')}
+              >
+                Launch Role Dashboard
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {rolePerspectives[activeRolePerspective].previewStats.map((st, i) => (
+                <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-200/80">
+                  <div className="text-xs text-slate-500">{st.label}</div>
+                  <div className="text-xl font-bold text-slate-900 mt-1">{st.val}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Core Role Capabilities:
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {rolePerspectives[activeRolePerspective].features.map((feat, idx) => (
+                  <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-700">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span>{feat}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Grid */}
+      <section className="space-y-8">
+        <div className="text-center space-y-3 max-w-3xl mx-auto px-4">
+          <Badge variant="emerald" size="md">
+            Feature Matrix
+          </Badge>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            Engineered for Campus Reliability
+          </h2>
+          <p className="text-sm sm:text-base text-slate-600">
+            A production stack engineered with FastAPI, LangGraph, Groq, and React.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto px-4">
+          {featureCards.map((feat, idx) => {
+            const Icon = feat.icon;
             return (
               <div
                 key={idx}
-                className="bg-white rounded-xl p-5 border border-slate-200 hover:border-emerald-300 shadow-xs hover:shadow-md transition-all space-y-3"
+                className="bg-white rounded-2xl p-6 border border-slate-200/80 hover:border-emerald-300 shadow-2xs hover:shadow-md transition-all space-y-4"
               >
                 <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
                     <Icon className="w-5 h-5" />
                   </div>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    {pillar.badge}
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                    {feat.tag}
                   </span>
                 </div>
-                <h3 className="text-sm font-bold text-slate-900">{pillar.title}</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">{pillar.desc}</p>
+                <h3 className="text-base font-bold text-slate-900">{feat.title}</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">{feat.desc}</p>
               </div>
             );
           })}
         </div>
-      </div>
+      </section>
 
-      {/* System Status Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-            <Workflow className="w-4 h-4 text-emerald-600" />
-            Environment Diagnostics
-          </h3>
-          <span className="text-xs font-mono text-slate-500">FastAPI + Vite</span>
+      {/* CTA Footer Section */}
+      <section className="bg-emerald-900 rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden text-center space-y-6 shadow-xl">
+        <div className="max-w-2xl mx-auto space-y-3">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+            Ready to upgrade your college club operations?
+          </h2>
+          <p className="text-xs sm:text-sm text-emerald-100 leading-relaxed">
+            Experience the complete AI-powered event operations platform. Built for university student councils, technical societies, and cultural clubs.
+          </p>
         </div>
-        <div className="divide-y divide-slate-100 text-xs">
-          <div className="px-6 py-3 flex items-center justify-between">
-            <span className="text-slate-500 font-medium">Backend API Status</span>
-            <span className="font-semibold text-emerald-700 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              {loading ? 'Checking...' : error ? error : `${health?.status || 'Active'} (v${health?.version || '1.0.0'})`}
-            </span>
-          </div>
-          <div className="px-6 py-3 flex items-center justify-between">
-            <span className="text-slate-500 font-medium">Environment Mode</span>
-            <span className="font-mono text-slate-700">{health?.environment || 'development'}</span>
-          </div>
-          <div className="px-6 py-3 flex items-center justify-between">
-            <span className="text-slate-500 font-medium">Database Connection</span>
-            <span className="font-mono text-slate-700">{health?.database || 'connected'}</span>
-          </div>
-          <div className="px-6 py-3 flex items-center justify-between">
-            <span className="text-slate-500 font-medium">Alembic Schema Version</span>
-            <span className="font-mono text-slate-700">8ab69117c370 (initial_foundation)</span>
-          </div>
-          <div className="px-6 py-3 flex items-center justify-between">
-            <span className="text-slate-500 font-medium">Design System Palette</span>
-            <span className="font-semibold text-emerald-700">White & Green Enterprise Theme</span>
-          </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <Button
+            size="lg"
+            variant="secondary"
+            rightIcon={ArrowRight}
+            onClick={() => navigate('/app')}
+          >
+            Launch ClubOps Command Center
+          </Button>
+          <a
+            href="http://127.0.0.1:8000/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center font-medium rounded-xl transition-all text-base px-5 py-2.5 gap-2 bg-emerald-800/80 hover:bg-emerald-800 text-white border border-emerald-700 cursor-pointer"
+          >
+            <Terminal className="w-4 h-4" />
+            Backend API Docs
+          </a>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

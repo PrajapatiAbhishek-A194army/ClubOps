@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     API_V1_STR: str = "/api/v1"
+    HOST: str = "127.0.0.1"
+    PORT: int = 8000
 
     # Security & JWT
     JWT_SECRET: str = "default-insecure-secret-key-change-in-production-32chars"
