@@ -8,6 +8,8 @@ import SignupPage from '../pages/SignupPage';
 import DashboardOverview from '../pages/DashboardOverview';
 import ClubMembersPage from '../pages/ClubMembersPage';
 import ClubSettingsPage from '../pages/ClubSettingsPage';
+import EventsPage from '../pages/EventsPage';
+import EventDetailsPage from '../pages/EventDetailsPage';
 import PlaceholderFeature from '../pages/PlaceholderFeature';
 
 export default function AppRoutes() {
@@ -51,17 +53,16 @@ export default function AppRoutes() {
         path="/app/events"
         element={
           <DashboardShell>
-            <PlaceholderFeature
-              title="Event Management & AI Planner"
-              phase="Phase 4"
-              description="Full lifecycle event creation, budget allocation, timelines, and automated checklist generation via Groq Llama 3.3."
-              capabilities={[
-                'Multi-phase event timeline generation',
-                'Sponsor proposal checklist generator',
-                'Event dashboard with budget tracking',
-                'Faculty approval workflow integration',
-              ]}
-            />
+            <EventsPage />
+          </DashboardShell>
+        }
+      />
+
+      <Route
+        path="/app/events/:eventId"
+        element={
+          <DashboardShell>
+            <EventDetailsPage />
           </DashboardShell>
         }
       />

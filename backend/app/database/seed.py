@@ -8,8 +8,10 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
+from datetime import datetime, timedelta
 from app.database.session import SessionLocal
 from app.models.club import Club, ClubMembership, ClubRole
+from app.models.event import Event, EventStatus, EventType
 from app.models.user import User
 from app.utils.security import get_password_hash
 
@@ -155,6 +157,195 @@ def seed_demo_data():
                 )
                 db.add(membership)
                 print(f"  ✓ Linked {user.full_name} as {role.value} in {club.name} ({dept})")
+
+        # 4. Seed Realistic Events
+        events_to_seed = [
+            {
+                "club": gdsc,
+                "created_by": users_by_email["president@clubops.ai"],
+                "title": "HackOut 2026: 36-Hour National AI Hackathon",
+                "slug": "hackout-2026-national-ai",
+                "description": "Annual flagship hackathon bringing 350+ student developers together to build production AI agents and developer tooling.",
+                "location": "Main Campus Convention Hall & Innovation Center",
+                "event_type": EventType.HACKATHON,
+                "status": EventStatus.ON_TRACK,
+                "start_date": datetime.utcnow() + timedelta(days=18),
+                "end_date": datetime.utcnow() + timedelta(days=20),
+                "budget": 4500.0,
+                "timeline": [
+                    {
+                        "id": "m1",
+                        "title": "Theme Finalization & Problem Statements Released",
+                        "target_date": (datetime.utcnow() - timedelta(days=5)).strftime("%Y-%m-%d"),
+                        "completed": True,
+                        "assigned_to": "Alex President",
+                    },
+                    {
+                        "id": "m2",
+                        "title": "Faculty Advisor & Campus Venue Sanction",
+                        "target_date": (datetime.utcnow() - timedelta(days=2)).strftime("%Y-%m-%d"),
+                        "completed": True,
+                        "assigned_to": "Priya Patel",
+                    },
+                    {
+                        "id": "m3",
+                        "title": "Sponsor Outreach & API Credits Contract",
+                        "target_date": (datetime.utcnow() + timedelta(days=3)).strftime("%Y-%m-%d"),
+                        "completed": False,
+                        "assigned_to": "Aisha Verma",
+                    },
+                    {
+                        "id": "m4",
+                        "title": "Registrations Open & Team Formations",
+                        "target_date": (datetime.utcnow() + timedelta(days=7)).strftime("%Y-%m-%d"),
+                        "completed": False,
+                        "assigned_to": "Rahul Sharma",
+                    },
+                    {
+                        "id": "m5",
+                        "title": "Swag, Food Logistics & Volunteer Shift Briefing",
+                        "target_date": (datetime.utcnow() + timedelta(days=16)).strftime("%Y-%m-%d"),
+                        "completed": False,
+                        "assigned_to": "Kabir Das",
+                    },
+                ],
+                "checklists": {
+                    "sponsor_checklist": [
+                        "Deliverable agreement signed by Cloud partner",
+                        "Keynote slide deck and sponsor banner verified",
+                        "API sandbox access codes tested with student emails",
+                    ],
+                    "judge_checklist": [
+                        "Rubric: Architecture (30%), Impact (30%), Execution (40%)",
+                        "Briefing meeting link dispatched to 6 industry judges",
+                        "Scoreboard live synchronization link prepared",
+                    ],
+                    "volunteer_specs": [
+                        "Registration desk: 4 volunteers (08:00 - 12:00)",
+                        "Server and network room monitoring: 2 volunteers",
+                        "Midnight snack & energy drink distribution: 6 volunteers",
+                    ],
+                },
+            },
+            {
+                "club": gdsc,
+                "created_by": users_by_email["organizer@clubops.ai"],
+                "title": "Cloud Native & Kubernetes Hands-on Bootcamp",
+                "slug": "cloud-native-bootcamp",
+                "description": "Full-day intensive workshop guiding students through containerizing FastAPI applications, microservices, and CI/CD pipelines.",
+                "location": "Computer Center Lab 4",
+                "event_type": EventType.WORKSHOP,
+                "status": EventStatus.PLANNING,
+                "start_date": datetime.utcnow() + timedelta(days=32),
+                "end_date": datetime.utcnow() + timedelta(days=32, hours=8),
+                "budget": 850.0,
+                "timeline": [
+                    {
+                        "id": "m1",
+                        "title": "Lab Reservation & High-Speed Network Sanction",
+                        "target_date": (datetime.utcnow() + timedelta(days=5)).strftime("%Y-%m-%d"),
+                        "completed": True,
+                        "assigned_to": "Priya Patel",
+                    },
+                    {
+                        "id": "m2",
+                        "title": "Docker & Kubernetes Lab Exercises Repo Prepared",
+                        "target_date": (datetime.utcnow() + timedelta(days=14)).strftime("%Y-%m-%d"),
+                        "completed": False,
+                        "assigned_to": "Rahul Sharma",
+                    },
+                    {
+                        "id": "m3",
+                        "title": "Prerequisite Check & Attendance Cap (60 seats)",
+                        "target_date": (datetime.utcnow() + timedelta(days=22)).strftime("%Y-%m-%d"),
+                        "completed": False,
+                        "assigned_to": "Sara Khan",
+                    },
+                ],
+                "checklists": {
+                    "sponsor_checklist": [
+                        "Cloud credits coupon distribution sheet prepared",
+                    ],
+                    "judge_checklist": [],
+                    "volunteer_specs": [
+                        "Lab workstation setup & OS image sanity check: 3 volunteers",
+                        "Attendance badge check & sticker handout: 2 volunteers",
+                    ],
+                },
+            },
+            {
+                "club": clubs_by_code["ras-campus"],
+                "created_by": users_by_email["president@clubops.ai"],
+                "title": "RoboWars 2026: Campus Combat Arena",
+                "slug": "robowars-2026-combat-arena",
+                "description": "High-octane lightweight (15kg & 30kg) combat robotics championship featuring 24 university bot teams.",
+                "location": "University Outdoor Sports Complex",
+                "event_type": EventType.EXPO,
+                "status": EventStatus.AT_RISK,
+                "start_date": datetime.utcnow() + timedelta(days=11),
+                "end_date": datetime.utcnow() + timedelta(days=12),
+                "budget": 6200.0,
+                "timeline": [
+                    {
+                        "id": "m1",
+                        "title": "Polycarbonate Safety Arena Construction",
+                        "target_date": (datetime.utcnow() - timedelta(days=3)).strftime("%Y-%m-%d"),
+                        "completed": True,
+                        "assigned_to": "Alex President",
+                    },
+                    {
+                        "id": "m2",
+                        "title": "Fire Marshall & Safety Hazard Inspection Clearance",
+                        "target_date": (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d"),
+                        "completed": False,
+                        "assigned_to": "Alex President",
+                    },
+                    {
+                        "id": "m3",
+                        "title": "Team Weigh-in & Weapon Failsafe Inspection",
+                        "target_date": (datetime.utcnow() + timedelta(days=7)).strftime("%Y-%m-%d"),
+                        "completed": False,
+                        "assigned_to": "Rahul Sharma",
+                    },
+                ],
+                "checklists": {
+                    "sponsor_checklist": [
+                        "Industrial Hardware tool supplier sponsor banners",
+                    ],
+                    "judge_checklist": [
+                        "Combat scoring guidelines: Aggression, Control, Damage",
+                        "3 Emergency stop switches operational at judge table",
+                    ],
+                    "volunteer_specs": [
+                        "Pit safety marshals: 4 volunteers",
+                        "Arena sweep & debris removal crew: 4 volunteers",
+                    ],
+                },
+            },
+        ]
+
+        for ev in events_to_seed:
+            existing = db.query(Event).filter(Event.club_id == ev["club"].id, Event.slug == ev["slug"]).first()
+            if not existing:
+                event_obj = Event(
+                    club_id=ev["club"].id,
+                    created_by_id=ev["created_by"].id,
+                    title=ev["title"],
+                    slug=ev["slug"],
+                    description=ev["description"],
+                    location=ev["location"],
+                    event_type=ev["event_type"],
+                    status=ev["status"],
+                    start_date=ev["start_date"],
+                    end_date=ev["end_date"],
+                    budget=ev["budget"],
+                    timeline=ev["timeline"],
+                    checklists=ev["checklists"],
+                )
+                db.add(event_obj)
+                print(f"  ✓ Seeded event: {ev['title']} ({ev['status'].value})")
+            else:
+                print(f"  ℹ Event already exists: {ev['title']}")
 
         db.commit()
         print("✅ Demo data successfully seeded into PostgreSQL!")

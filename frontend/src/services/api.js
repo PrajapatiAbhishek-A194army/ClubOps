@@ -75,4 +75,43 @@ export const removeClubMember = async (clubId, membershipId) => {
   return response.data;
 };
 
+// Event Management
+export const getClubEvents = async (clubId, params = {}) => {
+  const response = await api.get(`/clubs/${clubId}/events`, { params });
+  return response.data;
+};
+
+export const createEvent = async (clubId, eventData) => {
+  const response = await api.post(`/clubs/${clubId}/events`, eventData);
+  return response.data;
+};
+
+export const getEventDetails = async (clubId, eventId) => {
+  const response = await api.get(`/clubs/${clubId}/events/${eventId}`);
+  return response.data;
+};
+
+export const updateEvent = async (clubId, eventId, updateData) => {
+  const response = await api.put(`/clubs/${clubId}/events/${eventId}`, updateData);
+  return response.data;
+};
+
+export const toggleMilestone = async (clubId, eventId, milestoneId, completed) => {
+  const response = await api.patch(`/clubs/${clubId}/events/${eventId}/milestones`, {
+    milestone_id: milestoneId,
+    completed,
+  });
+  return response.data;
+};
+
+export const deleteEvent = async (clubId, eventId) => {
+  const response = await api.delete(`/clubs/${clubId}/events/${eventId}`);
+  return response.data;
+};
+
+export const planEventWithAI = async (clubId, planData) => {
+  const response = await api.post(`/clubs/${clubId}/events/plan-ai`, planData);
+  return response.data;
+};
+
 export default api;

@@ -19,16 +19,39 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../co
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { getClubEvents } from '../services/api';
 
 export default function DashboardOverview() {
   const navigate = useNavigate();
+  const { activeClub } = useAuth();
+  const [realEvents, setRealEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
   const [activeTab, setActiveTab] = useState('ALL');
+
+  React.useEffect(() => {
+    if (!activeClub?.id) return;
+    const loadEvents = async () => {
+      try {
+        setLoadingEvents(true);
+        const res = await getClubEvents(activeClub.id);
+        if (res.success && res.data) {
+          setRealEvents(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to load dashboard events:', err);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+    loadEvents();
+  }, [activeClub?.id]);
 
   const stats = [
     {
       title: 'Active Events',
-      value: '3',
-      change: '+1 from last month',
+      value: realEvents.length > 0 ? String(realEvents.length) : '3',
+      change: 'Synced with campus database',
       icon: Calendar,
       variant: 'emerald',
     },
@@ -185,47 +208,64 @@ export default function DashboardOverview() {
           </div>
 
           <div className="space-y-3">
-            {activeEvents.map((event) => (
-              <Card key={event.id} hover className="p-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold text-slate-900">{event.title}</h3>
-                      <Badge
-                        variant={
-                          event.status === 'ON_TRACK'
-                            ? 'success'
-                            : event.status === 'AT_RISK'
-                            ? 'warning'
-                            : 'neutral'
-                        }
-                        size="sm"
-                        dot
-                      >
-                        {event.status.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {event.date} • {event.lead}
-                    </p>
-                  </div>
-                  <div className="text-right sm:text-right">
-                    <span className="text-xs font-bold text-slate-900">{event.progress}%</span>
-                    <span className="text-[11px] text-slate-400 block">{event.tasksRemaining} tasks remaining</span>
-                  </div>
-                </div>
+            {(realEvents.length > 0 ? realEvents : activeEvents).map((event) => {
+              const isReal = !!event.created_at || !!event.club_id;
+              const formattedDate = isReal
+                ? new Date(event.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                : event.date;
+              const leadText = isReal ? event.location : event.lead;
+              const progressPct = isReal ? event.progress_percent : event.progress;
+              const remainingText = isReal
+                ? `${event.timeline?.filter((m) => !m.completed).length || 0} milestones pending`
+                : `${event.tasksRemaining} tasks remaining`;
 
-                {/* Progress bar */}
-                <div className="mt-3 w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      event.status === 'AT_RISK' ? 'bg-amber-500' : 'bg-emerald-600'
-                    }`}
-                    style={{ width: `${event.progress}%` }}
-                  />
-                </div>
-              </Card>
-            ))}
+              return (
+                <Card
+                  key={event.id}
+                  hover
+                  onClick={() => isReal && navigate(`/app/events/${event.id}`)}
+                  className={`p-5 transition-all ${isReal ? 'cursor-pointer hover:border-emerald-300' : ''}`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-slate-900">{event.title}</h3>
+                        <Badge
+                          variant={
+                            event.status === 'ON_TRACK'
+                              ? 'success'
+                              : event.status === 'AT_RISK'
+                              ? 'warning'
+                              : 'neutral'
+                          }
+                          size="sm"
+                          dot
+                        >
+                          {event.status.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {formattedDate} • {leadText}
+                      </p>
+                    </div>
+                    <div className="text-right sm:text-right">
+                      <span className="text-xs font-bold text-slate-900">{progressPct}%</span>
+                      <span className="text-[11px] text-slate-400 block">{remainingText}</span>
+                    </div>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="mt-3 w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        event.status === 'AT_RISK' ? 'bg-amber-500' : 'bg-emerald-600'
+                      }`}
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+                </Card>
+              );
+            })}
           </div>
         </div>
 
