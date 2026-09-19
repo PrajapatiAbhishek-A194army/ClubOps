@@ -337,5 +337,21 @@ export const deleteAnnouncement = async (clubId, announcementId) => {
   return response.data;
 };
 
+// Role-Based Dashboards Suite
+export const getDashboardMetrics = async (clubId, perspective = 'PRESIDENT') => {
+  const response = await api.get(`/clubs/${clubId}/dashboard`, {
+    params: { perspective },
+  });
+  return response.data;
+};
+
+export const volunteerCheckIn = async (clubId, status = 'CHECKED_IN', eventId = null) => {
+  const response = await api.post(`/clubs/${clubId}/dashboard/check-in`, {
+    status,
+    event_id: eventId,
+  });
+  return response.data;
+};
+
 export default api;
 
