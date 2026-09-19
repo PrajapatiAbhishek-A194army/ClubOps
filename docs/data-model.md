@@ -220,35 +220,55 @@ Detected operational risk.
 - `resolved_at`: DateTime, Nullable=True
 
 ### 17. Announcement
-Broadcast communications to club members.
+Broadcast communications to club members and external channels.
 - `id`: UUID (String 36), Primary Key
-- `club_id`: Foreign Key -> `Club.id`
-- `event_id`: Foreign Key -> `Event.id`, Nullable=True
+- `club_id`: Foreign Key -> `Club.id`, Index=True
+- `event_id`: Foreign Key -> `Event.id`, Nullable=True, Index=True
+- `creator_id`: Foreign Key -> `User.id`
 - `title`: String (255), Nullable=False
 - `content`: Text, Nullable=False
-- `created_by_id`: Foreign Key -> `User.id`
-- `created_source`: Enum (`MANUAL`, `AI_DRAFTED`), Default=`MANUAL`
-- `status`: Enum (`DRAFT`, `PUBLISHED`), Default=`DRAFT`
+- `category`: Enum (`REGISTRATION_REMINDER`, `VENUE_UPDATE`, `SCHEDULE_CHANGE`, `CALL_FOR_VOLUNTEERS`, `EMERGENCY_NOTICE`, `GENERAL_UPDATE`, `COMPLETION_MESSAGE`)
+- `tone`: Enum (`URGENT`, `CASUAL`, `PROFESSIONAL`, `ENTHUSIASTIC`, `FORMAL`)
+- `target_channel`: Enum (`ALL`, `EMAIL`, `IN_APP`, `WHATSAPP`, `PORTAL`)
+- `status`: Enum (`DRAFT`, `SCHEDULED`, `PUBLISHED`, `CANCELLED`)
+- `scheduled_for`: DateTime, Nullable=True
 - `published_at`: DateTime, Nullable=True
+- `created_source`: Enum (`MANUAL`, `AI_DRAFTED`)
+- `created_at`: DateTime
 
 ### 18. Notification
-Multi-channel notification alerts.
+Multi-channel in-app and dispatch alerts.
 - `id`: UUID (String 36), Primary Key
-- `user_id`: Foreign Key -> `User.id`
+- `user_id`: Foreign Key -> `User.id`, Index=True
 - `title`: String (255), Nullable=False
 - `message`: Text, Nullable=False
-- `type`: Enum (`EVENT_CREATED`, `TASK_ASSIGNED`, `RISK_ALERT`, `SYSTEM`)
+- `type`: Enum (`EVENT_CREATED`, `TASK_ASSIGNED`, `RISK_ALERT`, `ANNOUNCEMENT_BROADCAST`, `SYSTEM`)
 - `is_read`: Boolean, Default=False
 - `link_url`: String (255), Nullable=True
 - `created_at`: DateTime
 
-### 19. AuditLog
-Tamper-resistant audit trail.
+### 19. ChatMessage
+Real-time operations collaboration log.
 - `id`: UUID (String 36), Primary Key
-- `actor_user_id`: Foreign Key -> `User.id`, Nullable=True
-- `action`: String (100), Nullable=False
-- `entity_type`: String (50), Nullable=False
+- `club_id`: Foreign Key -> `Club.id`, Index=True
+- `sender_id`: Foreign Key -> `User.id`, Index=True
+- `channel`: String (64), Default="general", Index=True (`#general`, `#operations`, `#emergencies`, `#announcements`)
+- `content`: Text, Nullable=False
+- `message_type`: Enum (`CHAT`, `ANNOUNCEMENT`, `ACTIVITY_TICKER`, `SYSTEM_ALERT`)
+- `created_at`: DateTime, Index=True
+
+### 20. AuditLog
+Cryptographically chained immutable audit record.
+- `id`: UUID (String 36), Primary Key
+- `club_id`: Foreign Key -> `Club.id`, Nullable=True, Index=True
+- `actor_id`: Foreign Key -> `User.id`, Nullable=True, Index=True
+- `actor_role`: String (50), Nullable=True
+- `action`: String (100), Nullable=False, Index=True
+- `entity_type`: String (50), Nullable=False, Index=True
 - `entity_id`: String (36), Nullable=False
-- `source`: Enum (`HUMAN`, `AI`, `RULE_ENGINE`)
-- `metadata_json`: JSON, Default=dict
-- `created_at`: DateTime
+- `source`: Enum (`HUMAN`, `AI_TOOL`, `SYSTEM`, `RULE_ENGINE`)
+- `result`: Enum (`SUCCESS`, `FAILED`, `DENIED`, `WARNING`)
+- `diff_payload`: JSON, State before/after diff
+- `prev_hash`: String (64), SHA-256 hash of preceding entry (`0` * 64 for Genesis)
+- `integrity_hash`: String (64), SHA-256 canonical hash of current entry
+- `created_at`: DateTime, Index=True

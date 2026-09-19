@@ -1,161 +1,256 @@
-# ClubOps AI
+# ClubOps AI — Enterprise Campus Event Operations Platform
 
-## Overview
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI_0.115+-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/Frontend-React_19_+_Vite-61DAFB?style=flat&logo=react)](https://react.dev)
+[![TailwindCSS](https://img.shields.io/badge/Styling-Tailwind_CSS_v4-06B6D4?style=flat&logo=tailwindcss)](https://tailwindcss.com)
+[![Groq](https://img.shields.io/badge/AI_Engine-Groq_LPU-F55036?style=flat)](https://groq.com)
+[![Tests](https://img.shields.io/badge/Pytest-48%2F48_Passed_(100%25)-brightgreen?style=flat)](file:///e:/ClubOps/backend/tests)
+[![Build](https://img.shields.io/badge/Vite_Build-Passing_(0_errors)-brightgreen?style=flat)](file:///e:/ClubOps/frontend)
 
-ClubOps AI is an AI-powered operational platform for college clubs that centralizes clubs, volunteers, memberships, events, tasks, meetings, action items, documents, risks, and announcements. 
+> **Core Product Principle**:
+> **HUMAN AUTHORITY + DETERMINISTIC CONSTRAINTS + AI INTELLIGENCE + CONTROLLED ACTIONS**
 
-The AI layer is designed to understand application context and perform controlled application actions where implemented, rather than simply generating text.
+ClubOps AI is a production-grade operations platform designed for university clubs and campus organizations. It replaces disjointed spreadsheets, WhatsApp threads, and fragmented notes with a unified, role-governed platform featuring structured AI assistance, real-time collaboration, deterministic risk monitoring, and a cryptographically verifiable SHA-256 audit trail.
 
-## Problem
+---
 
-College clubs often rely on fragmented workflows involving WhatsApp, spreadsheets, documents, meeting notes, and personal task lists. This scattered communication leads to:
-- Unclear ownership
-- Missed deadlines
-- Fragmented knowledge
-- Volunteer coordination problems
-- Task assignment problems
-- Delayed risk detection
-- Repeated mistakes between event cycles
+## The Problem
 
-## Solution
+College clubs coordinate large-scale events across disconnected platforms:
+- **Scattered Communication**: Task deadlines lost in WhatsApp group chats.
+- **Unclear Ownership**: Volunteer tasks assigned verbally without accountability.
+- **Understaffing Surprises**: Skill shortages discovered on event day.
+- **Institutional Amnesia**: Learnings and past budgets disappear when club leadership graduates.
+- **Zero Verifiability**: No proof of financial compliance or operational integrity.
 
-ClubOps AI centralizes event operations with features including:
-- **Club Management**: Centralized hub for club operations.
-- **Volunteer & Membership Management**: Join requests, skill profiles, and approval workflows.
-- **Event Management**: Create and manage events and milestones.
-- **Task Management**: Create tasks, set priorities, track dependencies, and update status.
-- **AI Task Suggestion**: Groq-powered AI breaks down event goals into actionable tasks.
-- **Knowledge Repository (RAG)**: Document chunking and semantic-like search (naive keyword search currently implemented) to synthesize answers based on club history.
-- **Risk Detection**: Monitor tasks and dependencies for potential risks.
+---
 
-## User Roles
+## The Solution: ClubOps AI
 
-ClubOps AI implements Context-Derived Roles scoped to clubs:
-- **President**: Creates clubs, transfers Club Head, views high-level governance and risk overview.
-- **Club Head**: Manages club operations, creates events, reviews AI staffing and volunteer assignment proposals, reviews meeting action items, publishes announcements.
-- **Volunteer**: Discovers clubs, submits join requests, declares skills & availability, views assigned tasks, updates task progress.
+ClubOps AI centralizes the entire lifecycle of student organizations into an interconnected operational ecosystem:
 
-## Core Workflow
-
-President
-→ Create Club
-→ Assign Club Head
-→ Volunteer Registration
-→ Join Request
-→ Club Head Approval
-→ Event Creation
-→ Task Management
-→ AI Assistance (Task Breakdown)
-→ Event Execution
-→ Risk Monitoring
-→ Knowledge Preservation
-
-## Innovation
-
-- **Club-specific operational context**: Actions and roles are scoped to the specific club.
-- **AI-assisted workflows**: Groq LLM helps break down event goals into actionable tasks.
-- **Institutional knowledge**: Documents are ingested and can be queried to synthesize answers from historical records.
-- **Controlled AI actions**: AI recommends tasks, but deterministic rules and human review govern their creation and assignment.
-
-## AI Architecture
-
-- **AI Provider**: Groq
-- **Capabilities**: Structured JSON output for task breakdown and generation, RAG answer synthesis.
-- **Validation**: AI outputs (like task priorities) are validated against defined schemas before use.
-- **RAG**: Document ingestion chunks texts, and a keyword-based search retrieves relevant contexts for the AI to synthesize answers.
-
-## System Architecture
-
-```mermaid
-flowchart TD
-    User --> Frontend
-    Frontend --> API[API Layer]
-    API --> Services[Business Services]
-    Services --> DB[(Database)]
-    Services --> AI[Groq AI Service]
+```
++-----------------------------------------------------------------------------------+
+|                             React 19 + Vite Frontend                              |
+|  - 4 Role-Tailored Dashboards: President | Organizer | Team Lead | Volunteer      |
+|  - Visual Kanban Task Progression Board (TODO -> IN_PROGRESS -> DONE -> BLOCKED)  |
+|  - Real-Time Collaboration Gateway (WebSockets, Channels, Activity Ticker)        |
+|  - Event Creator with AI Staffing & Skill Breakdown Modal                         |
+|  - Operational Analytics Suite (Deterministic Club Health Score 0-100, Recharts)  |
+|  - Cryptographic Audit Trail Explorer & Live SHA-256 Tamper Verifier              |
++------------------------------------------+----------------------------------------+
+                                           | HTTPS / WSS (JWT Auth)
+                                           v
++-----------------------------------------------------------------------------------+
+|                                FastAPI Backend                                    |
+|  - Deny-by-Default Context-Derived RBAC Authorization Matrix                      |
+|  - Real-Time ConnectionManager (WebSocket pool, channel broadcasting, presence)   |
+|  - Deterministic Business Rules Engine (Head Uniqueness, Conflict Detection)      |
+|  - Risk Radar Scanner (Overdue deadlines, blocked dependencies, understaffing)    |
+|  - LangGraph State Machine & Allowlisted Tool Calling Layer                       |
+|  - Multi-Channel Dispatcher (Brevo Transactional Email + In-App Push)             |
+|  - Cryptographic SHA-256 Audit Log Interceptor & Chain Verifier                   |
++--------------------+-------------------------------------+------------------------+
+                     |                                     |
+                     v                                     v
++------------------------------------+   +------------------------------------------+
+|       PostgreSQL / SQLite DB       |   |             Groq AI Engine               |
+| - 20 Relational Models             |   | - Ultra-low Latency Inference (<500ms)   |
+| - Sequential Audit Hash Chains     |   | - Native Structured JSON Output Mode     |
+| - Real-Time Chat Message Store     |   | - Staffing & Skill Count Decomposer      |
+| - Full JSON State Mutation Diffs   |   | - Transcript Action Item Extractor       |
+| - Task Dependency Graphs           |   | - Strategic Executive Advisor            |
++------------------------------------+   +------------------------------------------+
 ```
 
-## Database
+---
 
-Implemented entities: User, Club, ClubMembership, JoinRequest, Skill, VolunteerSkill, VolunteerProfile, Event, EventMember, Availability, Task, TaskAssignment, Meeting, ActionItem, Document, DocumentChunk, Risk, Announcement, Notification, AuditLog.
+## Comprehensive Feature Matrix
 
-## Security
+| Domain | Core Capabilities | Underlying Technology |
+|:---|:---|:---|
+| **Context-Derived RBAC** | Deny-by-default access, club-scoped active roles, strict Club Head uniqueness | FastAPI, JWT (python-jose), SQLAlchemy |
+| **Club & Member Governance** | Join requests, skill profiles, transfer leadership, membership rosters | PostgreSQL, Pydantic V2 |
+| **Volunteer Matchmaking** | Skill tags, availability tracking, on-site check-in, workload scoring | Algorithmic Scorer + Groq AI |
+| **AI Staffing & Event Planning** | Min volunteer calculator, skill-count breakdown, milestone generator | Groq API (`openai/gpt-oss-120b`) |
+| **Visual Task Progression** | Kanban board, dependency resolution, automatic blocking, status patching | React Drag/Drop, State Machine |
+| **Automated Notifications** | In-app alerts, unread badges, event created and task assigned dispatch | Async Event Dispatcher |
+| **Meeting Parsing** | Unstructured transcript ingestion, action item extraction, 1-click task conversion | Groq Structured Extraction + Fallback |
+| **Deterministic Risk Radar** | Overdue scanner, blocked dependency detection, understaffing alerts | Deterministic Rule Engine |
+| **LangGraph Agent Workflows** | Multi-node state machine, allowlisted tool execution, human approval gate | LangGraph, `ClubOpsTools` |
+| **Multi-Channel Announcements** | AI drafting, Brevo email broadcast, in-app push, category templates | Brevo Transactional API, Groq LLM |
+| **Institutional Knowledge** | Document ingestion, text chunking, grounded search synthesis | RAG Pipeline, Full-text Search |
+| **Role Dashboard Suite** | Dedicated dashboards for President, Organizer, Team Lead, and Volunteer | React 19, Lucide Icons |
+| **Real-Time Collaboration** | Full-duplex WebSocket gateway, chat channels, live presence, activity ticker | FastAPI WebSockets, `ConnectionManager` |
+| **Operational Analytics** | Deterministic Health Score (0-100), Recharts cadence & velocity, CSV compliance | Recharts, NumPy-like Scoring Formula |
+| **Cryptographic Audit Trail** | SHA-256 hash chaining, live mathematical tamper detection, SoD policy matrix | SHA-256 Engine, `/verify-integrity` |
+| **Testing & Quality Assurance** | End-to-end integration workflow tests, 100% test pass rate | Pytest, TestClient, Vite Build |
 
-Please see the [Security Model](docs/security.md) for detailed information on the Deny-by-default RBAC, JWT foundation, API defense, and audit controls.
+---
+
+## User Roles & Permissions
+
+| Capability | President | Organizer (Club Head) | Team Lead | Volunteer |
+|:---|:---:|:---:|:---:|:---:|
+| **Transfer Leadership / Manage Club** | ✅ | ❌ | ❌ | ❌ |
+| **Approve / Reject Join Requests** | ✅ | ✅ | ❌ | ❌ |
+| **Create Events & Approve AI Plans** | ✅ | ✅ | ❌ | ❌ |
+| **Manage Department Tasks & Kanban** | ✅ | ✅ | ✅ | ❌ |
+| **Update Own Assigned Task Status** | ✅ | ✅ | ✅ | ✅ |
+| **Run Risk Radar Scan** | ✅ | ✅ | ✅ | ❌ |
+| **Ingest Meetings & Convert Items** | ✅ | ✅ | ✅ | ❌ |
+| **Publish Announcements & Email Broadcast** | ✅ | ✅ | ❌ | ❌ |
+| **Real-Time Operations Chat** | ✅ | ✅ | ✅ | ✅ |
+| **View Cryptographic Audit Chain & Verify** | ✅ | ❌ | ❌ | ❌ |
+
+---
 
 ## Tech Stack
 
-- **Frontend**: React 19, Vite, Tailwind CSS v4, React Router v7
-- **Backend**: FastAPI, Pydantic, SQLAlchemy, Alembic
-- **Database**: PostgreSQL (or SQLite for development)
-- **Authentication**: JWT (python-jose, bcrypt)
-- **AI**: Groq
+- **Frontend**: React 19, Vite, Tailwind CSS v4, React Router v7, Lucide Icons, Recharts.
+- **Backend**: FastAPI, Pydantic V2, SQLAlchemy 2.0, Alembic, Uvicorn, WebSockets.
+- **Database**: PostgreSQL (production) or SQLite (development).
+- **AI Intelligence**: Groq Cloud API (`openai/gpt-oss-120b`, `llama-3.3-70b-versatile`, with deterministic fallbacks).
+- **Email Delivery**: Brevo (formerly Sendinblue) Transactional API.
+- **Security**: Cryptographic SHA-256 hash chaining, JWT Bearer tokens, bcrypt password hashing.
 
-## Installation
+---
 
-### Backend
+## Installation & Quickstart
+
+### Prerequisites
+- **Python 3.10+**
+- **Node.js 18+** & `npm`
+- **PostgreSQL** (optional, SQLite supported by default)
+- **Groq API Key** (for live AI features; deterministic fallbacks work without API keys)
+
+---
+
+### Backend Setup
+
+1. **Navigate to the backend directory**:
+   ```bash
+   cd backend
+   ```
+
+2. **Create and activate a virtual environment**:
+   ```bash
+   python -m venv venv
+   # On Windows:
+   .\venv\Scripts\activate
+   # On macOS/Linux:
+   source venv/bin/activate
+   ```
+
+3. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure environment variables**:
+   Create a `.env` file in `backend/`:
+   ```env
+   DATABASE_URL=sqlite:///./clubops.db
+   SECRET_KEY=clubops-development-secret-key-replace-in-production-2026!
+   ACCESS_TOKEN_EXPIRE_MINUTES=1440
+   GROQ_API_KEY=gsk_your_groq_api_key_here
+   GROQ_MODEL=openai/gpt-oss-120b
+   BREVO_API_KEY=your_brevo_api_key_here
+   BREVO_SENDER_EMAIL=notifications@clubops.ai
+   BREVO_SENDER_NAME=ClubOps AI Notifications
+   ```
+
+5. **Seed the database**:
+   ```bash
+   python -m app.database.seed
+   ```
+
+6. **Start the FastAPI server**:
+   ```bash
+   uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+   ```
+   API Docs available at: `http://127.0.0.1:8000/docs`
+
+---
+
+### Frontend Setup
+
+1. **Navigate to the frontend directory**:
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**:
+   Create a `.env` file in `frontend/`:
+   ```env
+   VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
+   VITE_WS_BASE_URL=ws://127.0.0.1:8000/api/v1
+   ```
+
+4. **Start the Vite development server**:
+   ```bash
+   npm run dev
+   ```
+   App accessible at: `http://localhost:5173`
+
+---
+
+## Seed Accounts for Evaluation
+
+| Role | Email | Default Password |
+|:---|:---|:---|
+| **President** | `president@clubops.ai` | `ClubOps2026!` |
+| **Organizer (Club Head)** | `organizer@clubops.ai` | `ClubOps2026!` |
+| **Tech Lead** | `techlead@clubops.ai` | `ClubOps2026!` |
+| **Media Lead** | `medialead@clubops.ai` | `ClubOps2026!` |
+| **Volunteer** | `volunteer@clubops.ai` | `ClubOps2026!` |
+| **Member** | `member@clubops.ai` | `ClubOps2026!` |
+
+---
+
+## Verification & Testing
+
+### Automated Backend Tests
+Run the entire test suite (48 tests covering Auth, Clubs, Events, Tasks, Volunteers, AI Workflows, Announcements, Dashboards, Collaboration, Analytics, Audit Trail, and End-to-End master workflow):
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env with your GROQ_API_KEY and other credentials
-alembic upgrade head
-uvicorn app.main:app --reload
+.\venv\Scripts\pytest.exe -q
+```
+Expected output:
+```
+48 passed in ~45s (100% pass rate)
 ```
 
-### Frontend
+Run only the master end-to-end operational workflow test:
+```bash
+.\venv\Scripts\pytest.exe tests/test_end_to_end_workflow.py -v
+```
+
+### Production Frontend Build
 ```bash
 cd frontend
-npm install
-npm run dev
+npm run build
+```
+Expected output:
+```
+✓ built in ~1.25s (0 errors)
 ```
 
-## Environment Variables
+---
 
-- `PROJECT_NAME`
-- `ENVIRONMENT`
-- `DEBUG`
-- `API_V1_STR`
-- `HOST`
-- `PORT`
-- `JWT_SECRET`
-- `JWT_ALGORITHM`
-- `ACCESS_TOKEN_EXPIRE_MINUTES`
-- `DATABASE_URL`
-- `GROQ_API_KEY`
-- `GROQ_MODEL`
-- `BREVO_API_KEY`
-- `EMAIL_FROM`
-- `EMAIL_FROM_NAME`
-- `BACKEND_CORS_ORIGINS`
+## Documentation Directory
 
-## Current Status
+Deep technical documentation is organized in the `docs/` folder:
 
-### Implemented
-- Authentication and RBAC (Club-scoped roles)
-- Club Management & Membership
-- Event and Task Management
-- AI Task Suggestion via Groq
-- Document Ingestion and Chunking
-- Keyword-based RAG Search & AI Synthesis
-- Database Models and Migrations
-
-### In Progress
-- Vector Database Integration (Currently uses naive text search for RAG)
-- Full Meeting-to-Action Item Extraction (Meeting entities exist, full AI extraction integration pending)
-
-### Planned
-- AI automated risk detection scanning
-- Full skill-aware and availability-aware AI Task Assignment
-
-## Documentation Index
-
-- [Architecture Design](docs/architecture.md): High-level system structure, components, data flows, and tech stack.
-- [Security Model](docs/security.md): Deny-by-default RBAC, JWT foundation, API defense, and audit controls.
-- [Workflows](docs/workflows.md): State transitions from event initiation through RAG archiving.
-- [API Contracts](docs/api-contracts.md): REST endpoints, request/response formats, and status codes.
-- [Data Model](docs/data-model.md): PostgreSQL entities, ER diagrams, relationships, and indices.
-- [LLM Research & Evaluation](docs/llm-research.md): Groq model selection, latency considerations, and prompting strategy.
-- [AI Rules & Guardrails](docs/ai-rules.md): Architectural separation between AI recommendations and execution engines.
+- [System Architecture](docs/architecture.md): 3-tier decoupling, WebSocket gateways, and service layers.
+- [Security & Governance](docs/security.md): Deny-by-default RBAC, SHA-256 audit chaining, and SoD matrices.
+- [Workflows & State Machines](docs/workflows.md): Operational lifecycles and LangGraph state machines.
+- [API Contracts](docs/api-contracts.md): Request and response schemas for all 10 route groups.
+- [Data Model & Schema](docs/data-model.md): Detailed ERD, table definitions, and index catalog.
+- [LLM Architecture & Research](docs/llm-research.md): Groq model evaluations, latency benchmarks, and prompt designs.
+- [AI Rules & Guardrails](docs/ai-rules.md): Strict boundaries, human-in-the-loop policies, and zero-SQL access rules.

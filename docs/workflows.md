@@ -1,45 +1,59 @@
-# Workflows, State Machines & Lifecycles
+# Workflows, State Machines & LangGraph Orchestration
 
-## 1. Event Creation & AI Staffing Estimator Workflow
+ClubOps AI coordinates multi-step operational workflows using structured state machines, LangGraph orchestration, deterministic constraint engines, and mandatory human review gates.
 
-When a Club Head initiates an event, the system transitions from unstructured intent into verifiable operational structure:
+---
 
-```
-[ Event Form Submitted ]
-          ↓
-[ Event Draft Persisted in Database ]
-          ↓
-[ AI Staffing Agent Decomposes Scope ]
-          ↓
-[ Generates:
-  - Minimum Volunteers Required (e.g. 8)
-  - Skill Count Breakdown (e.g. 3 Power BI, 2 Audio/Visual, 2 Logistics)
-  - Milestone Tasks with Deadlines ]
-          ↓
-[ Deterministic Constraint Engine Matches Candidates ]
-  - Checks Club Membership & Event Roster
-  - Filters by Skill & Proficiency
-  - Verifies Calendar Availability
-  - Enforces Zero Scheduling Overlaps & Workload Limits
-          ↓
-[ Club Head Reviews & Adjusts Recommendations ]
-          ↓
-[ APPROVAL BY CLUB HEAD ]
-          ↓
-[ Database Transaction Commits Tasks & TaskAssignments ]
-          ↓
-[ Notification Dispatcher Triggers:
-  1. Event Created Notification to all Club Volunteers
-  2. Task Assigned Notification to each Assigned Volunteer ]
-          ↓
-[ Event Status Transitions to PLANNED ]
+## 1. Master Operational Lifecycle
+
+The operational lifecycle connects campus intent to cryptographic audit verification:
+
+```mermaid
+flowchart TD
+    A[Event Inception & Scope Input] --> B[AI Staffing & Skill Breakdown]
+    B --> C[Human Review & Approval Gate]
+    C --> D[Task Decomposition & Dependency Mapping]
+    D --> E[Smart Volunteer Matchmaking]
+    E --> F[Visual Kanban Execution]
+    F --> G[Real-Time Collaboration & WebSockets]
+    G --> H[Deterministic Risk Radar Monitoring]
+    H --> I[Meeting Ingestion & Action Item Parsing]
+    I --> J[Multi-Channel Announcement Broadcast]
+    J --> K[Deterministic Club Health Analytics]
+    K --> L[Cryptographic SHA-256 Audit Trail]
 ```
 
 ---
 
-## 2. Visual Task Progression & Kanban Workflow
+## 2. LangGraph Agent Workflow Architecture
 
-Tasks advance visibly through four standard states:
+The AI layer executes within a controlled LangGraph workflow pipeline defined by explicit state transitions and schema validation:
+
+```mermaid
+stateDiagram-v2
+    [*] --> ParseIntent
+    ParseIntent --> PlanEvent: Scope Validated
+    PlanEvent --> DecomposeTasks: Milestones Formulated
+    DecomposeTasks --> MatchVolunteers: Tasks Generated
+    MatchVolunteers --> RiskAnalysis: Candidates Scored
+    RiskAnalysis --> HumanApproval: Risks Identified
+    HumanApproval --> ExecuteActions: Approved by Officer
+    HumanApproval --> PlanEvent: Changes Requested
+    ExecuteActions --> [*]: State Committed & Logged
+```
+
+### Workflow Nodes & Responsibilities
+1. **`parse_intent`**: Normalizes raw user prompts or unstructured meeting transcripts into structured operational objectives.
+2. **`plan_event`**: Calculates event scale, duration, and minimum volunteer quotas.
+3. **`decompose_tasks`**: Deconstructs high-level goals into 4–6 actionable tasks with dependency relationships and deadlines.
+4. **`match_volunteers`**: Evaluates active club roster for skill compatibility and availability without scheduling conflicts.
+5. **`risk_analysis`**: Deterministically checks for dependency bottlenecks, timeline tightness, and understaffed roles.
+6. **`human_approval`**: Halts automatic execution; presents proposals to the Officer for review, modification, or rejection.
+7. **`execute_actions`**: Invokes allowlisted backend tools (`create_task`, `assign_volunteer`, `dispatch_notification`) inside an atomic database transaction.
+
+---
+
+## 3. Visual Task Progression & Kanban State Machine
 
 ```
 +------------+       Start Work       +-----------------+
@@ -49,96 +63,57 @@ Tasks advance visibly through four standard states:
       | Blocked by Dep / Risk                  | Deliverable Completed
       v                                        v
 +------------+                        +-----------------+
-|  BLOCKED   | <--------------------- |    COMPLETED    |
+|  BLOCKED   | <--------------------- |      DONE       |
 +------------+   Dependency Re-opened +-----------------+
 ```
 
-- **TODO**: Task registered with assigned volunteer and due date. Volunteer receives an in-app and email alert.
-- **IN_PROGRESS**: Volunteer marks work as active. Dashboard computes active workload load.
-- **BLOCKED**: Automatically flagged if an upstream dependency is incomplete or high-severity risk is registered.
-- **COMPLETED**: Volunteer or Club Head verifies completion. Clears downstream dependencies and updates overall event completion percentage.
+- **TODO**: Task initialized with assigned volunteer, priority, and due date.
+- **IN_PROGRESS**: Volunteer actively working. Workload counters update in real time.
+- **BLOCKED**: Task has incomplete upstream prerequisites or active critical risks. Status patches prevent premature completion.
+- **DONE**: Deliverables verified. Automatically unblocks downstream dependent tasks.
 
 ---
 
-## 3. Automated Notification Lifecycle
+## 4. Multi-Channel Announcement Lifecycle
 
 ```
-Event / Task / Risk Trigger
-           ↓
-[ Notification Service Interceptor ]
-           ↓
-[ Determine Target Audience ]
-  ├── Event Created  → All active volunteers in club
-  ├── Task Assigned  → Individual assigned volunteer
-  └── Risk Detected  → Club Head, President, and Task Assignee
-           ↓
-[ Database Insert: Notification Table (Unread) ]
-           ↓
-[ Dispatch Channel Handlers ]
-  ├── In-App Notification Center (Real-time badge counter)
-  └── Outbox Logger / Brevo Transactional Email Simulation
-```
-
----
-
-## 4. Volunteer Join Request Lifecycle
-
-```
-[ Volunteer Submits Join Request ]
-           ↓
-[ JoinRequest Status: PENDING ]
-           ↓
-[ Club Head Reviews Request & Profile ]
-           ↓
-     +-----+-----+
-     |           |
- [ APPROVE ]  [ REJECT ]
-     |           |
-     v           v
-[ DB Transaction:                   [ JoinRequest Status: REJECTED ]
-  1. Set JoinRequest: APPROVED
-  2. Insert ClubMembership (VOLUNTEER)
-  3. Emit Audit Log ]
+[ Officer Drafts Topic & Audience ]
+              ↓
+[ AI Draft Generation Engine ]
+  - Formats content for target channel (Email / In-App / WhatsApp)
+  - Generates clear Call-to-Action (CTA) and subject line
+              ↓
+[ Draft Stored (Status: DRAFT) ]
+              ↓
+[ Officer Review & Edits ]
+              ↓
+[ Officer Invokes /publish ]
+              ↓
+[ Multi-Channel Dispatch ]
+  ├── Brevo API: Transactional Email Broadcast
+  ├── Database: In-App Notification Records Created
+  └── WebSocket Gateway: Real-Time Event Ticker Ping
+              ↓
+[ Status Transitions to PUBLISHED ]
 ```
 
 ---
 
-## 5. Meeting Intelligence & Action Item Conversion
+## 5. Meeting Transcript Ingestion & Action Item Parsing
 
-```
-[ Raw Meeting Transcript / Notes Pasted ]
-           ↓
-[ AI Extraction Pipeline ]
-  - Extracts title, suggested owner, due date, confidence score
-           ↓
-[ Persist ActionItem Records (Status: EXTRACTED) ]
-           ↓
-[ Club Head Reviews Items in UI ]
-           ↓
-[ Click "Convert to Tasks" ]
-           ↓
-[ DB Transaction:
-  1. Create Task records
-  2. Set ActionItem Status: CONVERTED (linking createdTaskId)
-  3. Suggest Volunteer Assignments ]
-```
+1. **Transcript Ingestion**: Officer pastes unstructured meeting minutes or speech-to-text transcripts.
+2. **AI Action Extraction**: Groq LLM extracts action items with suggested owner, deadline, and confidence score.
+3. **Review & Validation**: Officer reviews extracted items.
+4. **Task Conversion**: Approved action items are batch-converted into formal Kanban tasks with single-click conversion.
 
 ---
 
-## 6. Deterministic Risk Radar Lifecycle
+## 6. Cryptographic Audit Chain Lifecycle
 
-```
-[ Periodic / On-Demand State Scan ]
-  - Query tasks due in < 48 hours still in TODO
-  - Query tasks blocked by incomplete dependencies
-  - Query events where assigned volunteers < min_volunteers_required
-  - Query skill shortages against event skill_requirements
-           ↓
-[ Rule Engine Identifies Candidates ]
-           ↓
-[ Deterministic Explainer Generates Root-Cause Description ]
-           ↓
-[ Persist Risk Record (Severity: LOW, MEDIUM, HIGH, CRITICAL) ]
-           ↓
-[ Dispatch Risk Alert Notifications to Leadership & Assignees ]
-```
+Every state mutation follows an immutable commit sequence:
+1. State mutation requested by authenticated actor.
+2. Security layer validates RBAC permissions.
+3. Mutation executes within an atomic database transaction.
+4. `AuditService` retrieves latest sequential block (`prev_hash`).
+5. Computes `integrity_hash = SHA-256(prev_hash + ... + canonical_diff)`.
+6. Commits `AuditLog` row alongside state mutation.

@@ -31,7 +31,7 @@ def list_volunteers(
     skill: Optional[str] = Query(None, description="Filter by skill tag (e.g. AV, Python, Registration)"),
     search: Optional[str] = Query(None, description="Search by name, email, department, or skill"),
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.TEAM_LEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER])),
+    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.CLUB_HEAD, ClubRole.TEAM_LEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER])),
     db: Session = Depends(get_db),
 ):
     """Lists all volunteers in the club with skills, availability, and active task workloads."""
@@ -54,7 +54,7 @@ def get_volunteer_details(
     club_id: str,
     volunteer_id: str,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.TEAM_LEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER])),
+    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.CLUB_HEAD, ClubRole.TEAM_LEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER])),
     db: Session = Depends(get_db),
 ):
     """Retrieves full volunteer profile including assigned tasks and check-in history."""

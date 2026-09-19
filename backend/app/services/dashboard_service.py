@@ -202,9 +202,9 @@ class DashboardService:
             meeting_actions.append(
                 ActionItemMini(
                     id=item.id,
-                    task_description=item.task_description,
+                    task_description=item.description or item.title or "Action item",
                     suggested_owner=item.suggested_owner,
-                    priority=item.priority.value if hasattr(item.priority, "value") else str(item.priority),
+                    priority=getattr(item, "priority", "MEDIUM") if hasattr(item, "priority") else "MEDIUM",
                     status=item.status.value if hasattr(item.status, "value") else str(item.status),
                     meeting_title=item.meeting.title if item.meeting else None,
                 )

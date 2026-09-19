@@ -19,7 +19,11 @@ from app.services.announcement_service import AnnouncementService
 
 router = APIRouter()
 
-PUBLISH_ROLES = [ClubRole.PRESIDENT, ClubRole.CLUB_HEAD]
+PUBLISH_ROLES = [
+    ClubRole.PRESIDENT,
+    ClubRole.CLUB_HEAD,
+    getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD),
+]
 CREATOR_ROLES = [
     ClubRole.PRESIDENT,
     ClubRole.CLUB_HEAD,

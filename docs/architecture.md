@@ -1,42 +1,46 @@
 # System Architecture & Technical Specifications
 
-## 1. System Overview
+## 1. Architectural Philosophy
 
-ClubOps AI is architected following the core product principle:
+ClubOps AI is built around the foundational principle:
 > **HUMAN AUTHORITY + DETERMINISTIC CONSTRAINTS + AI INTELLIGENCE + CONTROLLED ACTIONS**
 
 The platform decouples into three enterprise-grade tiers:
-1. **Frontend Presentation**: Single-Page Application (SPA) built with React 19, Vite, and Tailwind CSS. Provides role-tailored workspaces for Presidents, Club Heads, and Volunteers, complete with Kanban task tracking, an AI Staffing & Skill Breakdown modal, a real-time Notification Center, and interactive dashboards.
-2. **Backend Services & Orchestration**: FastAPI (Python 3.10+) service layer with SQLAlchemy 2.0 ORM, JWT-based role authorization, deterministic constraint validators, transactional mutations, and an immutable audit log engine.
-3. **AI Reasoning & Tool Layer**: Structured agent pipelines with provider abstraction (Groq / OpenAI / Mock). The AI models structured club and event state, performs staffing and skill-count calculations, and executes state changes strictly through allowlisted backend tools.
+1. **Frontend Presentation Tier**: Modern React 19 Single-Page Application (SPA) powered by Vite, Tailwind CSS v4, Lucide Icons, and Recharts. Features 4 role-tailored workspaces (President, Organizer, Team Lead, Volunteer), interactive Kanban task progression boards, WebSocket-powered operations chat, real-time activity tickers, and audit verifiers.
+2. **Backend Services & Orchestration Tier**: High-performance FastAPI (Python 3.10+) service layer with SQLAlchemy 2.0 ORM, context-derived JWT role authorization, deterministic constraint validators, transactional mutations, and an immutable cryptographic audit log engine.
+3. **AI Intelligence & Tool-Calling Tier**: Structured agent pipelines leveraging the Groq API (`openai/gpt-oss-120b`, `llama-3.3-70b-versatile`, with graceful deterministic fallbacks). The AI decomposes event milestones, calculates volunteer staffing ratios, parses unstructured meeting transcripts, and crafts targeted multi-channel announcements.
 
 ```
 +-----------------------------------------------------------------------------------+
-|                              React + Vite Frontend                                |
-|  - Role Dashboards (President, Club Head, Volunteer)                              |
-|  - Visual Kanban Progression (TODO, IN_PROGRESS, BLOCKED, COMPLETED)              |
-|  - Event Creator with AI Staffing & Skill Breakdown (Min Count, Skill Counts)     |
-|  - Real-Time Notification Center (Event Alert, Task Alert, Risk Radar)            |
-|  - Meeting Parser & RAG Knowledge Explorer                                       |
+|                             React 19 + Vite Frontend                              |
+|  - Role-Tailored Dashboards (President, Organizer, Team Lead, Volunteer)          |
+|  - Visual Kanban Task Progression Board (TODO, IN_PROGRESS, DONE, BLOCKED)        |
+|  - Real-Time Collaboration Gateway (Full-Duplex WebSockets, Chat Channels)        |
+|  - Event Creator with AI Staffing & Skill Breakdown Modal                         |
+|  - Operational Analytics Suite (Deterministic Club Health Score 0-100, Recharts)  |
+|  - Cryptographic Audit Trail Explorer & Live SHA-256 Integrity Verifier           |
 +------------------------------------------+----------------------------------------+
-                                           | HTTPS / REST (JWT Auth)
+                                           | HTTPS / WSS (JWT Auth)
                                            v
 +-----------------------------------------------------------------------------------+
-|                                 FastAPI Backend                                   |
-|  - Auth & RBAC Security Boundary (ClubMembership role derivation)                |
-|  - Deterministic Business Rules Engine (Head Uniqueness, Conflict Checking)       |
-|  - Automated Notification Dispatcher (In-app DB + Email / Webhook logger)        |
-|  - Risk Detection Radar (Deterministic State Scan + AI Explanations)              |
-|  - Immutable Audit Log Interceptor                                                |
+|                                FastAPI Backend                                    |
+|  - Auth & RBAC Security Boundary (Context-derived club membership resolution)     |
+|  - Real-Time ConnectionManager (WebSocket pool, channel broadcasting, presence)   |
+|  - Deterministic Business Rules Engine (Head Uniqueness, Conflict Detection)      |
+|  - Risk Radar Scanner (Overdue deadlines, blocked dependencies, understaffing)    |
+|  - LangGraph State Machine & Allowlisted Tool Calling Layer                       |
+|  - Multi-Channel Dispatcher (Brevo Transactional Email + In-App Push)             |
+|  - Cryptographic SHA-256 Audit Log Interceptor & Chain Verifier                   |
 +--------------------+-------------------------------------+------------------------+
                      |                                     |
                      v                                     v
 +------------------------------------+   +------------------------------------------+
-|       PostgreSQL / SQLite DB       |   |             AI Service Layer             |
-| - 19 Core Entities & Constraints   |   | - Provider Abstraction (Groq)            |
-| - Audit Logs & RAG Text Chunks     |   | - Event Planning & Staffing Agent        |
-| - Notification Records             |   | - Meeting Extraction Agent               |
-| - Multi-Event Rosters              |   | - Explainable Assignment Recommender     |
+|       PostgreSQL / SQLite DB       |   |             Groq AI Engine               |
+| - 15+ Relational Models            |   | - Low-latency LLM Inference              |
+| - Sequential Audit Hash Chains     |   | - Structured JSON Output Mode            |
+| - Real-Time Chat Message Store     |   | - Staffing & Skill Count Decomposer      |
+| - Full JSON State Mutation Diffs   |   | - Transcript Action Item Extractor       |
+| - Task Dependency Graphs           |   | - Strategic Executive Advisor            |
 +------------------------------------+   +------------------------------------------+
 ```
 
@@ -44,29 +48,36 @@ The platform decouples into three enterprise-grade tiers:
 
 ## 2. Core Subsystems
 
-### A. Event Planning & Staffing Estimator Subsystem
-When a Club Head creates an event:
-1. AI analyzes the event title, description, category, dates, and expected scale.
-2. AI calculates the **minimum number of volunteers required**.
-3. AI computes the **count of volunteers required with particular skills** (e.g., Audio/Visual: 2, Power BI: 3, Event Management: 2, Logistics: 2).
-4. AI decomposes the event into milestone tasks and maps candidate volunteers from the club membership who possess the requisite skills and availability, with zero schedule overlaps.
-5. The Club Head reviews, adjusts, and approves the proposal before tasks and assignments are created in the database.
+### A. Real-Time Collaboration & WebSockets Gateway
+- **Endpoint**: `/api/v1/clubs/{club_id}/ws`
+- **ConnectionManager**: Tracks active WebSocket clients per club, managing channel subscriptions (`#general`, `#operations`, `#emergencies`, `#announcements`).
+- **Heartbeat & Presence**: Periodic ping/pong frames track online user presence.
+- **Activity Ticker**: Broadcasts instant notifications when tasks are moved, risks are detected, or announcements are published.
 
-### B. Multi-Channel Notification Subsystem
-The notification dispatcher guarantees that participants stay informed throughout operations:
-1. **Event Created**: Automatically sends in-app notifications and email alerts to active club volunteers with event details and suggested roles.
-2. **Task Assigned**: Sends an instant alert to the assigned volunteer including title, priority, deadline, and instructions.
-3. **Risk Alert**: Alerts Club Heads, Presidents, and assignees when critical risks (e.g., overdue tasks, blocking dependencies, staffing shortages) are identified.
+### B. Event Planning & AI Staffing Estimator
+- Analyzes event scale, category, date duration, and location.
+- Calculates **minimum volunteers required** based on departmental coverage.
+- Decomposes requirements into concrete **skill-count quotas** (e.g. AV Testing: 2, Cloud: 3, Logistics: 2).
+- Automatically proposes initial milestone tasks with deadlines and dependency links.
 
-### C. Visual Task Progression Subsystem
-Tasks transition transparently through four Kanban states:
-- `TODO`: Pending commencement.
-- `IN_PROGRESS`: Actively underway.
-- `BLOCKED`: Impeded by dependencies, missing approvals, or critical risks.
-- `COMPLETED`: Finished and verified deliverables.
-Real-time metrics calculate event health, task completion percentages, and volunteer workload distribution.
+### C. Visual Task Progression & Kanban Subsystem
+- Four distinct operational stages: `TODO`, `IN_PROGRESS`, `DONE`, and `BLOCKED`.
+- **Dependency Guard**: Tasks with incomplete prerequisites are automatically marked `is_blocked = True` with human-readable blocking reasons.
+- Status patches dynamically unblock dependent downstream tasks when prerequisites reach `DONE`.
 
-### D. Security & Deterministic Execution Boundary
-The AI never executes raw database queries. All actions flow through:
-`LLM -> Tool Signature -> Parameter Validation -> Permission Check -> Business Rules -> DB Transaction -> Audit Log -> Response`.
-If conditions change between recommendation and approval, the backend deterministically revalidates eligibility before committing.
+### D. Multi-Channel Announcement & Notification Dispatcher
+- AI generation creates formatted announcements tailored to target channels (`EMAIL`, `IN_APP`, `WHATSAPP`, `PORTAL`).
+- Multi-channel delivery engine integrates with **Brevo API** for live email notifications and persists in-app notification records for club members.
+
+### E. Deterministic Risk Radar & Club Health Analytics
+- **Risk Radar**: Scans for overdue tasks, circular dependencies, unassigned critical tasks, and understaffed event roles without relying on unpredictable LLM calls.
+- **Club Health Score**: Deterministic 0–100 score computed across 4 dimensions:
+  1. *Task Velocity & Completion Rate* (35%)
+  2. *Event Delivery Cadence* (25%)
+  3. *Risk Mitigation Index* (25%)
+  4. *Volunteer Engagement & Availability* (15%)
+
+### F. Cryptographic SHA-256 Audit Engine
+- Intercepts state changes across all operational domains.
+- Maintains a continuous, unbroken cryptographic hash chain linking each action to the prior block.
+- Delivers instantaneous tamper detection through full mathematical chain traversal.

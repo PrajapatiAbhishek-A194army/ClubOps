@@ -3,39 +3,50 @@
 ## 1. Core Operating Principle
 > **AI RECOMMENDS, HUMANS DECIDE, DETERMINISTIC RULES ENFORCE.**
 
-The AI layer in ClubOps AI is an intelligent reasoning and extraction engine, not an autonomous administrator with direct database privileges.
+The AI layer in ClubOps AI is an intelligent reasoning and assistance engine, not an autonomous administrator with raw database privileges.
 
 ---
 
 ## 2. Non-Negotiable Guardrails
 
 ### Rule 1: Zero Direct Database Access
-The AI service never connects directly to PostgreSQL or SQLite. All interactions flow strictly through allowlisted backend service functions with typed Pydantic parameter schemas.
+The AI engine never executes raw SQL or connects directly to the database. All AI-driven state mutations flow strictly through allowlisted backend tools (`ClubOpsTools`) with typed Pydantic parameter schemas, RBAC permission verification, and database transactions.
 
 ### Rule 2: Deterministic Constraint Priority
 AI recommendations (such as assigning a volunteer or estimating task duration) are treated as proposals. Even if an LLM suggests a volunteer:
 - Hard constraints (club membership, active status, calendar availability, zero time-slot conflict, max workload limit) are verified deterministically by the backend.
-- If a volunteer becomes unavailable between the recommendation time and approval time, the backend immediately blocks execution.
+- If a volunteer becomes unavailable between recommendation time and approval time, the backend immediately blocks execution.
 
-### Rule 3: Explainable Staffing & Risk Reasoning
-Every recommendation output must include deterministic rationale:
-- **Staffing Estimator (Implemented via AI)**: Must provide an explanation for the minimum volunteer requirement and why specific skill counts are necessary based on event duration and type.
-- **Candidate Recommender (Implemented via Deterministic Rules)**: Must provide skill match percentage, availability status, and reason summary based on DB state.
-- **Risk Radar (Implemented via Deterministic Rules)**: Must cite concrete application data (e.g. "Venue booking task is due in 18 hours while the dependency 'Permission letter' is still unapproved").
+### Rule 3: Mandatory Human-in-the-Loop Approval Gates
+No state mutation (creating tasks from meetings, publishing announcements, assigning rosters) occurs autonomously without explicit human review and approval from an authorized Officer (President or Club Head).
 
-### Rule 4: Prompt Injection Boundary & Untrusted Content
-Meeting transcripts, uploaded PDFs, and user inputs are strictly treated as untrusted data:
-- System instructions explicitly wrap user documents in isolation delimiters (e.g., `<untrusted_content>`).
-- Any instruction contained inside an uploaded document attempting to modify database state, override system rules, or grant elevated roles is ignored.
+### Rule 4: Explainable Reasoning
+Every recommendation output must include human-readable rationale:
+- **Staffing Estimator**: Explains why the minimum volunteer count and specific skill ratios are required based on event scale.
+- **Candidate Recommender**: Explains skill match percentage, availability status, and workload balance.
+- **Risk Radar**: Cites concrete application facts (e.g., "Task due in 12 hours while dependency is blocked").
+- **Strategic Advisor**: Grounds operational recommendations on deterministic health score components.
 
-### Rule 5: Idempotent Execution
-AI operations (such as processing meeting transcripts or generating event task breakdowns) are idempotent or require explicit confirmation tokens to avoid duplicate task generation.
+### Rule 5: Prompt Injection Boundary & Untrusted Content Isolation
+Meeting transcripts, uploaded documents, and chat inputs are treated as untrusted data:
+- Content is enclosed within isolation delimiters (`<untrusted_content>`).
+- Directives within user text attempting to modify database state, override system rules, or elevate permissions are ignored.
 
-## 3. Current Implementation Status
+### Rule 6: Deterministic Fallback on Model Degradation
+If Groq API services experience rate-limiting (HTTP 429), latency spikes, or network interruptions, the system immediately switches to deterministic fallback templates. Under no circumstances does the application crash or display raw error traces to end users.
 
-- **Task Breakdown (AI)**: IMPLEMENTED (using Groq LLM)
-- **Meeting-to-Action Item Extraction (AI)**: IMPLEMENTED (using Groq LLM with deterministic fallback)
-- **Staffing Estimation (AI)**: IMPLEMENTED (using Groq LLM)
-- **RAG for Club Knowledge (AI)**: IN PROGRESS (AI synthesis implemented, but retrieval is currently naive keyword search, vector DB planned)
-- **Candidate Recommender**: IMPLEMENTED as deterministic rules (AI matching planned)
-- **Risk Radar**: IMPLEMENTED as deterministic rules (AI scanning planned)
+---
+
+## 3. Implementation Status Across All Domains
+
+| Capability | Engine Type | Status | Human Approval Required? |
+|:---|:---|:---:|:---:|
+| **Event Staffing & Skill Breakdown** | Groq LLM + Fallback | ✅ Production | Yes (Club Head) |
+| **Task Decomposition & Milestones** | Groq LLM + Fallback | ✅ Production | Yes (Club Head) |
+| **Meeting Action Item Extraction** | Groq LLM + Fallback | ✅ Production | Yes (Meeting Lead) |
+| **Smart Volunteer Matchmaking** | Rule Engine + AI Scorer | ✅ Production | Yes (Assigning Officer) |
+| **Multi-Channel Announcement Drafts** | Groq LLM + Fallback | ✅ Production | Yes (Publisher) |
+| **Deterministic Risk Radar** | Rule Engine | ✅ Production | Automated Monitoring |
+| **Club Health Score (0–100)** | Deterministic Algorithm | ✅ Production | Read-Only |
+| **Executive Strategic Advisor** | Groq LLM + Fallback | ✅ Production | Advisory Only |
+| **Cryptographic Audit Interceptor** | SHA-256 Engine | ✅ Production | Automated Recording |
