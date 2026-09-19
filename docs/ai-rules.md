@@ -18,10 +18,10 @@ AI recommendations (such as assigning a volunteer or estimating task duration) a
 - If a volunteer becomes unavailable between the recommendation time and approval time, the backend immediately blocks execution.
 
 ### Rule 3: Explainable Staffing & Risk Reasoning
-Every AI output must include deterministic rationale:
-- **Staffing Estimator**: Must provide an explanation for the minimum volunteer requirement and why specific skill counts are necessary based on event duration and type.
-- **Candidate Recommender**: Must provide skill match percentage, availability status, and reason summary.
-- **Risk Radar**: Must cite concrete application data (e.g. "Venue booking task is due in 18 hours while the dependency 'Permission letter' is still unapproved").
+Every recommendation output must include deterministic rationale:
+- **Staffing Estimator (Implemented via AI)**: Must provide an explanation for the minimum volunteer requirement and why specific skill counts are necessary based on event duration and type.
+- **Candidate Recommender (Implemented via Deterministic Rules)**: Must provide skill match percentage, availability status, and reason summary based on DB state.
+- **Risk Radar (Implemented via Deterministic Rules)**: Must cite concrete application data (e.g. "Venue booking task is due in 18 hours while the dependency 'Permission letter' is still unapproved").
 
 ### Rule 4: Prompt Injection Boundary & Untrusted Content
 Meeting transcripts, uploaded PDFs, and user inputs are strictly treated as untrusted data:
@@ -30,3 +30,12 @@ Meeting transcripts, uploaded PDFs, and user inputs are strictly treated as untr
 
 ### Rule 5: Idempotent Execution
 AI operations (such as processing meeting transcripts or generating event task breakdowns) are idempotent or require explicit confirmation tokens to avoid duplicate task generation.
+
+## 3. Current Implementation Status
+
+- **Task Breakdown (AI)**: IMPLEMENTED (using Groq LLM)
+- **Meeting-to-Action Item Extraction (AI)**: IMPLEMENTED (using Groq LLM with deterministic fallback)
+- **Staffing Estimation (AI)**: IMPLEMENTED (using Groq LLM)
+- **RAG for Club Knowledge (AI)**: IN PROGRESS (AI synthesis implemented, but retrieval is currently naive keyword search, vector DB planned)
+- **Candidate Recommender**: IMPLEMENTED as deterministic rules (AI matching planned)
+- **Risk Radar**: IMPLEMENTED as deterministic rules (AI scanning planned)
