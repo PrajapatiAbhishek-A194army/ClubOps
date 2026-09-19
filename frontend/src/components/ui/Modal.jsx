@@ -33,21 +33,21 @@ export default function Modal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto p-3 sm:p-4 md:p-6 flex items-center justify-center">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
       {/* Dialog box */}
       <div
-        className={`relative bg-white w-full ${resolvedMaxWidth} rounded-2xl border border-slate-200 shadow-xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150`}
+        className={`relative bg-white w-full ${resolvedMaxWidth} max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] flex flex-col my-auto rounded-2xl border border-slate-200 shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150`}
         role="dialog"
         aria-modal="true"
       >
         {(title || onClose) && (
-          <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="shrink-0 px-6 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between bg-white z-10">
             <div>
               {title && (
                 <h3 className="text-base font-bold text-slate-900">{title}</h3>
@@ -59,7 +59,7 @@ export default function Modal({
             {onClose && (
               <button
                 onClick={onClose}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
@@ -68,7 +68,7 @@ export default function Modal({
           </div>
         )}
 
-        <div className="p-6">{children}</div>
+        <div className="p-6 overflow-y-auto flex-1 overscroll-contain">{children}</div>
       </div>
     </div>
   );

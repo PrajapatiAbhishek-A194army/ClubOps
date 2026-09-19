@@ -132,14 +132,28 @@ export default function AIWorkflowModal({ isOpen, onClose }) {
         </div>
 
         {/* Submit Execution Button */}
-        <div className="flex justify-end pt-1">
+        <div className="flex items-center justify-between pt-1">
+          {(result || prompt) ? (
+            <button
+              type="button"
+              onClick={() => {
+                setPrompt('');
+                setResult(null);
+                setError(null);
+              }}
+              className="text-xs text-slate-500 hover:text-slate-800 underline underline-offset-2 transition-colors cursor-pointer"
+            >
+              Clear & New Directive
+            </button>
+          ) : <div />}
+
           <Button
             variant="primary"
             leftIcon={Sparkles}
             loading={executing}
             disabled={!prompt.trim()}
             onClick={() => handleExecute()}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto shadow-sm"
           >
             {executing ? 'Executing Autonomous Workflow...' : 'Execute Operations Workflow'}
           </Button>
@@ -197,12 +211,46 @@ export default function AIWorkflowModal({ isOpen, onClose }) {
         {result && (
           <div className="space-y-4 pt-1">
             {/* Executive Summary */}
-            <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl text-xs text-emerald-950 leading-relaxed">
-              <div className="font-bold text-emerald-900 mb-1 flex items-center gap-1.5">
+            <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl text-xs text-slate-800 leading-relaxed">
+              <div className="font-bold text-emerald-900 mb-2 flex items-center gap-1.5 text-sm">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 Workflow Executive Summary
               </div>
-              <p className="whitespace-pre-line">{result.final_summary}</p>
+              <div className="space-y-1.5 text-slate-700">
+                {result.final_summary?.split('\n').map((line, lIdx) => {
+                  const trimmed = line.trim();
+                  if (!trimmed) return <div key={lIdx} className="h-1" />;
+                  const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('* ');
+                  const textContent = isBullet ? trimmed.slice(2) : trimmed;
+
+                  const parts = textContent.split(/(\*\*.*?\*\*)/g);
+                  const parsed = parts.map((part, pIdx) => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                      return (
+                        <strong key={pIdx} className="font-semibold text-slate-900">
+                          {part.slice(2, -2)}
+                        </strong>
+                      );
+                    }
+                    return part;
+                  });
+
+                  if (isBullet) {
+                    return (
+                      <div key={lIdx} className="flex items-start gap-2 pl-2">
+                        <span className="text-emerald-600 font-bold leading-tight">&bull;</span>
+                        <div className="flex-1">{parsed}</div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <p key={lIdx} className="leading-relaxed">
+                      {parsed}
+                    </p>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Created Tasks */}
