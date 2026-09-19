@@ -52,6 +52,8 @@ class ClubService:
         results = []
         for m in memberships:
             club = m.club
+            if not club:
+                continue
             results.append({
                 "id": club.id,
                 "name": club.name,
@@ -61,7 +63,7 @@ class ClubService:
                 "logo_url": club.logo_url,
                 "created_by_id": club.created_by_id,
                 "created_at": club.created_at,
-                "member_count": len(club.memberships),
+                "member_count": len(club.memberships) if club.memberships else 0,
                 "user_role": m.role,
                 "department": m.department,
             })

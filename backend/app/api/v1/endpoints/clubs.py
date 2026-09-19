@@ -86,16 +86,17 @@ def list_user_clubs(
         success=True,
         data=[
             ClubWithRoleResponse(
-                id=c["club"].id,
-                name=c["club"].name,
-                code=c["club"].code,
-                description=c["club"].description,
-                institution=c["club"].institution,
-                logo_url=c["club"].logo_url,
-                created_by_id=c["club"].created_by_id,
-                created_at=c["club"].created_at,
+                id=c["id"],
+                name=c["name"],
+                code=c["code"],
+                description=c["description"],
+                institution=c["institution"],
+                logo_url=c["logo_url"],
+                created_by_id=c["created_by_id"],
+                created_at=c["created_at"],
                 member_count=c["member_count"],
                 user_role=c["user_role"],
+                department=c.get("department"),
             )
             for c in clubs
         ],
