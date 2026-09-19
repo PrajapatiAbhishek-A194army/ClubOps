@@ -23,7 +23,9 @@ import {
   ArrowUpRight,
   LogOut,
   Radio,
+  BarChart3,
 } from 'lucide-react';
+
 import { useHealth } from '../hooks/useHealth';
 import { useAuth } from '../context/AuthContext';
 import Badge from '../components/ui/Badge';
@@ -89,8 +91,10 @@ export default function DashboardShell({ children }) {
         { path: '/app/knowledge', label: 'Knowledge Base (RAG)', icon: BookOpen },
         { path: '/app/risks', label: 'Risk & Deadlines Radar', icon: AlertTriangle, badge: '2 Alerts', alert: true },
         { path: '/app/announcements', label: 'Announcements', icon: Bell },
+        { path: '/app/analytics', label: 'Operations Analytics', icon: BarChart3, badge: 'Insights' },
       ],
     },
+
     {
       title: 'Governance',
       items: [

@@ -381,6 +381,25 @@ export const broadcastSystemActivity = async (clubId, payload) => {
   return response.data;
 };
 
+// Operations Analytics & Insights Suite
+export const getAnalyticsOverview = async (clubId) => {
+  const response = await api.get(`/clubs/${clubId}/analytics/overview`);
+  return response.data;
+};
+
+export const getAIExecutiveInsights = async (clubId) => {
+  const response = await api.get(`/clubs/${clubId}/analytics/ai-insights`);
+  return response.data;
+};
+
+export const downloadAnalyticsReport = async (clubId) => {
+  const response = await api.get(`/clubs/${clubId}/analytics/export`, {
+    responseType: 'blob',
+  });
+  return response.data;
+};
+
 export default api;
+
 
 

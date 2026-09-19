@@ -17,7 +17,9 @@ import KnowledgePage from '../pages/KnowledgePage';
 import RisksPage from '../pages/RisksPage';
 import AnnouncementsPage from '../pages/AnnouncementsPage';
 import CollaborationPage from '../pages/CollaborationPage';
+import AnalyticsPage from '../pages/AnalyticsPage';
 import PlaceholderFeature from '../pages/PlaceholderFeature';
+
 
 
 export default function AppRoutes() {
@@ -137,6 +139,16 @@ export default function AppRoutes() {
           </DashboardShell>
         }
       />
+
+      <Route
+        path="/app/analytics"
+        element={
+          <DashboardShell>
+            <AnalyticsPage />
+          </DashboardShell>
+        }
+      />
+
 
 
       <Route
