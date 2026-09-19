@@ -136,7 +136,7 @@ Event / Task / Risk Trigger
            ↓
 [ Rule Engine Identifies Candidates ]
            ↓
-[ AI Explainer Drafts Root-Cause & Actionable Mitigation ]
+[ Deterministic Explainer Generates Root-Cause Description ]
            ↓
 [ Persist Risk Record (Severity: LOW, MEDIUM, HIGH, CRITICAL) ]
            ↓
