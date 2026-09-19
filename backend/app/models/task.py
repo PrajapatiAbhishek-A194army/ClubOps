@@ -11,7 +11,7 @@ class TaskStatus(str, enum.Enum):
     IN_PROGRESS = "IN_PROGRESS"
     BLOCKED = "BLOCKED"
     COMPLETED = "COMPLETED"
-    DONE = "COMPLETED"
+    DONE = "DONE"
     CANCELLED = "CANCELLED"
 
 
@@ -20,6 +20,7 @@ class TaskPriority(str, enum.Enum):
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
+    URGENT = "URGENT"
 
 
 class TaskCreatedSource(str, enum.Enum):

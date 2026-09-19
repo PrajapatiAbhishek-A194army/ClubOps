@@ -7,6 +7,9 @@ from app.database.session import Base
 
 
 class EventStatus(str, enum.Enum):
+    PLANNING = "PLANNING"
+    ON_TRACK = "ON_TRACK"
+    AT_RISK = "AT_RISK"
     DRAFT = "DRAFT"
     PLANNED = "PLANNED"
     ONGOING = "ONGOING"

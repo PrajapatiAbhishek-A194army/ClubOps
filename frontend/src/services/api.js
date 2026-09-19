@@ -16,6 +16,23 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Response interceptor to handle token expiry / invalidation
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const currentToken = localStorage.getItem('clubops_token');
+      if (currentToken) {
+        localStorage.removeItem('clubops_token');
+        if (window.location.pathname.startsWith('/app')) {
+          window.location.href = '/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // System Health
 export const checkHealth = async () => {
   const response = await api.get('/health');

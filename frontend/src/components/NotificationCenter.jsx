@@ -11,6 +11,8 @@ export default function NotificationCenter() {
   const navigate = useNavigate();
 
   const fetchNotifications = async () => {
+    const token = localStorage.getItem('clubops_token');
+    if (!token) return;
     try {
       const res = await api.get('/notifications?limit=20');
       if (res.data?.success) {
