@@ -609,6 +609,8 @@ export default function EventDetailsPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
       {/* TAB 4: AI STAFFING & VOLUNTEER BREAKDOWN */}
       {activeTab === 'staffing' && (
         <div className="space-y-6">
