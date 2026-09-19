@@ -541,9 +541,13 @@ export default function TasksPage() {
             >
               <option value="ALL">All Assignees</option>
               <option value="UNASSIGNED">Unassigned</option>
-              {members.map((m) => (
-                <option key={m.user.id} value={m.user.id}>{m.user.full_name}</option>
-              ))}
+              {members.map((m) => {
+                const userId = m.user_id || m.user?.id;
+                const name = m.full_name || m.user?.full_name || m.email || 'Member';
+                return (
+                  <option key={userId || m.membership_id} value={userId}>{name}</option>
+                );
+              })}
             </select>
 
             {/* Blocked Only Toggle */}
@@ -1014,11 +1018,15 @@ export default function TasksPage() {
                 className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
               >
                 <option value="">Unassigned</option>
-                {members.map((m) => (
-                  <option key={m.user.id} value={m.user.id}>
-                    {m.user.full_name} ({m.role})
-                  </option>
-                ))}
+                {members.map((m) => {
+                  const userId = m.user_id || m.user?.id;
+                  const name = m.full_name || m.user?.full_name || m.email || 'Member';
+                  return (
+                    <option key={userId || m.membership_id} value={userId}>
+                      {name} ({m.role})
+                    </option>
+                  );
+                })}
               </select>
             </div>
           </div>

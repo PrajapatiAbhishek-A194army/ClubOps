@@ -11,6 +11,7 @@ import ClubSettingsPage from '../pages/ClubSettingsPage';
 import EventsPage from '../pages/EventsPage';
 import EventDetailsPage from '../pages/EventDetailsPage';
 import TasksPage from '../pages/TasksPage';
+import VolunteersPage from '../pages/VolunteersPage';
 import PlaceholderFeature from '../pages/PlaceholderFeature';
 
 export default function AppRoutes() {
@@ -81,17 +82,7 @@ export default function AppRoutes() {
         path="/app/volunteers"
         element={
           <DashboardShell>
-            <PlaceholderFeature
-              title="Volunteer Roster & AI Matchmaking"
-              phase="Phase 6"
-              description="Student volunteer profile management, skill tagging, availability calendars, and AI-recommended shift allocations."
-              capabilities={[
-                'Student skill tagging and preferences',
-                'AI matchmaker recommendation engine',
-                'Shift capacity and burnout prevention',
-                'Attendance check-in tracker',
-              ]}
-            />
+            <VolunteersPage />
           </DashboardShell>
         }
       />

@@ -150,5 +150,46 @@ export const suggestTasksWithAI = async (clubId, suggestData) => {
   return response.data;
 };
 
+// Volunteer Management (Phase 6)
+export const getClubVolunteers = async (clubId, params = {}) => {
+  const response = await api.get(`/clubs/${clubId}/volunteers`, { params });
+  return response.data;
+};
+
+export const getVolunteerDetails = async (clubId, volunteerId) => {
+  const response = await api.get(`/clubs/${clubId}/volunteers/${volunteerId}`);
+  return response.data;
+};
+
+export const createVolunteerProfile = async (clubId, volunteerData) => {
+  const response = await api.post(`/clubs/${clubId}/volunteers`, volunteerData);
+  return response.data;
+};
+
+export const updateVolunteerProfile = async (clubId, volunteerId, updateData) => {
+  const response = await api.put(`/clubs/${clubId}/volunteers/${volunteerId}`, updateData);
+  return response.data;
+};
+
+export const updateVolunteerAvailability = async (clubId, volunteerId, availabilityData) => {
+  const response = await api.patch(`/clubs/${clubId}/volunteers/${volunteerId}/availability`, availabilityData);
+  return response.data;
+};
+
+export const toggleVolunteerCheckIn = async (clubId, volunteerId, checkInData) => {
+  const response = await api.patch(`/clubs/${clubId}/volunteers/${volunteerId}/check-in`, checkInData);
+  return response.data;
+};
+
+export const matchVolunteersWithAI = async (clubId, matchData) => {
+  const response = await api.post(`/clubs/${clubId}/volunteers/ai-match`, matchData);
+  return response.data;
+};
+
+export const assignVolunteerToTask = async (clubId, assignData) => {
+  const response = await api.post(`/clubs/${clubId}/volunteers/assign`, assignData);
+  return response.data;
+};
+
 export default api;
 

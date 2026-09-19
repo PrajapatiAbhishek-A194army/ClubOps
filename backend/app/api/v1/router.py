@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import health, auth, clubs, events, tasks
+from app.api.v1.endpoints import health, auth, clubs, events, tasks, volunteers
 
 api_router = APIRouter()
 
@@ -8,3 +8,4 @@ api_router.include_router(auth.router, tags=["Auth"])
 api_router.include_router(clubs.router, tags=["Clubs & Members"])
 api_router.include_router(events.router, tags=["Events"])
 api_router.include_router(tasks.router, tags=["Tasks & Kanban"])
+api_router.include_router(volunteers.router, tags=["Volunteers"])

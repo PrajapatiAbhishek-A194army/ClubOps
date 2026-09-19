@@ -14,6 +14,7 @@ from app.models.club import Club, ClubMembership, ClubRole
 from app.models.event import Event, EventStatus, EventType
 from app.models.task import Task, TaskPriority, TaskStatus
 from app.models.user import User
+from app.models.volunteer import AvailabilityStatus, CheckInStatus, VolunteerProfile
 from app.utils.security import get_password_hash
 
 
@@ -526,7 +527,113 @@ def seed_demo_data():
                     existing.depends_on_task_id = prereq_task.id
                     print(f"  ✓ Linked dependency for existing task: {existing.title}")
 
+        # 6. Seed Realistic Volunteer Profiles with Skills & Availability
+        volunteers_seed_data = [
+            {
+                "club": gdsc,
+                "user": users_by_email["volunteer@clubops.ai"],
+                "skills": [
+                    "Registration Desk",
+                    "Crowd Management",
+                    "Food & Catering",
+                    "Equipment Transport",
+                ],
+                "department": "Logistics & Desk",
+                "availability_status": AvailabilityStatus.AVAILABLE,
+                "availability_notes": "Available for morning and afternoon shifts, weekends open",
+                "available_hours_per_week": 15,
+                "check_in_status": CheckInStatus.CHECKED_IN,
+                "checked_in_at": datetime.utcnow() - timedelta(hours=2),
+                "phone_number": "+91 98765 43210",
+                "rating": 4.9,
+            },
+            {
+                "club": gdsc,
+                "user": users_by_email["member@clubops.ai"],
+                "skills": [
+                    "Social Media & Live PR",
+                    "Photography",
+                    "Registration Desk",
+                    "Graphic Design",
+                ],
+                "department": "Media & PR",
+                "availability_status": AvailabilityStatus.AVAILABLE,
+                "availability_notes": "Available after 2 PM daily, carries personal DSLR equipment",
+                "available_hours_per_week": 12,
+                "check_in_status": CheckInStatus.CHECKED_OUT,
+                "checked_in_at": None,
+                "phone_number": "+91 98111 22334",
+                "rating": 4.8,
+            },
+            {
+                "club": gdsc,
+                "user": users_by_email["techlead@clubops.ai"],
+                "skills": [
+                    "Audio / Visual (AV)",
+                    "Network & Wi-Fi Setup",
+                    "Hardware & Robotics",
+                    "Python / Backend",
+                ],
+                "department": "Technical Committee",
+                "availability_status": AvailabilityStatus.BUSY,
+                "availability_notes": "On-call for server, high-speed Wi-Fi, and live arena network",
+                "available_hours_per_week": 20,
+                "check_in_status": CheckInStatus.CHECKED_IN,
+                "checked_in_at": datetime.utcnow() - timedelta(hours=1),
+                "phone_number": "+91 98999 55443",
+                "rating": 5.0,
+            },
+            {
+                "club": gdsc,
+                "user": users_by_email["medialead@clubops.ai"],
+                "skills": [
+                    "Graphic Design",
+                    "Videography",
+                    "Emcee & Anchoring",
+                    "Speaker Liaison",
+                ],
+                "department": "Design & PR",
+                "availability_status": AvailabilityStatus.ON_SHIFT,
+                "availability_notes": "Managing event live streaming and guest speaker introductions",
+                "available_hours_per_week": 16,
+                "check_in_status": CheckInStatus.CHECKED_IN,
+                "checked_in_at": datetime.utcnow() - timedelta(hours=3),
+                "phone_number": "+91 98222 33445",
+                "rating": 4.9,
+            },
+        ]
+
+        for v_data in volunteers_seed_data:
+            existing_vol = db.query(VolunteerProfile).filter(
+                VolunteerProfile.club_id == v_data["club"].id,
+                VolunteerProfile.user_id == v_data["user"].id,
+            ).first()
+            if not existing_vol:
+                vol_obj = VolunteerProfile(
+                    club_id=v_data["club"].id,
+                    user_id=v_data["user"].id,
+                    skills=v_data["skills"],
+                    department=v_data["department"],
+                    availability_status=v_data["availability_status"],
+                    availability_notes=v_data["availability_notes"],
+                    available_hours_per_week=v_data["available_hours_per_week"],
+                    check_in_status=v_data["check_in_status"],
+                    checked_in_at=v_data["checked_in_at"],
+                    phone_number=v_data["phone_number"],
+                    rating=v_data["rating"],
+                )
+                db.add(vol_obj)
+                print(f"  ✓ Seeded volunteer profile: {v_data['user'].full_name} ({v_data['availability_status'].value})")
+            else:
+                existing_vol.skills = v_data["skills"]
+                existing_vol.department = v_data["department"]
+                existing_vol.availability_status = v_data["availability_status"]
+                existing_vol.availability_notes = v_data["availability_notes"]
+                existing_vol.phone_number = v_data["phone_number"]
+                print(f"  ✓ Updated volunteer profile: {v_data['user'].full_name}")
+
         db.commit()
+
         print("✅ Demo data successfully seeded into PostgreSQL!")
 
     except Exception as e:
