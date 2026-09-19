@@ -29,20 +29,14 @@ export default function Navbar({ health, loading, error }) {
         {/* Center Nav Links */}
         <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-600">
           <a href="#workflow" className="hover:text-emerald-700 transition-colors">
-            Autonomous Pipeline
+            How It Works
+          </a>
+          <a href="#features" className="hover:text-emerald-700 transition-colors">
+            Core Features
           </a>
           <Link to="/app" className="hover:text-emerald-700 transition-colors">
-            Operations Demo
+            Live Preview
           </Link>
-          <a
-            href="http://127.0.0.1:8000/docs"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-emerald-700 transition-colors flex items-center gap-1"
-          >
-            <span>API Docs</span>
-            <Terminal className="w-3 h-3 text-slate-400" />
-          </a>
         </nav>
 
         {/* Action Buttons & Status */}
@@ -54,9 +48,10 @@ export default function Navbar({ health, loading, error }) {
               }`}
             />
             <span className="text-slate-600 font-semibold">
-              {loading ? 'API Connecting...' : error ? 'API Offline' : 'API Live'}
+              {loading ? 'Connecting...' : error ? 'System Offline' : 'System Online'}
             </span>
           </div>
+
 
           <Button
             size="sm"

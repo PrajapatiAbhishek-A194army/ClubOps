@@ -24,6 +24,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useHealth } from '../hooks/useHealth';
+import { useAuth } from '../context/AuthContext';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import CommandPalette from '../components/CommandPalette';
@@ -33,12 +34,11 @@ export default function DashboardShell({ children }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [selectedClub, setSelectedClub] = useState('Google Developer Student Club');
-  const [activeRole, setActiveRole] = useState('PRESIDENT');
   const [clubMenuOpen, setClubMenuOpen] = useState(false);
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
 
   const { health } = useHealth();
+  const { user, clubs, activeClub, activeRole, switchClub, switchRole, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -48,18 +48,12 @@ export default function DashboardShell({ children }) {
     return () => window.removeEventListener('open-command-palette', handleOpenPalette);
   }, []);
 
-  const clubs = [
-    'Google Developer Student Club',
-    'Robotics & Automation Society',
-    'ACM Student Chapter',
-    'Cultural & Fine Arts Club',
-  ];
-
   const roles = [
     { id: 'PRESIDENT', label: 'Club President', badge: 'Admin' },
     { id: 'ORGANIZER', label: 'Event Organizer', badge: 'Lead' },
     { id: 'TEAM_LEAD', label: 'Team Lead', badge: 'Manager' },
     { id: 'VOLUNTEER', label: 'Volunteer', badge: 'Member' },
+    { id: 'MEMBER', label: 'Club Member', badge: 'Student' },
   ];
 
   const navigationSections = [
@@ -69,7 +63,8 @@ export default function DashboardShell({ children }) {
         { path: '/app', label: 'Overview', icon: LayoutDashboard },
         { path: '/app/events', label: 'Events', icon: Calendar, badge: 'Active' },
         { path: '/app/tasks', label: 'Kanban Tasks', icon: CheckSquare },
-        { path: '/app/volunteers', label: 'Volunteers', icon: Users },
+        { path: '/app/members', label: 'Club Roster', icon: Users, badge: 'Members' },
+        { path: '/app/volunteers', label: 'Volunteer Pool', icon: Users },
       ],
     },
     {
@@ -85,10 +80,11 @@ export default function DashboardShell({ children }) {
       title: 'Governance',
       items: [
         { path: '/app/audit', label: 'Audit Trail', icon: History },
-        { path: '/app/settings', label: 'Settings', icon: Settings },
+        { path: '/app/settings', label: 'Club Settings', icon: Settings },
       ],
     },
   ];
+
 
   return (
     <div className="min-h-screen bg-slate-50 flex text-slate-900 selection:bg-emerald-100 selection:text-emerald-900">
@@ -156,7 +152,7 @@ export default function DashboardShell({ children }) {
                 </div>
                 <div className="truncate">
                   <div className="text-xs font-bold text-slate-900 truncate">
-                    {selectedClub}
+                    {activeClub?.name || 'My Campus Club'}
                   </div>
                   <div className="text-[10px] text-slate-500">Active Organization</div>
                 </div>
@@ -167,22 +163,29 @@ export default function DashboardShell({ children }) {
             {/* Club Dropdown */}
             {clubMenuOpen && (
               <div className="absolute left-3 right-3 top-16 bg-white border border-slate-200 rounded-xl shadow-lg z-50 p-1.5 space-y-0.5">
-                {clubs.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => {
-                      setSelectedClub(c);
-                      setClubMenuOpen(false);
-                    }}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
-                      selectedClub === c
-                        ? 'bg-emerald-50 text-emerald-900 font-semibold'
-                        : 'text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    {c}
-                  </button>
-                ))}
+                {clubs.length > 0 ? (
+                  clubs.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => {
+                        switchClub(c);
+                        setClubMenuOpen(false);
+                      }}
+                      className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+                        activeClub?.id === c.id
+                          ? 'bg-emerald-50 text-emerald-900 font-semibold'
+                          : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="truncate font-semibold">{c.name}</div>
+                      <div className="text-[10px] text-slate-400">Role: {c.user_role}</div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="p-2 text-[11px] text-slate-500 text-center">
+                    No other clubs joined.
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -351,16 +354,39 @@ export default function DashboardShell({ children }) {
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
             </button>
 
-            {/* User Profile avatar */}
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div className="w-8 h-8 rounded-full bg-emerald-700 text-white font-bold text-xs flex items-center justify-center">
-                AP
+            {/* User Profile avatar & logout */}
+            {user ? (
+              <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">
+                <div className="w-8 h-8 rounded-full bg-emerald-700 text-white font-bold text-xs flex items-center justify-center">
+                  {user.full_name ? user.full_name.slice(0, 2).toUpperCase() : 'CO'}
+                </div>
+                <div className="hidden xl:block text-left">
+                  <div className="text-xs font-bold text-slate-900 leading-tight">
+                    {user.full_name}
+                  </div>
+                  <div className="text-[10px] text-slate-500 capitalize">
+                    {activeRole.replace('_', ' ').toLowerCase()}
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate('/login');
+                  }}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
-              <div className="hidden xl:block text-left">
-                <div className="text-xs font-bold text-slate-900 leading-tight">Alex President</div>
-                <div className="text-[10px] text-slate-500">Club Executive</div>
-              </div>
-            </div>
+            ) : (
+              <Link
+                to="/login"
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </header>
 

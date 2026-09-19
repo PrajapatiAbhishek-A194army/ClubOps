@@ -13,10 +13,11 @@ export default function RootLayout({ children }) {
       </main>
       <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>© 2026 ClubOps AI • Bit N Build'26 Gujarat Round (PS-3)</p>
-          <p className="text-emerald-700 font-medium">Phase 1: Project Foundation Running</p>
+          <p>© 2026 ClubOps AI • Centralized Campus Event Operations Platform</p>
+          <p className="text-emerald-700 font-medium">Empowering Student Leaders & Campus Organizations</p>
         </div>
       </footer>
+
     </div>
   );
 }

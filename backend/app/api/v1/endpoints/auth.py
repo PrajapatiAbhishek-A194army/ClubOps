@@ -1,69 +1,100 @@
-from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
-from app.api.deps import get_current_user_token
-from app.config.settings import settings
-from app.schemas.auth import LoginRequest, Token, TokenPayload, UserSummary
+from sqlalchemy.orm import Session
+from app.api.deps import get_current_user, get_db
+from app.models.user import User
+from app.schemas.auth import (
+    LoginRequest,
+    Token,
+    UserProfileResponse,
+    UserRegisterRequest,
+    UserMembershipSummary,
+)
 from app.schemas.common import ApiResponse
-from app.utils.security import create_access_token, get_password_hash, verify_password
+from app.services.auth_service import AuthService
 
 router = APIRouter()
 
-# Mock user store for Foundation phase sanity testing
-DEMO_PASSWORD_HASH = get_password_hash("ClubOps2026!")
-DEMO_USER = {
-    "id": "usr_demo_president_01",
-    "email": "president@clubops.ai",
-    "name": "Alex President",
-    "role": "PRESIDENT",
-    "club_id": "club_main_01",
-}
 
-
-@router.post("/auth/login", response_model=ApiResponse[Token])
-def login(credentials: LoginRequest):
-    """Generates an access token for valid credentials."""
-    # Foundation verification flow
-    if credentials.email == DEMO_USER["email"] and verify_password(credentials.password, DEMO_PASSWORD_HASH):
-        expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-        token_str = create_access_token(
-            subject=DEMO_USER["id"],
-            claims={
-                "email": DEMO_USER["email"],
-                "role": DEMO_USER["role"],
-                "club_id": DEMO_USER["club_id"],
-            },
-            expires_delta=expires_delta,
-        )
-        token_data = Token(
-            access_token=token_str,
-            token_type="bearer",
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        )
-        return ApiResponse(
-            success=True,
-            data=token_data,
-            message="Authentication successful",
+@router.post("/auth/signup", response_model=ApiResponse[Token])
+def signup(req: UserRegisterRequest, db: Session = Depends(get_db)):
+    """Registers a new user and optional initial club."""
+    try:
+        user, club = AuthService.register_user(db, req)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
         )
 
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid email or password",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-
-@router.get("/auth/me", response_model=ApiResponse[UserSummary])
-def get_current_user(token_payload: TokenPayload = Depends(get_current_user_token)):
-    """Validates the JWT token and returns authenticated identity."""
-    user = UserSummary(
-        id=token_payload.sub or "unknown",
-        email=token_payload.email or "unknown@clubops.ai",
-        name="Alex President" if token_payload.sub == DEMO_USER["id"] else "Club Member",
-        role=token_payload.role or "MEMBER",
-        club_id="club_main_01",
+    token_str = AuthService.create_user_token(
+        user=user,
+        active_club_id=club.id if club else None,
+        active_role=req.role.value if req.role else "PRESIDENT",
     )
     return ApiResponse(
         success=True,
-        data=user,
-        message="Session verified",
+        data=Token(
+            access_token=token_str,
+            token_type="bearer",
+            expires_in=60 * 60 * 24,
+        ),
+        message="Account registered successfully",
+    )
+
+
+@router.post("/auth/login", response_model=ApiResponse[Token])
+def login(credentials: LoginRequest, db: Session = Depends(get_db)):
+    """Authenticates credentials against PostgreSQL and returns JWT token."""
+    user = AuthService.authenticate_user(db, credentials.email, credentials.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token_str = AuthService.create_user_token(user)
+    return ApiResponse(
+        success=True,
+        data=Token(
+            access_token=token_str,
+            token_type="bearer",
+            expires_in=60 * 60 * 24,
+        ),
+        message="Authentication successful",
+    )
+
+
+@router.get("/auth/me", response_model=ApiResponse[UserProfileResponse])
+def get_current_user_profile(user: User = Depends(get_current_user)):
+    """Returns the authenticated user identity and club memberships."""
+    memberships_summary = [
+        UserMembershipSummary(
+            club_id=m.club_id,
+            club_name=m.club.name if m.club else "Club",
+            club_code=m.club.code if m.club else "club",
+            role=m.role,
+            department=m.department,
+        )
+        for m in user.memberships
+    ]
+
+    active_club_id = user.memberships[0].club_id if user.memberships else None
+    active_role = user.memberships[0].role.value if user.memberships else "MEMBER"
+
+    profile = UserProfileResponse(
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        avatar_url=user.avatar_url,
+        role=active_role,
+        active_role=active_role,
+        active_club_id=active_club_id,
+        memberships=memberships_summary,
+    )
+
+    return ApiResponse(
+        success=True,
+        data=profile,
+        message="Session active",
     )

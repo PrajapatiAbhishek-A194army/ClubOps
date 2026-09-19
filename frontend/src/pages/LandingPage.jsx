@@ -42,8 +42,8 @@ export default function LandingPage() {
       desc: 'Club organizers initialize an event with title, tentative dates, venue preferences, and preliminary budget.',
       simulation: {
         input: 'Event: "HackOut 2026: 36-hour Inter-College Hackathon"',
-        state: 'Event initialized with status "NEW" in Google Developer Student Club.',
-        highlight: 'Event record persisted into PostgreSQL with UUID.',
+        state: 'Event initialized with status "Active" in Google Developer Student Club.',
+        highlight: 'Event dashboard, timeline, and budget tracker generated automatically.',
       },
     },
     {
@@ -53,19 +53,19 @@ export default function LandingPage() {
       desc: 'Team leads conduct a kickoff meeting and paste unstructured meeting minutes or bullet notes.',
       simulation: {
         input: '"Rahul books main auditorium before Friday. Priya finishes sponsor deck. Kabir handles judge outreach."',
-        state: 'Unstructured notes ingested by meeting intelligence pipeline.',
-        highlight: 'Natural language transcript awaiting Groq LLM parsing.',
+        state: 'Unstructured notes parsed into structured committee action items.',
+        highlight: 'Instant analysis without manual copy-pasting across spreadsheets.',
       },
     },
     {
       id: 2,
       title: '3. AI Extracts Tasks',
       badge: 'Extraction',
-      desc: 'The backend workflow decomposes notes into atomic task records with deterministic validation.',
+      desc: 'Discussion points are automatically converted into atomic task cards with priorities and dependencies.',
       simulation: {
         input: '3 distinct tasks generated: [Book Auditorium], [Finalize Sponsor Deck], [Contact Hackathon Judges].',
-        state: 'Tasks validated against Pydantic schema.',
-        highlight: 'Zero raw SQL executed; processed via LangGraph node.',
+        state: 'Tasks organized by category (Logistics, Sponsorship, Technical).',
+        highlight: 'Every task is categorized with clear deliverable milestones.',
       },
     },
     {
@@ -75,52 +75,52 @@ export default function LandingPage() {
       desc: 'Club roster is cross-referenced to automatically link tasks to qualified club leads and volunteers.',
       simulation: {
         input: 'Rahul Sharma -> Auditorium Booking | Priya Patel -> Sponsor Deck | Kabir Das -> Judges',
-        state: 'User IDs matched and assigned with notifications queued.',
-        highlight: 'Backend verifies permissions before state changes.',
+        state: 'Team members assigned with instant dashboard alerts.',
+        highlight: 'Team members receive direct task assignments and notifications.',
       },
     },
     {
       id: 4,
       title: '5. Detect Deadlines',
-      badge: 'Temporal AI',
-      desc: 'Relative dates ("before Friday", "in 2 weeks") are resolved into absolute timestamps.',
+      badge: 'Smart Deadlines',
+      desc: 'Relative dates ("before Friday", "in 2 weeks") are resolved into absolute dates with reminders.',
       simulation: {
         input: '"Before Friday" -> Resolved to Friday, 5:00 PM (April 17, 2026).',
         state: 'Deadlines attached to Kanban cards with automated alerts.',
-        highlight: 'Timezone-aware date parsing.',
+        highlight: 'Automated calendar countdowns and reminder alerts.',
       },
     },
     {
       id: 5,
       title: '6. Risk Guardrails',
-      badge: 'Radar Alert',
-      desc: 'AI detects dependency bottlenecks and resource shortages before they jeopardize the event.',
+      badge: 'Risk Radar',
+      desc: 'Proactively identifies dependency bottlenecks and resource shortages before they jeopardize the event.',
       simulation: {
         input: 'WARNING: "Banner printing is blocked by Sponsor payment confirmation delay."',
         state: 'Risk score elevated to HIGH. Mitigation suggested to President.',
-        highlight: 'Explainable AI alerts with proactive recommendations.',
+        highlight: 'Identifies blockers before they delay your event schedule.',
       },
     },
     {
       id: 6,
       title: '7. AI Announcement',
       badge: 'Communication',
-      desc: 'AI drafts targeted multi-channel announcements for college broadcast via Brevo email.',
+      desc: 'Drafts targeted announcements for college broadcast via email and social channels.',
       simulation: {
         input: 'Subject: "HackOut 2026 Registration Open! 🚀 $5,000 in Prizes"',
-        state: 'Email template generated and staged for President approval.',
-        highlight: 'Human-in-the-loop approval ensures club brand safety.',
+        state: 'Email template generated and staged for President review.',
+        highlight: 'President reviews and sends polished broadcast emails in 1 click.',
       },
     },
     {
       id: 7,
       title: '8. Dashboard Sync',
       badge: 'Live Sync',
-      desc: 'Kanban boards, executive KPIs, and volunteer rosters update synchronously across all devices.',
+      desc: 'Kanban boards, committee progress, and volunteer rosters update synchronously in real-time.',
       simulation: {
         input: 'Dashboard metrics refreshed: Completion +12%, 3 Tasks active, 0 unassigned items.',
-        state: 'All role-based views synced via real-time telemetry.',
-        highlight: 'Centralized single source of truth.',
+        state: 'All committee leads stay aligned on a single live Kanban board.',
+        highlight: 'Centralized single source of truth for the entire club.',
       },
     },
   ];
@@ -236,7 +236,7 @@ export default function LandingPage() {
 
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 text-xs font-semibold text-emerald-800 shadow-2xs">
           <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Bit N Build'26 Gujarat Round • PS-3</span>
+          <span>Intelligent Operations for Student Organizations</span>
         </div>
 
         <div className="max-w-4xl mx-auto space-y-4 px-4">
@@ -276,11 +276,11 @@ export default function LandingPage() {
                 <div className="w-3 h-3 rounded-full bg-amber-400" />
                 <div className="w-3 h-3 rounded-full bg-emerald-400" />
                 <span className="text-xs font-mono text-slate-500 ml-2">
-                  clubops-ai // live-operations-preview
+                  clubops-ai // live-event-operations
                 </span>
               </div>
               <Badge variant="emerald" size="sm" dot pulse>
-                AI Agent Active
+                AI Assistant Active
               </Badge>
             </div>
 
@@ -300,7 +300,7 @@ export default function LandingPage() {
 
               <div className="space-y-3">
                 <div className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5" /> 2. Groq AI Workflow
+                  <Zap className="w-3.5 h-3.5" /> 2. AI Workflow Engine
                 </div>
                 <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200 text-xs font-mono text-emerald-900 space-y-1 shadow-2xs">
                   <div>✓ Extracted 4 tasks</div>
@@ -309,7 +309,7 @@ export default function LandingPage() {
                   <div className="text-amber-700 font-bold">⚠ Risk: Banner blocked</div>
                 </div>
                 <div className="text-[11px] text-slate-500">
-                  Tool calling with zero direct database execution.
+                  Automated coordination across committees and leads.
                 </div>
               </div>
 
@@ -323,7 +323,7 @@ export default function LandingPage() {
                     <Badge variant="success" size="sm">Synced</Badge>
                   </div>
                   <div className="text-[11px] text-slate-600">
-                    Audit log recorded #5821. Brevo email notification dispatched to Rahul.
+                    Tasks created on live board. Direct notification dispatched to Rahul.
                   </div>
                 </div>
                 <Button
@@ -506,16 +506,16 @@ export default function LandingPage() {
       </section>
 
       {/* Feature Grid */}
-      <section className="space-y-8">
+      <section id="features" className="scroll-mt-20 space-y-8">
         <div className="text-center space-y-3 max-w-3xl mx-auto px-4">
           <Badge variant="emerald" size="md">
-            Feature Matrix
+            All-In-One Platform
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Engineered for Campus Reliability
+            Built for Campus Club Success
           </h2>
           <p className="text-sm sm:text-base text-slate-600">
-            A production stack engineered with FastAPI, LangGraph, Groq, and React.
+            Every tool student leaders need to plan, coordinate, and execute flawless campus events.
           </p>
         </div>
 
@@ -564,13 +564,11 @@ export default function LandingPage() {
             Launch ClubOps Command Center
           </Button>
           <a
-            href="http://127.0.0.1:8000/docs"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="#workflow"
             className="inline-flex items-center justify-center font-medium rounded-xl transition-all text-base px-5 py-2.5 gap-2 bg-emerald-800/80 hover:bg-emerald-800 text-white border border-emerald-700 cursor-pointer"
           >
-            <Terminal className="w-4 h-4" />
-            Backend API Docs
+            <Workflow className="w-4 h-4" />
+            See How It Works
           </a>
         </div>
       </section>

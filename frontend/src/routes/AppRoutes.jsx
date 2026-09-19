@@ -3,7 +3,10 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import RootLayout from '../layouts/RootLayout';
 import DashboardShell from '../layouts/DashboardShell';
 import LandingPage from '../pages/LandingPage';
+import LoginPage from '../pages/LoginPage';
+import SignupPage from '../pages/SignupPage';
 import DashboardOverview from '../pages/DashboardOverview';
+import ClubMembersPage from '../pages/ClubMembersPage';
 import PlaceholderFeature from '../pages/PlaceholderFeature';
 
 export default function AppRoutes() {
@@ -19,6 +22,10 @@ export default function AppRoutes() {
         }
       />
 
+      {/* Authentication Pages */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+
       {/* Enterprise Dashboard Shell Routes */}
       <Route
         path="/app"
@@ -28,6 +35,16 @@ export default function AppRoutes() {
           </DashboardShell>
         }
       />
+
+      <Route
+        path="/app/members"
+        element={
+          <DashboardShell>
+            <ClubMembersPage />
+          </DashboardShell>
+        }
+      />
+
 
       <Route
         path="/app/events"
