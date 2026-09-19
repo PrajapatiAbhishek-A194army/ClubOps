@@ -38,6 +38,7 @@ export default function DashboardShell({ children }) {
   const [clubMenuOpen, setClubMenuOpen] = useState(false);
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
 
+  const { health } = useHealth();
   const { user, clubs, activeClub, activeRole, switchClub, switchRole, logout, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
