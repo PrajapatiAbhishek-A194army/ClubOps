@@ -29,6 +29,7 @@ import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import CommandPalette from '../components/CommandPalette';
 import NotificationCenter from '../components/NotificationCenter';
+import UserProfileModal from '../components/UserProfileModal';
 import { APP_NAME } from '../utils/constants';
 
 export default function DashboardShell({ children }) {
@@ -37,6 +38,7 @@ export default function DashboardShell({ children }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [clubMenuOpen, setClubMenuOpen] = useState(false);
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   const { health } = useHealth();
   const { user, clubs, activeClub, activeRole, switchClub, switchRole, logout, loading } = useAuth();
@@ -114,9 +116,14 @@ export default function DashboardShell({ children }) {
         } ${mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Brand Header */}
-        <div className="h-16 px-4 border-b border-slate-100 flex items-center justify-between shrink-0">
-          <Link to="/" className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center shadow-sm shadow-emerald-600/20 shrink-0">
+        <div className={`h-16 border-b border-slate-100 flex items-center shrink-0 relative transition-all ${
+          collapsed ? 'justify-center px-2' : 'justify-between px-4'
+        }`}>
+          <Link to="/app" className="flex items-center gap-2.5">
+            <div 
+              className="w-9 h-9 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center shadow-sm shadow-emerald-600/20 shrink-0 hover:scale-105 transition-transform"
+              title={APP_NAME}
+            >
               CO
             </div>
             {!collapsed && (
@@ -133,10 +140,15 @@ export default function DashboardShell({ children }) {
 
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            className={`hidden lg:flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer ${
+              collapsed
+                ? 'absolute -right-3 top-5 w-6 h-6 bg-white border border-slate-200 shadow-xs rounded-full z-50 text-slate-600 hover:scale-110'
+                : 'p-1.5'
+            }`}
             aria-label="Toggle Sidebar"
+            title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
 
           <button
@@ -302,9 +314,13 @@ export default function DashboardShell({ children }) {
             </div>
           ) : (
             <div className="flex justify-center">
-              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
-                {activeRole[0]}
-              </div>
+              <button
+                onClick={() => setProfileModalOpen(true)}
+                className="w-8 h-8 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-800 flex items-center justify-center font-bold text-xs cursor-pointer transition-colors"
+                title="View & Edit Profile"
+              >
+                {activeRole ? activeRole[0] : 'U'}
+              </button>
             </div>
           )}
         </div>
@@ -337,25 +353,24 @@ export default function DashboardShell({ children }) {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Quick Action: Back to Public Landing */}
-            <Link
-              to="/"
-              className="text-xs font-medium text-slate-600 hover:text-emerald-700 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-1"
-            >
-              <span>Landing Page</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
-
             {/* Notification Center */}
             <NotificationCenter />
 
             {/* User Profile avatar & logout */}
             {user ? (
               <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">
-                <div className="w-8 h-8 rounded-full bg-emerald-700 text-white font-bold text-xs flex items-center justify-center">
+                <button
+                  onClick={() => setProfileModalOpen(true)}
+                  className="w-8 h-8 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center cursor-pointer transition-transform hover:scale-105 shadow-2xs"
+                  title="View & Edit Profile"
+                >
                   {user.full_name ? user.full_name.slice(0, 2).toUpperCase() : 'CO'}
-                </div>
-                <div className="hidden xl:block text-left">
+                </button>
+                <div 
+                  onClick={() => setProfileModalOpen(true)}
+                  className="hidden xl:block text-left cursor-pointer hover:opacity-80 transition-opacity"
+                  title="View & Edit Profile"
+                >
                   <div className="text-xs font-bold text-slate-900 leading-tight">
                     {user.full_name}
                   </div>
@@ -368,7 +383,7 @@ export default function DashboardShell({ children }) {
                     logout();
                     navigate('/login');
                   }}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer ml-1"
                   title="Sign Out"
                 >
                   <LogOut className="w-4 h-4" />
@@ -390,6 +405,12 @@ export default function DashboardShell({ children }) {
           {children}
         </main>
       </div>
+
+      {/* User Profile Settings Modal */}
+      <UserProfileModal 
+        isOpen={profileModalOpen} 
+        onClose={() => setProfileModalOpen(false)} 
+      />
     </div>
   );
 }

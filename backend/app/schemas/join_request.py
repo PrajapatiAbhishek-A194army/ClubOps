@@ -18,6 +18,8 @@ class JoinRequestResponse(BaseModel):
     user_id: str
     user_name: Optional[str] = None
     user_email: Optional[str] = None
+    user_phone: Optional[str] = None
+    user_avatar: Optional[str] = None
     status: JoinRequestStatus
     message: Optional[str] = None
     requested_at: datetime

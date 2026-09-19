@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, Terminal, ArrowRight, LayoutDashboard } from 'lucide-react';
+import { LogIn, UserPlus } from 'lucide-react';
 import { APP_NAME } from '../utils/constants';
 import Button from './ui/Button';
 
-export default function Navbar({ health, loading, error }) {
+export default function Navbar() {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-emerald-100/80 shadow-2xs">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-emerald-100/80 shadow-2xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-3">
@@ -34,36 +34,29 @@ export default function Navbar({ health, loading, error }) {
           <a href="#features" className="hover:text-emerald-700 transition-colors">
             Core Features
           </a>
-          <Link to="/app" className="hover:text-emerald-700 transition-colors">
-            Live Preview
-          </Link>
         </nav>
 
-        {/* Action Buttons & Status */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-medium bg-slate-50 border-slate-200">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                loading ? 'bg-amber-500' : error ? 'bg-rose-500' : 'bg-emerald-500 animate-pulse'
-              }`}
-            />
-            <span className="text-slate-600 font-semibold">
-              {loading ? 'Connecting...' : error ? 'System Offline' : 'System Online'}
-            </span>
-          </div>
-
+        {/* Action Buttons: Sign In & Sign Up */}
+        <div className="flex items-center gap-2.5">
+          <Button
+            size="sm"
+            variant="outline"
+            leftIcon={LogIn}
+            onClick={() => navigate('/login')}
+          >
+            Sign In
+          </Button>
 
           <Button
             size="sm"
             variant="primary"
-            rightIcon={ArrowRight}
-            onClick={() => navigate('/app')}
+            leftIcon={UserPlus}
+            onClick={() => navigate('/signup')}
           >
-            Launch Dashboard
+            Sign Up
           </Button>
         </div>
       </div>
     </header>
   );
 }
-

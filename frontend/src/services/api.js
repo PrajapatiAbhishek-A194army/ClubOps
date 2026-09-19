@@ -55,7 +55,17 @@ export const getCurrentUser = async () => {
   return response.data;
 };
 
+export const updateUserProfile = async (profileData) => {
+  const response = await api.put('/auth/me', profileData);
+  return response.data;
+};
+
 // Club Management
+export const getPublicClubs = async () => {
+  const response = await api.get('/clubs/public');
+  return response.data;
+};
+
 export const getUserClubs = async () => {
   const response = await api.get('/clubs');
   return response.data;
@@ -89,6 +99,22 @@ export const updateMemberRole = async (clubId, membershipId, updateData) => {
 
 export const removeClubMember = async (clubId, membershipId) => {
   const response = await api.delete(`/clubs/${clubId}/members/${membershipId}`);
+  return response.data;
+};
+
+export const assignClubHead = async (clubId, userId) => {
+  const response = await api.post(`/clubs/${clubId}/assign-club-head`, { user_id: userId });
+  return response.data;
+};
+
+// Volunteer Join & Application Requests
+export const getClubJoinRequests = async (clubId, params = {}) => {
+  const response = await api.get(`/clubs/${clubId}/join-requests`, { params });
+  return response.data;
+};
+
+export const reviewJoinRequest = async (clubId, requestId, status) => {
+  const response = await api.patch(`/clubs/${clubId}/join-requests/${requestId}`, { status });
   return response.data;
 };
 

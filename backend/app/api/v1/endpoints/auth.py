@@ -6,6 +6,7 @@ from app.schemas.auth import (
     LoginRequest,
     Token,
     UserProfileResponse,
+    UserProfileUpdate,
     UserRegisterRequest,
     UserMembershipSummary,
 )
@@ -17,20 +18,23 @@ router = APIRouter()
 
 @router.post("/auth/signup", response_model=ApiResponse[Token])
 def signup(req: UserRegisterRequest, db: Session = Depends(get_db)):
-    """Registers a new user and optional initial club."""
+    """Registers a new volunteer or initial club user."""
     try:
-        user, club = AuthService.register_user(db, req)
+        user, club, join_req = AuthService.register_user(db, req)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
 
+    assigned_role = "PRESIDENT" if club and club.created_by_id == user.id else "VOLUNTEER"
     token_str = AuthService.create_user_token(
         user=user,
         active_club_id=club.id if club else None,
-        active_role=req.role.value if req.role else "PRESIDENT",
+        active_role=assigned_role,
     )
+    
+    msg = "Volunteer registration submitted! Application sent to Club Head for approval." if join_req else "Account registered successfully"
     return ApiResponse(
         success=True,
         data=Token(
@@ -38,7 +42,7 @@ def signup(req: UserRegisterRequest, db: Session = Depends(get_db)):
             token_type="bearer",
             expires_in=60 * 60 * 24,
         ),
-        message="Account registered successfully",
+        message=msg,
     )
 
 
@@ -80,12 +84,13 @@ def get_current_user_profile(user: User = Depends(get_current_user)):
     ]
 
     active_club_id = user.memberships[0].club_id if user.memberships else None
-    active_role = user.memberships[0].role.value if user.memberships else "MEMBER"
+    active_role = user.memberships[0].role.value if user.memberships else "VOLUNTEER"
 
     profile = UserProfileResponse(
         id=user.id,
         email=user.email,
         full_name=user.full_name,
+        phone_number=user.phone_number,
         avatar_url=user.avatar_url,
         role=active_role,
         active_role=active_role,
@@ -97,4 +102,46 @@ def get_current_user_profile(user: User = Depends(get_current_user)):
         success=True,
         data=profile,
         message="Session active",
+    )
+
+
+@router.put("/auth/me", response_model=ApiResponse[UserProfileResponse])
+def update_current_user_profile(
+    update_in: UserProfileUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Updates the authenticated user's profile details."""
+    updated_user = AuthService.update_user_profile(db, user, update_in)
+
+    memberships_summary = [
+        UserMembershipSummary(
+            club_id=m.club_id,
+            club_name=m.club.name if m.club else "Club",
+            club_code=m.club.code if m.club else "club",
+            role=m.role,
+            department=m.department,
+        )
+        for m in updated_user.memberships
+    ]
+
+    active_club_id = updated_user.memberships[0].club_id if updated_user.memberships else None
+    active_role = updated_user.memberships[0].role.value if updated_user.memberships else "VOLUNTEER"
+
+    profile = UserProfileResponse(
+        id=updated_user.id,
+        email=updated_user.email,
+        full_name=updated_user.full_name,
+        phone_number=updated_user.phone_number,
+        avatar_url=updated_user.avatar_url,
+        role=active_role,
+        active_role=active_role,
+        active_club_id=active_club_id,
+        memberships=memberships_summary,
+    )
+
+    return ApiResponse(
+        success=True,
+        data=profile,
+        message="Profile updated successfully",
     )

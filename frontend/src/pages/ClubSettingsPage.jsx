@@ -11,11 +11,15 @@ import {
   Save, 
   Sparkles,
   Layers,
-  KeyRound
+  KeyRound,
+  Crown,
+  UserCheck,
+  Loader2,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useHealth } from '../hooks/useHealth';
-import { createClub } from '../services/api';
+import { createClub, getClubMembers, assignClubHead } from '../services/api';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
@@ -41,12 +45,40 @@ export default function ClubSettingsPage() {
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState(null);
 
+  // Club Head appointment state
+  const [members, setMembers] = useState([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+  const [selectedHeadId, setSelectedHeadId] = useState('');
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [assignSuccess, setAssignSuccess] = useState(null);
+  const [assignError, setAssignError] = useState(null);
+
+  const loadMembers = async () => {
+    if (!activeClub?.id) return;
+    try {
+      setLoadingMembers(true);
+      const res = await getClubMembers(activeClub.id);
+      if (res.data) {
+        setMembers(res.data);
+        const currentHead = res.data.find((m) => m.role === 'CLUB_HEAD');
+        if (currentHead) {
+          setSelectedHeadId(currentHead.user_id);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingMembers(false);
+    }
+  };
+
   useEffect(() => {
     if (activeClub) {
       setClubName(activeClub.name || '');
       setClubCode(activeClub.code || '');
       setInstitution(activeClub.institution || 'Institute of Technology & Engineering');
       setDescription(activeClub.description || '');
+      loadMembers();
     }
   }, [activeClub?.id]);
 
@@ -185,6 +217,146 @@ export default function ClubSettingsPage() {
               )}
             </form>
           </Card>
+
+          {/* President Directive: Appoint & Change Club Head */}
+          {isPresident && (
+            <Card className="p-6 border-purple-200/80 shadow-xs">
+              <CardHeader className="px-0 pt-0 pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                      <Crown className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base text-slate-900">
+                        Club Leadership & Club Head Appointment
+                      </CardTitle>
+                      <CardDescription>
+                        Designate or reassign the operational Club Head for {activeClub?.name}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Badge variant="purple" size="sm">
+                    President Authority Only
+                  </Badge>
+                </div>
+              </CardHeader>
+
+              {assignSuccess && (
+                <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center gap-2 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{assignSuccess}</span>
+                </div>
+              )}
+
+              {assignError && (
+                <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2 font-medium">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{assignError}</span>
+                </div>
+              )}
+
+              {/* Current Club Head Display */}
+              <div className="p-4 bg-purple-50/50 border border-purple-100 rounded-xl mb-4">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-purple-800 mb-2 flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Current Active Club Head</span>
+                </div>
+                {members.find((m) => m.role === 'CLUB_HEAD') ? (
+                  (() => {
+                    const currentHead = members.find((m) => m.role === 'CLUB_HEAD');
+                    return (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-purple-700 text-white font-bold text-sm flex items-center justify-center shadow-xs">
+                            {currentHead.full_name?.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-bold text-xs text-slate-900">
+                              {currentHead.full_name}
+                            </div>
+                            <div className="text-[11px] text-slate-500">
+                              {currentHead.email} &bull; {currentHead.department || 'Executive Leadership'}
+                            </div>
+                          </div>
+                        </div>
+                        <Badge variant="purple" size="sm">
+                          Active Head
+                        </Badge>
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <p className="text-xs text-slate-500 italic">
+                    No Club Head currently appointed. Select a member below to designate as Club Head.
+                  </p>
+                )}
+              </div>
+
+              {/* Reassignment / Appointment Form */}
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!selectedHeadId || !activeClub?.id) return;
+                  try {
+                    setAssignLoading(true);
+                    setAssignError(null);
+                    setAssignSuccess(null);
+                    const res = await assignClubHead(activeClub.id, selectedHeadId);
+                    setAssignSuccess(res.message || 'Club Head appointed successfully!');
+                    await loadMembers();
+                    await refreshProfile();
+                    setTimeout(() => setAssignSuccess(null), 5000);
+                  } catch (err) {
+                    setAssignError(err.response?.data?.detail || err.message || 'Failed to appoint Club Head');
+                  } finally {
+                    setAssignLoading(false);
+                  }
+                }}
+                className="space-y-3"
+              >
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Select Member to Appoint as Club Head:
+                  </label>
+                  <select
+                    value={selectedHeadId}
+                    onChange={(e) => setSelectedHeadId(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 font-medium text-slate-800"
+                    disabled={loadingMembers || assignLoading}
+                  >
+                    <option value="">-- Choose Club Member --</option>
+                    {members
+                      .filter((m) => m.role !== 'PRESIDENT')
+                      .map((m) => (
+                        <option key={m.user_id} value={m.user_id}>
+                          {m.full_name} ({m.email}) &bull; Currently {m.role}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl text-[11px] text-slate-600 leading-relaxed">
+                  <p>
+                    <strong>Governance Invariant:</strong> Under campus operational rules, each club holds strictly <strong>one active Club Head</strong>. Appointing a new candidate will automatically rotate the previous Club Head back to Volunteer status and dispatch notification & email alerts.
+                  </p>
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    disabled={!selectedHeadId || assignLoading}
+                    leftIcon={assignLoading ? Loader2 : Crown}
+                    className="bg-purple-700 hover:bg-purple-800 border-purple-800"
+                  >
+                    {assignLoading ? 'Appointing...' : 'Appoint / Change Club Head'}
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          )}
 
           {/* User's Organization Memberships */}
           <Card className="p-6 space-y-4">

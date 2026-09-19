@@ -4,6 +4,15 @@ from sqlalchemy import text, inspect
 
 def run_migration():
     print("Connecting to PostgreSQL...")
+    
+    # Enum alterations must run in AUTOCOMMIT in PostgreSQL
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        try:
+            conn.execute(text("ALTER TYPE clubrole ADD VALUE IF NOT EXISTS 'CLUB_HEAD';"))
+            print("Added 'CLUB_HEAD' to clubrole enum")
+        except Exception as e:
+            print("clubrole alteration note:", e)
+
     with engine.begin() as conn:
         # Check pg enums
         res = conn.execute(text("SELECT typname FROM pg_type WHERE typtype = 'e';"))
@@ -15,7 +24,6 @@ def run_migration():
         print("Migrated: users.phone_number")
 
         # 2. clubs.status
-        # If clubstatus enum doesn't exist, create it or use VARCHAR
         if 'clubstatus' not in enums:
             try:
                 conn.execute(text("CREATE TYPE clubstatus AS ENUM ('ACTIVE', 'INACTIVE', 'ARCHIVED');"))
