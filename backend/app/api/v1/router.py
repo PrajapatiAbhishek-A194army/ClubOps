@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (
     analytics,
     announcements,
+    audit,
     auth,
     clubs,
     collaboration,
@@ -32,9 +33,11 @@ api_router.include_router(announcements.router, tags=["Announcements & Multi-Cha
 api_router.include_router(dashboards.router, tags=["Role-Based Dashboards"])
 api_router.include_router(collaboration.router, tags=["Real-Time Collaboration"])
 api_router.include_router(analytics.router, tags=["Operations Analytics & Insights"])
+api_router.include_router(audit.router, tags=["Security & Immutable Audit"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(risks.router, prefix="/risks", tags=["Risks Radar"])
 api_router.include_router(meetings.router, prefix="/meetings", tags=["Meeting Intelligence"])
 api_router.include_router(knowledge.router, prefix="/knowledge", tags=["Institutional Knowledge RAG"])
+
 
 

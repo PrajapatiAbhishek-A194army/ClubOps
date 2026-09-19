@@ -399,7 +399,36 @@ export const downloadAnalyticsReport = async (clubId) => {
   return response.data;
 };
 
+// Security & Immutable Audit Suite
+export const getAuditLogs = async (clubId, params = {}) => {
+  const response = await api.get(`/clubs/${clubId}/audit`, { params });
+  return response.data;
+};
+
+export const verifyAuditIntegrity = async (clubId) => {
+  const response = await api.get(`/clubs/${clubId}/audit/verify-integrity`);
+  return response.data;
+};
+
+export const getSecuritySummary = async (clubId) => {
+  const response = await api.get(`/clubs/${clubId}/audit/summary`);
+  return response.data;
+};
+
+export const getGovernanceMatrix = async (clubId) => {
+  const response = await api.get(`/clubs/${clubId}/audit/governance`);
+  return response.data;
+};
+
+export const downloadAuditReport = async (clubId) => {
+  const response = await api.get(`/clubs/${clubId}/audit/export`, {
+    responseType: 'blob',
+  });
+  return response.data;
+};
+
 export default api;
+
 
 
 

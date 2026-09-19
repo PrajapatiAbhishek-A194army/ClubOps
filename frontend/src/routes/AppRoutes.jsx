@@ -18,7 +18,9 @@ import RisksPage from '../pages/RisksPage';
 import AnnouncementsPage from '../pages/AnnouncementsPage';
 import CollaborationPage from '../pages/CollaborationPage';
 import AnalyticsPage from '../pages/AnalyticsPage';
+import AuditPage from '../pages/AuditPage';
 import PlaceholderFeature from '../pages/PlaceholderFeature';
+
 
 
 
@@ -155,20 +157,11 @@ export default function AppRoutes() {
         path="/app/audit"
         element={
           <DashboardShell>
-            <PlaceholderFeature
-              title="Immutable Audit Logs & Governance"
-              phase="Phase 15"
-              description="Immutable security log recording actor, timestamp, event, action verb, and diff payload across all operations."
-              capabilities={[
-                'Tamper-resistant audit trail',
-                'Security event filtering by actor and date',
-                'Compliance export for university advisors',
-                'Strict deny-by-default verification',
-              ]}
-            />
+            <AuditPage />
           </DashboardShell>
         }
       />
+
 
       <Route
         path="/app/settings"
