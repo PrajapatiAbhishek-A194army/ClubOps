@@ -1,10 +1,19 @@
 # LLM Research & Model Architecture
 
-## Model Selection: Groq Llama 3.3 70B Versatile
-- **Ultra-low latency**: Essential for responsive real-time meeting parsing and on-the-fly planning.
-- **Structured JSON Mode**: Supports native JSON schema enforcement for reliable function and tool parameter parsing.
-- **Context Window**: 128k context allows ingestion of extensive meeting transcripts and club documentation.
+## Model Selection: Groq
+The AI services utilize the Groq API for its ultra-low latency and JSON output support.
 
-## Temperature & Safety Parameters
-- Planning / Extraction: `temperature = 0.1` (deterministic, fact-grounded)
-- Announcement Generation: `temperature = 0.6` (creative yet professional)
+The primary model is configured via `GROQ_MODEL` (defaulting to `"openai/gpt-oss-120b"`).
+Fallback cascade strategies (e.g., in Task Suggestion) attempt multiple models to ensure robustness:
+1. Configured `GROQ_MODEL`
+2. `"openai/gpt-oss-120b"`
+3. `"groq/compound-mini"`
+4. `"qwen/qwen3.8-27b"`
+
+- **Structured JSON Mode**: Used extensively for parsing AI task breakdown and meeting-to-action item extraction reliably.
+
+## Temperature Parameters
+- **Meeting Extraction**: `temperature = 0.1` (highly deterministic, transcript-grounded)
+- **Knowledge Synthesis (RAG)**: `temperature = 0.2` (grounded on retrieved document context)
+- **Event Staffing Estimator**: `temperature = 0.2` (structured mathematical planning)
+- **Task Suggestion / Planning**: `temperature = 0.3` (slight variance for brainstorming milestones)
