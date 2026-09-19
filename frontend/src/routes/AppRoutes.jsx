@@ -15,6 +15,7 @@ import VolunteersPage from '../pages/VolunteersPage';
 import MeetingsPage from '../pages/MeetingsPage';
 import KnowledgePage from '../pages/KnowledgePage';
 import RisksPage from '../pages/RisksPage';
+import AnnouncementsPage from '../pages/AnnouncementsPage';
 import PlaceholderFeature from '../pages/PlaceholderFeature';
 
 export default function AppRoutes() {
@@ -121,17 +122,7 @@ export default function AppRoutes() {
         path="/app/announcements"
         element={
           <DashboardShell>
-            <PlaceholderFeature
-              title="AI Announcements & Multi-Channel Communications"
-              phase="Phase 11"
-              description="Draft high-engagement club communications with AI and broadcast via Brevo transactional email API."
-              capabilities={[
-                'Targeted announcement template generator',
-                'Brevo email API delivery pipeline',
-                'Notification center and broadcast history',
-                'President approval guardrail',
-              ]}
-            />
+            <AnnouncementsPage />
           </DashboardShell>
         }
       />

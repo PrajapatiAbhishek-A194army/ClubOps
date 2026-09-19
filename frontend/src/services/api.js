@@ -306,8 +306,34 @@ export const executeAIWorkflow = async (clubId, workflowData) => {
   return response.data;
 };
 
-export const getWorkflowStages = async (clubId) => {
-  const response = await api.get(`/clubs/${clubId}/workflows/stages`);
+// Announcements & Multi-Channel Broadcast
+export const getClubAnnouncements = async (clubId, params = {}) => {
+  const response = await api.get(`/clubs/${clubId}/announcements`, { params });
+  return response.data;
+};
+
+export const generateAIAnnouncement = async (clubId, payload) => {
+  const response = await api.post(`/clubs/${clubId}/announcements/generate-ai`, payload);
+  return response.data;
+};
+
+export const createAnnouncement = async (clubId, payload) => {
+  const response = await api.post(`/clubs/${clubId}/announcements`, payload);
+  return response.data;
+};
+
+export const updateAnnouncement = async (clubId, announcementId, payload) => {
+  const response = await api.put(`/clubs/${clubId}/announcements/${announcementId}`, payload);
+  return response.data;
+};
+
+export const publishAnnouncement = async (clubId, announcementId, payload) => {
+  const response = await api.post(`/clubs/${clubId}/announcements/${announcementId}/publish`, payload);
+  return response.data;
+};
+
+export const deleteAnnouncement = async (clubId, announcementId) => {
+  const response = await api.delete(`/clubs/${clubId}/announcements/${announcementId}`);
   return response.data;
 };
 

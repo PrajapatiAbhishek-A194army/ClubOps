@@ -1,7 +1,7 @@
 import enum
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from app.database.session import Base
 
@@ -28,6 +28,10 @@ class Announcement(Base):
     created_by_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     created_source = Column(Enum(AnnouncementSource), default=AnnouncementSource.MANUAL, nullable=False)
     status = Column(Enum(AnnouncementStatus), default=AnnouncementStatus.DRAFT, nullable=False)
+    category = Column(String(50), default="GENERAL", nullable=False)
+    target_channel = Column(String(50), default="EMAIL", nullable=False)
+    email_broadcast_sent = Column(Boolean, default=False, nullable=False)
+    email_sent_count = Column(Integer, default=0, nullable=False)
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     published_at = Column(DateTime, nullable=True)
