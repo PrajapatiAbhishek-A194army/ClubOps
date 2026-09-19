@@ -242,47 +242,104 @@ class EventService:
         event operation plan. Includes deterministic fallback if Groq API fails.
         """
         if settings.GROQ_API_KEY:
-            try:
-                from groq import Groq
+            from groq import Groq
+            client = Groq(api_key=settings.GROQ_API_KEY)
 
-                client = Groq(api_key=settings.GROQ_API_KEY)
-                system_prompt = (
-                    "You are the senior event operations architect for ClubOps AI. "
-                    "Given the student club event parameters, output a structured JSON plan "
-                    "containing: suggested_description (string), suggested_budget (float in USD), "
-                    "timeline (array of 4 to 6 milestones with id, title, target_date relative description, completed=false, assigned_to), "
-                    "and checklists (object with sponsor_checklist array, judge_checklist array, and volunteer_specs array). "
-                    "Respond ONLY with valid JSON and NO markdown code fences."
-                )
-                user_prompt = (
-                    f"Event Title: {plan_req.title}\n"
-                    f"Event Type: {plan_req.event_type.value}\n"
-                    f"Duration: {plan_req.duration_days} day(s)\n"
-                    f"Expected Attendees: {plan_req.expected_attendees}\n"
-                    f"Focus Areas: {plan_req.focus_areas or 'General campus technology, hands-on learning'}\n"
-                )
+            candidate_models = [
+                settings.GROQ_MODEL,
+                "openai/gpt-oss-120b",
+                "groq/compound-mini",
+                "qwen/qwen3.8-27b",
+            ]
+            # Deduplicate while preserving order
+            seen_models = set()
+            models_to_try = [m for m in candidate_models if m and not (m in seen_models or seen_models.add(m))]
 
-                chat_completion = client.chat.completions.create(
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt},
-                    ],
-                    model=settings.GROQ_MODEL,
-                    temperature=0.3,
-                    max_tokens=1500,
-                    response_format={"type": "json_object"},
-                )
+            system_prompt = (
+                "You are the senior event operations architect for ClubOps AI. "
+                "Given the student club event parameters, output a structured JSON plan with:\n"
+                "1. 'suggested_description': A professional 2-3 sentence overview.\n"
+                "2. 'suggested_budget': Total estimated cost in USD as a single number.\n"
+                "3. 'timeline': Array of 4 to 6 milestones, each with 'id', 'title', 'target_date' (e.g. '2 Weeks Prior'), 'completed': false, and 'assigned_to' (e.g. 'Tech Lead', 'Event Chair').\n"
+                "4. 'checklists': Object with 'sponsor_checklist' (array of strings), 'judge_checklist' (array of strings), and 'volunteer_specs' (array of strings).\n"
+                "Respond ONLY with valid JSON."
+            )
+            user_prompt = (
+                f"Event Title: {plan_req.title}\n"
+                f"Event Type: {plan_req.event_type.value}\n"
+                f"Duration: {plan_req.duration_days} day(s)\n"
+                f"Expected Attendees: {plan_req.expected_attendees}\n"
+                f"Focus Areas: {plan_req.focus_areas or 'Interactive hands-on session, student collaboration'}\n"
+            )
 
-                content = chat_completion.choices[0].message.content
-                data = json.loads(content)
-                return AIPlanResponse(
-                    suggested_description=data.get("suggested_description", f"Premier {plan_req.title} hosted by campus leaders."),
-                    suggested_budget=float(data.get("suggested_budget", 1200.0)),
-                    timeline=data.get("timeline", []),
-                    checklists=data.get("checklists", {})
-                )
-            except Exception as e:
-                logger.warning(f"Groq API call failed or timed out: {e}. Utilizing intelligent deterministic fallback.")
+            for model_name in models_to_try:
+                try:
+                    chat_completion = client.chat.completions.create(
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_prompt},
+                        ],
+                        model=model_name,
+                        temperature=0.3,
+                        max_tokens=1500,
+                        response_format={"type": "json_object"},
+                    )
+
+                    content = chat_completion.choices[0].message.content
+                    data = json.loads(content)
+
+                    # Normalize budget
+                    raw_budget = data.get("suggested_budget", 500.0)
+                    if isinstance(raw_budget, dict):
+                        budget_val = float(raw_budget.get("total_usd", raw_budget.get("total", sum(v for v in raw_budget.values() if isinstance(v, (int, float))))))
+                    else:
+                        try:
+                            budget_val = float(raw_budget)
+                        except (TypeError, ValueError):
+                            budget_val = 500.0
+
+                    # Normalize timeline milestones
+                    raw_timeline = data.get("timeline", [])
+                    clean_timeline = []
+                    if isinstance(raw_timeline, list):
+                        for idx, item in enumerate(raw_timeline):
+                            if isinstance(item, dict):
+                                clean_timeline.append({
+                                    "id": str(item.get("id") or f"m{idx+1}"),
+                                    "title": item.get("title") or item.get("milestone") or f"Milestone {idx+1}",
+                                    "target_date": str(item.get("target_date") or item.get("deadline") or "Ongoing"),
+                                    "completed": bool(item.get("completed", False)),
+                                    "assigned_to": str(item.get("assigned_to") or "Organizing Committee"),
+                                })
+
+                    # Normalize checklists
+                    raw_checklists = data.get("checklists", {})
+                    if isinstance(raw_checklists, dict):
+                        clean_checklists = {
+                            "sponsor_checklist": raw_checklists.get("sponsor_checklist", []),
+                            "judge_checklist": raw_checklists.get("judge_checklist", []),
+                            "volunteer_specs": raw_checklists.get("volunteer_specs", []),
+                        }
+                    elif isinstance(raw_checklists, list):
+                        clean_checklists = {
+                            "sponsor_checklist": raw_checklists[:3],
+                            "judge_checklist": [],
+                            "volunteer_specs": raw_checklists[3:],
+                        }
+                    else:
+                        clean_checklists = {"sponsor_checklist": [], "judge_checklist": [], "volunteer_specs": []}
+
+                    logger.info(f"Successfully generated AI event plan using Groq model: {model_name}")
+                    return AIPlanResponse(
+                        suggested_description=str(data.get("suggested_description", f"Interactive {plan_req.title} for campus students.")),
+                        suggested_budget=max(0.0, budget_val),
+                        timeline=clean_timeline,
+                        checklists=clean_checklists,
+                    )
+                except Exception as e:
+                    logger.warning(f"Groq model {model_name} failed: {e}. Trying next available model...")
+
+            logger.warning("All Groq models failed. Utilizing intelligent deterministic fallback.")
 
         # Deterministic Fallback Plan
         budget_calc = max(300.0, plan_req.expected_attendees * 15.0)
