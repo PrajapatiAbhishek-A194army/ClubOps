@@ -10,6 +10,7 @@ import ClubMembersPage from '../pages/ClubMembersPage';
 import ClubSettingsPage from '../pages/ClubSettingsPage';
 import EventsPage from '../pages/EventsPage';
 import EventDetailsPage from '../pages/EventDetailsPage';
+import TasksPage from '../pages/TasksPage';
 import PlaceholderFeature from '../pages/PlaceholderFeature';
 
 export default function AppRoutes() {
@@ -71,17 +72,7 @@ export default function AppRoutes() {
         path="/app/tasks"
         element={
           <DashboardShell>
-            <PlaceholderFeature
-              title="Kanban Task Management & Dependencies"
-              phase="Phase 5"
-              description="Interactive Kanban board with drag-and-drop, strict dependency tracking, owner assignment, and deadline alarms."
-              capabilities={[
-                'Todo, In Progress, and Done lanes',
-                'Multi-card dependency enforcement',
-                'Priority tags (Low, Medium, High, Critical)',
-                'Automated deadline detection and alerts',
-              ]}
-            />
+            <TasksPage />
           </DashboardShell>
         }
       />

@@ -114,4 +114,41 @@ export const planEventWithAI = async (clubId, planData) => {
   return response.data;
 };
 
+// Task & Kanban Management
+export const getClubTasks = async (clubId, params = {}) => {
+  const response = await api.get(`/clubs/${clubId}/tasks`, { params });
+  return response.data;
+};
+
+export const createTask = async (clubId, taskData) => {
+  const response = await api.post(`/clubs/${clubId}/tasks`, taskData);
+  return response.data;
+};
+
+export const getTaskDetails = async (clubId, taskId) => {
+  const response = await api.get(`/clubs/${clubId}/tasks/${taskId}`);
+  return response.data;
+};
+
+export const updateTask = async (clubId, taskId, updateData) => {
+  const response = await api.put(`/clubs/${clubId}/tasks/${taskId}`, updateData);
+  return response.data;
+};
+
+export const updateTaskStatus = async (clubId, taskId, status) => {
+  const response = await api.patch(`/clubs/${clubId}/tasks/${taskId}/status`, { status });
+  return response.data;
+};
+
+export const deleteTask = async (clubId, taskId) => {
+  const response = await api.delete(`/clubs/${clubId}/tasks/${taskId}`);
+  return response.data;
+};
+
+export const suggestTasksWithAI = async (clubId, suggestData) => {
+  const response = await api.post(`/clubs/${clubId}/tasks/ai-suggest`, suggestData);
+  return response.data;
+};
+
 export default api;
+

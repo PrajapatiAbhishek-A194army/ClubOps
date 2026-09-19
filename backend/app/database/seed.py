@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from app.database.session import SessionLocal
 from app.models.club import Club, ClubMembership, ClubRole
 from app.models.event import Event, EventStatus, EventType
+from app.models.task import Task, TaskPriority, TaskStatus
 from app.models.user import User
 from app.utils.security import get_password_hash
 
@@ -347,6 +348,183 @@ def seed_demo_data():
             else:
                 existing.budget = ev["budget"]
                 print(f"  ✓ Updated existing event budget to INR: {ev['title']} (₹{ev['budget']:,.0f})")
+
+        db.flush()
+
+        # 5. Seed Realistic Tasks with Strict Dependencies
+        hackout_ev = db.query(Event).filter(Event.slug == "hackout-2026-national-ai").first()
+        bootcamp_ev = db.query(Event).filter(Event.slug == "cloud-native-bootcamp").first()
+        robowars_ev = db.query(Event).filter(Event.slug == "robowars-2026-combat-arena").first()
+
+        # Create prerequisite tasks first
+        tasks_data_stage_1 = [
+            {
+                "key": "t_sponsor_transfer",
+                "club": gdsc,
+                "event": hackout_ev,
+                "creator": users_by_email["president@clubops.ai"],
+                "assignee": users_by_email["organizer@clubops.ai"],
+                "title": "Confirm Title Sponsor Deliverables & Bank Transfer",
+                "description": "Receive signed contract and corporate funds transfer confirmation from title cloud sponsor.",
+                "status": TaskStatus.DONE,
+                "priority": TaskPriority.URGENT,
+                "deadline": datetime.utcnow() + timedelta(days=2),
+                "depends_on_key": None,
+            },
+            {
+                "key": "t_badge_design",
+                "club": gdsc,
+                "event": hackout_ev,
+                "creator": users_by_email["organizer@clubops.ai"],
+                "assignee": users_by_email["medialead@clubops.ai"],
+                "title": "Design Hackathon Attendee Badges and Lanyards",
+                "description": "Prepare vector print-ready templates with sponsor logos, barcode spots, and participant categorizations.",
+                "status": TaskStatus.DONE,
+                "priority": TaskPriority.HIGH,
+                "deadline": datetime.utcnow() + timedelta(days=4),
+                "depends_on_key": None,
+            },
+            {
+                "key": "t_procure_switches",
+                "club": gdsc,
+                "event": hackout_ev,
+                "creator": users_by_email["president@clubops.ai"],
+                "assignee": users_by_email["techlead@clubops.ai"],
+                "title": "Procure High-Speed Gigabit Switches & Lab Access Points",
+                "description": "Acquire 8 24-port switches and industrial Wi-Fi access points from college IT department.",
+                "status": TaskStatus.TODO,
+                "priority": TaskPriority.URGENT,
+                "deadline": datetime.utcnow() + timedelta(days=6),
+                "depends_on_key": None,
+            },
+            {
+                "key": "t_safety_inspect",
+                "club": clubs_by_code["ras-campus"],
+                "event": robowars_ev,
+                "creator": users_by_email["president@clubops.ai"],
+                "assignee": users_by_email["president@clubops.ai"],
+                "title": "Inspect Combat Arena Polycarbonate Enclosure",
+                "description": "Perform structural stability inspection and bullet-proof polycarbonate impact resistance testing.",
+                "status": TaskStatus.TODO,
+                "priority": TaskPriority.URGENT,
+                "deadline": datetime.utcnow() + timedelta(days=3),
+                "depends_on_key": None,
+            },
+        ]
+
+        seeded_tasks_map = {}
+        for t_data in tasks_data_stage_1:
+            existing = db.query(Task).filter(Task.club_id == t_data["club"].id, Task.title == t_data["title"]).first()
+            if not existing:
+                task_obj = Task(
+                    club_id=t_data["club"].id,
+                    event_id=t_data["event"].id if t_data["event"] else None,
+                    creator_id=t_data["creator"].id if t_data["creator"] else None,
+                    assignee_id=t_data["assignee"].id if t_data["assignee"] else None,
+                    title=t_data["title"],
+                    description=t_data["description"],
+                    status=t_data["status"],
+                    priority=t_data["priority"],
+                    deadline=t_data["deadline"],
+                )
+                db.add(task_obj)
+                db.flush()
+                seeded_tasks_map[t_data["key"]] = task_obj
+                print(f"  ✓ Seeded task: {t_data['title']} ({t_data['status'].value})")
+            else:
+                seeded_tasks_map[t_data["key"]] = existing
+
+        # Dependent tasks (Stage 2)
+        tasks_data_stage_2 = [
+            {
+                "key": "t_print_badges",
+                "club": gdsc,
+                "event": hackout_ev,
+                "creator": users_by_email["organizer@clubops.ai"],
+                "assignee": users_by_email["volunteer@clubops.ai"],
+                "title": "Print 400 Attendee Badges & Assemble Welcome Kits",
+                "description": "Send badge print files to vendor and assemble lanyard tags with NFC tags.",
+                "status": TaskStatus.IN_PROGRESS,
+                "priority": TaskPriority.HIGH,
+                "deadline": datetime.utcnow() + timedelta(days=12),
+                "depends_on_key": "t_badge_design",  # Prereq is DONE -> Not blocked!
+            },
+            {
+                "key": "t_av_stage_rigging",
+                "club": gdsc,
+                "event": hackout_ev,
+                "creator": users_by_email["techlead@clubops.ai"],
+                "assignee": users_by_email["volunteer@clubops.ai"],
+                "title": "Convention Hall Main Stage AV Rigging & Network Deployment",
+                "description": "Deploy network switches and wire up projector and live stage feed.",
+                "status": TaskStatus.BLOCKED,
+                "priority": TaskPriority.HIGH,
+                "deadline": datetime.utcnow() + timedelta(days=14),
+                "depends_on_key": "t_procure_switches",  # Prereq is TODO -> BLOCKED!
+            },
+            {
+                "key": "t_publish_sponsor_logos",
+                "club": gdsc,
+                "event": hackout_ev,
+                "creator": users_by_email["president@clubops.ai"],
+                "assignee": users_by_email["medialead@clubops.ai"],
+                "title": "Broadcast Sponsor Announcements on Instagram & LinkedIn",
+                "description": "Feature premier sponsor deliverables across campus social media handles.",
+                "status": TaskStatus.IN_PROGRESS,
+                "priority": TaskPriority.MEDIUM,
+                "deadline": datetime.utcnow() + timedelta(days=8),
+                "depends_on_key": "t_sponsor_transfer",  # Prereq is DONE
+            },
+            {
+                "key": "t_docker_scans",
+                "club": gdsc,
+                "event": bootcamp_ev,
+                "creator": users_by_email["organizer@clubops.ai"],
+                "assignee": users_by_email["techlead@clubops.ai"],
+                "title": "Docker Base Image Vulnerability Scans & Lab Repos",
+                "description": "Pre-pull student sandbox container images onto all 60 lab workstations.",
+                "status": TaskStatus.TODO,
+                "priority": TaskPriority.HIGH,
+                "deadline": datetime.utcnow() + timedelta(days=20),
+                "depends_on_key": None,
+            },
+            {
+                "key": "t_scales_calibration",
+                "club": clubs_by_code["ras-campus"],
+                "event": robowars_ev,
+                "creator": users_by_email["president@clubops.ai"],
+                "assignee": users_by_email["techlead@clubops.ai"],
+                "title": "Calibrate Digital Scales for 15kg & 30kg Bot Weigh-ins",
+                "description": "Safety weigh-in calibration before teams are cleared to enter the combat arena.",
+                "status": TaskStatus.BLOCKED,
+                "priority": TaskPriority.MEDIUM,
+                "deadline": datetime.utcnow() + timedelta(days=9),
+                "depends_on_key": "t_safety_inspect",  # Prereq is TODO -> BLOCKED!
+            },
+        ]
+
+        for t_data in tasks_data_stage_2:
+            existing = db.query(Task).filter(Task.club_id == t_data["club"].id, Task.title == t_data["title"]).first()
+            prereq_task = seeded_tasks_map.get(t_data.get("depends_on_key"))
+            if not existing:
+                task_obj = Task(
+                    club_id=t_data["club"].id,
+                    event_id=t_data["event"].id if t_data["event"] else None,
+                    creator_id=t_data["creator"].id if t_data["creator"] else None,
+                    assignee_id=t_data["assignee"].id if t_data["assignee"] else None,
+                    title=t_data["title"],
+                    description=t_data["description"],
+                    status=t_data["status"],
+                    priority=t_data["priority"],
+                    deadline=t_data["deadline"],
+                    depends_on_task_id=prereq_task.id if prereq_task else None,
+                )
+                db.add(task_obj)
+                print(f"  ✓ Seeded dependent task: {t_data['title']} ({t_data['status'].value})")
+            else:
+                if prereq_task and not existing.depends_on_task_id:
+                    existing.depends_on_task_id = prereq_task.id
+                    print(f"  ✓ Linked dependency for existing task: {existing.title}")
 
         db.commit()
         print("✅ Demo data successfully seeded into PostgreSQL!")
