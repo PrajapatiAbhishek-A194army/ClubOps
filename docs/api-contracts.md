@@ -68,6 +68,11 @@
 - `POST /knowledge/upload`: Ingest PDF or document report; chunk and index text.
 - `POST /knowledge/search`: Natural language semantic search returning answers with source citations.
 
-### 9. Announcements (`/announcements`)
-- `POST /announcements/draft`: AI generates targeted announcement draft.
-- `POST /announcements/publish`: Club Head publishes announcement and triggers broadcast.
+### 9. Volunteers & Matchmaking (`/volunteers`)
+- `GET /clubs/{club_id}/volunteers`: List volunteers with availability and skill filtering.
+- `GET /clubs/{club_id}/volunteers/{volunteer_id}`: Get detailed volunteer profile.
+- `POST /clubs/{club_id}/volunteers`: Create or update volunteer profile.
+- `PATCH /clubs/{club_id}/volunteers/{volunteer_id}/availability`: Update availability status.
+- `PATCH /clubs/{club_id}/volunteers/{volunteer_id}/check-in`: Toggle on-site check-in status.
+- `POST /clubs/{club_id}/volunteers/ai-match`: Get AI recommendations for assigning volunteers to tasks.
+- `POST /clubs/{club_id}/volunteers/assign`: Assign a volunteer to a task.
