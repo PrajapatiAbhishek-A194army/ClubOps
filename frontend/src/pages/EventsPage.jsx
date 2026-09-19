@@ -376,8 +376,8 @@ export default function EventsPage() {
 
                   <div className="flex items-center justify-between text-slate-500 pt-1">
                     <span className="flex items-center gap-1 font-medium text-slate-700">
-                      <DollarSign className="w-3.5 h-3.5 text-slate-400" />
-                      Budget: ${ev.budget.toLocaleString()}
+                      <span className="font-bold text-slate-500">₹</span>
+                      Budget: ₹{ev.budget.toLocaleString('en-IN')}
                     </span>
                     <span className="text-[11px] bg-slate-100 px-2 py-0.5 rounded text-slate-600 font-medium">
                       {ev.days_until_event === 0 ? 'Happening Now' : `In ${ev.days_until_event} days`}
@@ -638,7 +638,7 @@ export default function EventsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Estimated Budget ($)</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Estimated Budget (₹)</label>
                     <Input
                       type="number"
                       required
@@ -820,7 +820,7 @@ export default function EventsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Allocated Budget ($)</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Allocated Budget (₹)</label>
                   <Input
                     type="number"
                     min="0"

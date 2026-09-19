@@ -309,12 +309,12 @@ export default function EventDetailsPage() {
 
         <Card className="border-slate-200">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
-              <DollarSign className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0 font-bold text-lg">
+              ₹
             </div>
             <div>
               <p className="text-xs text-slate-500 font-medium">Approved Budget</p>
-              <p className="text-lg font-bold text-slate-900">${event.budget.toLocaleString()}</p>
+              <p className="text-lg font-bold text-slate-900">₹{event.budget?.toLocaleString('en-IN')}</p>
             </div>
           </CardContent>
         </Card>
@@ -546,7 +546,7 @@ export default function EventDetailsPage() {
 
               <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
                 <span className="text-xs text-slate-500 font-medium">Operating Budget</span>
-                <p className="font-semibold text-slate-900">${event.budget.toLocaleString()}</p>
+                <p className="font-semibold text-slate-900">₹{event.budget?.toLocaleString('en-IN')}</p>
               </div>
             </div>
 
@@ -597,7 +597,7 @@ export default function EventDetailsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Allocated Budget ($)</label>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Allocated Budget (₹)</label>
               <Input
                 type="number"
                 value={editFormData.budget}

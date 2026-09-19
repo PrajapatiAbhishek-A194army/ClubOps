@@ -171,7 +171,7 @@ def seed_demo_data():
                 "status": EventStatus.ON_TRACK,
                 "start_date": datetime.utcnow() + timedelta(days=18),
                 "end_date": datetime.utcnow() + timedelta(days=20),
-                "budget": 4500.0,
+                "budget": 150000.0,
                 "timeline": [
                     {
                         "id": "m1",
@@ -238,7 +238,7 @@ def seed_demo_data():
                 "status": EventStatus.PLANNING,
                 "start_date": datetime.utcnow() + timedelta(days=32),
                 "end_date": datetime.utcnow() + timedelta(days=32, hours=8),
-                "budget": 850.0,
+                "budget": 25000.0,
                 "timeline": [
                     {
                         "id": "m1",
@@ -284,7 +284,7 @@ def seed_demo_data():
                 "status": EventStatus.AT_RISK,
                 "start_date": datetime.utcnow() + timedelta(days=11),
                 "end_date": datetime.utcnow() + timedelta(days=12),
-                "budget": 6200.0,
+                "budget": 180000.0,
                 "timeline": [
                     {
                         "id": "m1",
@@ -345,7 +345,8 @@ def seed_demo_data():
                 db.add(event_obj)
                 print(f"  ✓ Seeded event: {ev['title']} ({ev['status'].value})")
             else:
-                print(f"  ℹ Event already exists: {ev['title']}")
+                existing.budget = ev["budget"]
+                print(f"  ✓ Updated existing event budget to INR: {ev['title']} (₹{ev['budget']:,.0f})")
 
         db.commit()
         print("✅ Demo data successfully seeded into PostgreSQL!")

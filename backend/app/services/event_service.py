@@ -256,10 +256,10 @@ class EventService:
             models_to_try = [m for m in candidate_models if m and not (m in seen_models or seen_models.add(m))]
 
             system_prompt = (
-                "You are the senior event operations architect for ClubOps AI. "
+                "You are the senior event operations architect for ClubOps AI for Indian university campus clubs. "
                 "Given the student club event parameters, output a structured JSON plan with:\n"
                 "1. 'suggested_description': A professional 2-3 sentence overview.\n"
-                "2. 'suggested_budget': Total estimated cost in USD as a single number.\n"
+                "2. 'suggested_budget': Total estimated cost in Indian Rupees (₹ INR) as a single realistic number (e.g. 5000, 15000, 45000).\n"
                 "3. 'timeline': Array of 4 to 6 milestones, each with 'id', 'title', 'target_date' (e.g. '2 Weeks Prior'), 'completed': false, and 'assigned_to' (e.g. 'Tech Lead', 'Event Chair').\n"
                 "4. 'checklists': Object with 'sponsor_checklist' (array of strings), 'judge_checklist' (array of strings), and 'volunteer_specs' (array of strings).\n"
                 "Respond ONLY with valid JSON."
@@ -275,6 +275,7 @@ class EventService:
                 f"Planned Duration: {duration_str}\n"
                 f"Expected Attendees: {plan_req.expected_attendees}\n"
                 f"Focus Areas: {plan_req.focus_areas or 'Interactive hands-on session, student collaboration'}\n"
+                f"Currency: Indian Rupees (INR ₹)\n"
             )
 
             for model_name in models_to_try:
@@ -294,14 +295,14 @@ class EventService:
                     data = json.loads(content)
 
                     # Normalize budget
-                    raw_budget = data.get("suggested_budget", 500.0)
+                    raw_budget = data.get("suggested_budget", 10000.0)
                     if isinstance(raw_budget, dict):
-                        budget_val = float(raw_budget.get("total_usd", raw_budget.get("total", sum(v for v in raw_budget.values() if isinstance(v, (int, float))))))
+                        budget_val = float(raw_budget.get("total_inr", raw_budget.get("total_usd", raw_budget.get("total", sum(v for v in raw_budget.values() if isinstance(v, (int, float)))))))
                     else:
                         try:
                             budget_val = float(raw_budget)
                         except (TypeError, ValueError):
-                            budget_val = 500.0
+                            budget_val = 10000.0
 
                     # Normalize timeline milestones
                     raw_timeline = data.get("timeline", [])
@@ -346,8 +347,8 @@ class EventService:
 
             logger.warning("All Groq models failed. Utilizing intelligent deterministic fallback.")
 
-        # Deterministic Fallback Plan
-        budget_calc = max(300.0, plan_req.expected_attendees * 15.0)
+        # Deterministic Fallback Plan (in INR)
+        budget_calc = max(5000.0, plan_req.expected_attendees * 150.0)
         return AIPlanResponse(
             suggested_description=(
                 f"A high-impact {plan_req.event_type.value.lower()} bringing together {plan_req.expected_attendees} students "
