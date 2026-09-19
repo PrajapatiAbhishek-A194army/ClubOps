@@ -1,11 +1,17 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.models.user import User
 from app.schemas.common import ApiResponse
-from app.schemas.notification import NotificationResponse, NotificationUnreadCount
+from app.schemas.notification import (
+    AIBriefingRequest,
+    NotificationResponse,
+    NotificationUnreadCount,
+    TestEmailRequest,
+)
+from app.services.email_service import EmailService
 from app.services.notification_service import NotificationService
 
 router = APIRouter()
@@ -80,4 +86,62 @@ def mark_all_notifications_read(
         success=True,
         data={"marked_read": count},
         message=f"{count} notifications marked as read",
+    )
+
+
+@router.post("/send-test-email", response_model=ApiResponse[dict])
+def send_test_email(
+    payload: TestEmailRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Sends a test notification email via Brevo transactional email API.
+    """
+    target_email = payload.recipient_email or current_user.email
+    target_name = current_user.full_name or "ClubOps User"
+
+    html = EmailService.build_notification_html(
+        title=payload.subject or "ClubOps Notification Test",
+        message=payload.message or "This is a test notification from your ClubOps platform.",
+        badge_text="Email Delivery Test",
+        badge_color="#059669",
+        action_url="http://localhost:5173/app",
+        action_label="Open ClubOps Portal",
+    )
+
+    result = EmailService.send_email(
+        to_email=target_email,
+        to_name=target_name,
+        subject=payload.subject or "ClubOps Notification Test",
+        html_content=html,
+    )
+
+    return ApiResponse(
+        success=result.get("success", False),
+        data=result,
+        message="Test email dispatch processed",
+    )
+
+
+@router.post("/trigger-ai-briefing", response_model=ApiResponse[dict])
+def trigger_ai_briefing(
+    payload: AIBriefingRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Generates and broadcasts an AI Operations briefing notification & email
+    to club leadership and active members.
+    """
+    count = NotificationService.dispatch_ai_briefing(
+        db=db,
+        club_id=payload.club_id,
+        title=payload.title,
+        message=payload.message,
+        link_url=payload.link_url,
+    )
+    return ApiResponse(
+        success=True,
+        data={"notifications_dispatched": count},
+        message=f"AI briefing dispatched to {count} club members",
     )

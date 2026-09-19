@@ -337,12 +337,6 @@ export default function DashboardShell({ children }) {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* System Status Pill */}
-            <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-full border border-emerald-200 bg-emerald-50 text-[11px] font-semibold text-emerald-800">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              FastAPI {health?.status ? 'Online' : 'Connected'}
-            </div>
-
             {/* Quick Action: Back to Public Landing */}
             <Link
               to="/"
