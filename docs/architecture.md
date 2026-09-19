@@ -33,8 +33,8 @@ The platform decouples into three enterprise-grade tiers:
                      v                                     v
 +------------------------------------+   +------------------------------------------+
 |       PostgreSQL / SQLite DB       |   |             AI Service Layer             |
-| - 19 Core Entities & Constraints   |   | - Provider Abstraction (Groq / OpenAI)   |
-| - Audit Logs & Vector Embeddings   |   | - Event Planning & Staffing Agent        |
+| - 19 Core Entities & Constraints   |   | - Provider Abstraction (Groq)            |
+| - Audit Logs & RAG Text Chunks     |   | - Event Planning & Staffing Agent        |
 | - Notification Records             |   | - Meeting Extraction Agent               |
 | - Multi-Event Rosters              |   | - Explainable Assignment Recommender     |
 +------------------------------------+   +------------------------------------------+
