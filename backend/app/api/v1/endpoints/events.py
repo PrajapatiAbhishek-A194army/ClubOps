@@ -81,6 +81,23 @@ def create_event(
     )
 
 
+@router.post("/clubs/{club_id}/events/plan-ai", response_model=ApiResponse[AIPlanResponse])
+def plan_event_with_ai(
+    club_id: str,
+    plan_req: AIPlanRequest,
+    current_user: User = Depends(get_current_user),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
+    db: Session = Depends(get_db),
+):
+    """Generates an AI event plan using Groq LLM with deterministic fallback."""
+    plan = EventService.generate_ai_plan(plan_req)
+    return ApiResponse(
+        success=True,
+        data=plan,
+        message="AI event plan generated successfully",
+    )
+
+
 @router.get("/clubs/{club_id}/events/{event_id}", response_model=ApiResponse[EventResponse])
 def get_event(
     club_id: str,
