@@ -16,7 +16,9 @@ import MeetingsPage from '../pages/MeetingsPage';
 import KnowledgePage from '../pages/KnowledgePage';
 import RisksPage from '../pages/RisksPage';
 import AnnouncementsPage from '../pages/AnnouncementsPage';
+import CollaborationPage from '../pages/CollaborationPage';
 import PlaceholderFeature from '../pages/PlaceholderFeature';
+
 
 export default function AppRoutes() {
   return (
@@ -126,6 +128,16 @@ export default function AppRoutes() {
           </DashboardShell>
         }
       />
+
+      <Route
+        path="/app/collaboration"
+        element={
+          <DashboardShell>
+            <CollaborationPage />
+          </DashboardShell>
+        }
+      />
+
 
       <Route
         path="/app/audit"

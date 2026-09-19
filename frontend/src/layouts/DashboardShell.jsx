@@ -22,6 +22,7 @@ import {
   ChevronDown,
   ArrowUpRight,
   LogOut,
+  Radio,
 } from 'lucide-react';
 import { useHealth } from '../hooks/useHealth';
 import { useAuth } from '../context/AuthContext';
@@ -73,12 +74,14 @@ export default function DashboardShell({ children }) {
       title: 'Operations',
       items: [
         { path: '/app', label: 'Overview', icon: LayoutDashboard },
+        { path: '/app/collaboration', label: 'Team Live Hub', icon: Radio, badge: 'Live' },
         { path: '/app/events', label: 'Events', icon: Calendar, badge: 'Active' },
         { path: '/app/tasks', label: 'Kanban Tasks', icon: CheckSquare },
         { path: '/app/members', label: 'Club Roster', icon: Users, badge: 'Members' },
         { path: '/app/volunteers', label: 'Volunteer Pool', icon: Users },
       ],
     },
+
     {
       title: 'AI Intelligence',
       items: [

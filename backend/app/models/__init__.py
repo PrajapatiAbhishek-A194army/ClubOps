@@ -21,6 +21,7 @@ from app.models.risk import Risk, RiskSeverity, RiskStatus, RiskSource
 from app.models.announcement import Announcement, AnnouncementStatus, AnnouncementSource
 from app.models.notification import Notification, NotificationType
 from app.models.audit import AuditLog, AuditSource
+from app.models.collaboration import ChatMessage, ChatMessageType
 
 __all__ = [
     "BaseModel",
@@ -67,4 +68,7 @@ __all__ = [
     "NotificationType",
     "AuditLog",
     "AuditSource",
+    "ChatMessage",
+    "ChatMessageType",
 ]
+

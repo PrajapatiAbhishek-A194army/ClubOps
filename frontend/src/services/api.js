@@ -353,5 +353,34 @@ export const volunteerCheckIn = async (clubId, status = 'CHECKED_IN', eventId = 
   return response.data;
 };
 
+// Real-Time Collaboration Suite
+export const getCollaborationChannels = async (clubId) => {
+  const response = await api.get(`/clubs/${clubId}/collaboration/channels`);
+  return response.data;
+};
+
+export const getCollaborationMessages = async (clubId, channel = 'general', limit = 50) => {
+  const response = await api.get(`/clubs/${clubId}/collaboration/messages`, {
+    params: { channel, limit },
+  });
+  return response.data;
+};
+
+export const sendCollaborationMessage = async (clubId, payload) => {
+  const response = await api.post(`/clubs/${clubId}/collaboration/messages`, payload);
+  return response.data;
+};
+
+export const getCollaborationPresence = async (clubId) => {
+  const response = await api.get(`/clubs/${clubId}/collaboration/presence`);
+  return response.data;
+};
+
+export const broadcastSystemActivity = async (clubId, payload) => {
+  const response = await api.post(`/clubs/${clubId}/collaboration/broadcast-activity`, payload);
+  return response.data;
+};
+
 export default api;
+
 
