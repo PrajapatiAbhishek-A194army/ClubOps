@@ -7,6 +7,7 @@ import LoginPage from '../pages/LoginPage';
 import SignupPage from '../pages/SignupPage';
 import DashboardOverview from '../pages/DashboardOverview';
 import ClubMembersPage from '../pages/ClubMembersPage';
+import ClubSettingsPage from '../pages/ClubSettingsPage';
 import PlaceholderFeature from '../pages/PlaceholderFeature';
 
 export default function AppRoutes() {
@@ -202,17 +203,7 @@ export default function AppRoutes() {
         path="/app/settings"
         element={
           <DashboardShell>
-            <PlaceholderFeature
-              title="Club & System Settings"
-              phase="Phase 3"
-              description="Manage club metadata, university affiliations, user roles, security tokens, and API integrations."
-              capabilities={[
-                'Club profile and branding preferences',
-                'Role-based permission matrix',
-                'Groq and Brevo API credentials test',
-                'Active session management',
-              ]}
-            />
+            <ClubSettingsPage />
           </DashboardShell>
         }
       />
