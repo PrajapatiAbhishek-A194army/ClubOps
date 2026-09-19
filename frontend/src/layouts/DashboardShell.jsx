@@ -30,6 +30,7 @@ import Button from '../components/ui/Button';
 import CommandPalette from '../components/CommandPalette';
 import NotificationCenter from '../components/NotificationCenter';
 import UserProfileModal from '../components/UserProfileModal';
+import AIWorkflowModal from '../components/AIWorkflowModal';
 import { APP_NAME } from '../utils/constants';
 
 export default function DashboardShell({ children }) {
@@ -39,6 +40,7 @@ export default function DashboardShell({ children }) {
   const [clubMenuOpen, setClubMenuOpen] = useState(false);
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [workflowModalOpen, setWorkflowModalOpen] = useState(false);
 
   const { health } = useHealth();
   const { user, clubs, activeClub, activeRole, switchClub, switchRole, logout, loading } = useAuth();
@@ -352,7 +354,17 @@ export default function DashboardShell({ children }) {
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {/* AI Operations Copilot Trigger */}
+            <button
+              onClick={() => setWorkflowModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/90 text-xs font-bold transition-all shadow-2xs hover:scale-102 cursor-pointer"
+              title="Autonomous AI Operations Copilot (LangGraph State Machine)"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+              <span className="hidden sm:inline">AI Copilot</span>
+            </button>
+
             {/* Notification Center */}
             <NotificationCenter />
 
@@ -410,6 +422,12 @@ export default function DashboardShell({ children }) {
       <UserProfileModal 
         isOpen={profileModalOpen} 
         onClose={() => setProfileModalOpen(false)} 
+      />
+
+      {/* Autonomous AI Operations Copilot Modal (LangGraph) */}
+      <AIWorkflowModal
+        isOpen={workflowModalOpen}
+        onClose={() => setWorkflowModalOpen(false)}
       />
     </div>
   );

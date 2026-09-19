@@ -9,11 +9,13 @@ from app.utils.security import get_password_hash
 
 def test_club_head_uniqueness_enforced():
     db = SessionLocal()
+    import uuid
+    uid = uuid.uuid4().hex[:6]
     try:
         # Create test club
         club = Club(
-            name="Robotics AI Guild",
-            code="robaiguild",
+            name=f"Robotics AI Guild {uid}",
+            code=f"robaiguild_{uid}",
             status=ClubStatus.ACTIVE,
         )
         db.add(club)

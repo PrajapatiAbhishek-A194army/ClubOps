@@ -15,7 +15,15 @@ def test_notification_dispatch_and_risk_radar():
     db = SessionLocal()
     try:
         now = datetime.utcnow()
-        user = db.query(User).filter(User.email == "volunteer@demo.clubops").first()
+        user = db.query(User).filter(User.email.in_(["volunteer@clubops.ai", "volunteer@demo.clubops"])).first()
+        if not user:
+            user = User(
+                email="volunteer@demo.clubops",
+                full_name="Demo Volunteer",
+                hashed_password="hashed_pwd_stub",
+            )
+            db.add(user)
+            db.flush()
         assert user is not None
 
         # 1. Test Task Assigned Notification

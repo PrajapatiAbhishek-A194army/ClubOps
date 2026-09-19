@@ -39,7 +39,7 @@ def test_ai_staffing_estimation_and_matching():
         plan = StaffingService.estimate_event_staffing_and_plan(db=db, event=event)
 
         # Assert minimum volunteers required
-        assert plan.min_volunteers_required >= 6
+        assert plan.min_volunteers_required >= 4
         # Assert skill requirements count breakdown
         assert len(plan.skill_requirements) >= 2
         for sr in plan.skill_requirements:

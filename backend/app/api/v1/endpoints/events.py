@@ -143,6 +143,37 @@ def update_event(
     )
 
 
+@router.patch("/clubs/{club_id}/events/{event_id}/milestones", response_model=ApiResponse[EventResponse])
+def toggle_milestone(
+    club_id: str,
+    event_id: str,
+    toggle_req: MilestoneToggleRequest,
+    current_user: User = Depends(get_current_user),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
+    db: Session = Depends(get_db),
+):
+    """Toggles completion state of an event timeline milestone."""
+    event = EventService.get_event_by_id(db=db, event_id=event_id, club_id=club_id)
+    if not event:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found in this club")
+
+    try:
+        updated = EventService.toggle_milestone(
+            db=db,
+            event=event,
+            milestone_id=toggle_req.milestone_id,
+            completed=toggle_req.completed,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    return ApiResponse(
+        success=True,
+        data=EventResponse.model_validate(updated),
+        message="Milestone updated successfully",
+    )
+
+
 @router.get("/clubs/{club_id}/events/{event_id}/staffing-plan", response_model=ApiResponse[AIEventPlanResponse])
 @router.post("/clubs/{club_id}/events/{event_id}/staffing-plan", response_model=ApiResponse[AIEventPlanResponse])
 def generate_staffing_plan(

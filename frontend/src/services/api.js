@@ -300,5 +300,16 @@ export const getClubDocuments = async (clubId) => {
   return response.data;
 };
 
+// AI Workflow Engine (LangGraph Orchestration)
+export const executeAIWorkflow = async (clubId, workflowData) => {
+  const response = await api.post(`/clubs/${clubId}/workflows/execute`, workflowData);
+  return response.data;
+};
+
+export const getWorkflowStages = async (clubId) => {
+  const response = await api.get(`/clubs/${clubId}/workflows/stages`);
+  return response.data;
+};
+
 export default api;
 

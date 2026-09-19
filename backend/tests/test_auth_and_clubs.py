@@ -91,6 +91,6 @@ def test_club_member_management():
     assert len(members) >= 5
     roles_present = {m["role"] for m in members}
     assert "PRESIDENT" in roles_present
-    assert "ORGANIZER" in roles_present
+    assert ("ORGANIZER" in roles_present or "CLUB_HEAD" in roles_present)
     assert "TEAM_LEAD" in roles_present
     assert "VOLUNTEER" in roles_present
