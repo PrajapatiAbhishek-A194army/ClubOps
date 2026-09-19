@@ -53,7 +53,7 @@ def enrich_task_response(task: Task) -> TaskResponse:
             title=task.depends_on.title,
             status=task.depends_on.status,
         )
-        if task.depends_on.status != TaskStatus.DONE:
+        if task.depends_on.status not in (TaskStatus.COMPLETED, TaskStatus.DONE):
             is_blocked = True
             blocking_reason = f"Blocked by '{task.depends_on.title}' ({task.depends_on.status.value})"
 

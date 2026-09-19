@@ -191,5 +191,71 @@ export const assignVolunteerToTask = async (clubId, assignData) => {
   return response.data;
 };
 
+// AI Staffing & Event Planning
+export const getEventStaffingPlan = async (clubId, eventId) => {
+  const response = await api.post(`/clubs/${clubId}/events/${eventId}/staffing-plan`);
+  return response.data;
+};
+
+export const approveEventStaffingPlan = async (clubId, eventId, planData) => {
+  const response = await api.post(`/clubs/${clubId}/events/${eventId}/approve-plan`, planData);
+  return response.data;
+};
+
+// Kanban Board
+export const getKanbanBoard = async (clubId, eventId = null) => {
+  const params = eventId ? { event_id: eventId } : {};
+  const response = await api.get(`/clubs/${clubId}/tasks/board`, { params });
+  return response.data;
+};
+
+// Risk Radar
+export const getEventRisks = async (eventId) => {
+  const response = await api.get(`/risks`, { params: { event_id: eventId } });
+  return response.data;
+};
+
+export const scanEventRisks = async (eventId) => {
+  const response = await api.post(`/risks/scan`, null, { params: { event_id: eventId } });
+  return response.data;
+};
+
+export const resolveRisk = async (riskId) => {
+  const response = await api.patch(`/risks/${riskId}/resolve`, { status: 'RESOLVED' });
+  return response.data;
+};
+
+// Meetings
+export const getClubMeetings = async (clubId) => {
+  const response = await api.get(`/meetings`, { params: { club_id: clubId } });
+  return response.data;
+};
+
+export const createMeeting = async (clubId, meetingData) => {
+  const response = await api.post(`/meetings`, meetingData, { params: { club_id: clubId } });
+  return response.data;
+};
+
+export const convertActionItems = async (meetingId, actionItemIds) => {
+  const response = await api.post(`/meetings/${meetingId}/convert-items`, { action_item_ids: actionItemIds });
+  return response.data;
+};
+
+// Knowledge Base RAG
+export const searchKnowledge = async (clubId, query) => {
+  const response = await api.post(`/knowledge/search`, { query }, { params: { club_id: clubId } });
+  return response.data;
+};
+
+export const uploadDocument = async (clubId, docData) => {
+  const response = await api.post(`/knowledge/upload`, docData, { params: { club_id: clubId } });
+  return response.data;
+};
+
+export const getClubDocuments = async (clubId) => {
+  const response = await api.get(`/knowledge/documents`, { params: { club_id: clubId } });
+  return response.data;
+};
+
 export default api;
 

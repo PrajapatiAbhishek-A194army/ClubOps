@@ -63,7 +63,7 @@ export default function EventsPage() {
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [createError, setCreateError] = useState(null);
 
-  const canManageEvents = ['PRESIDENT', 'ORGANIZER'].includes(activeRole);
+  const canManageEvents = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(activeRole);
 
   const updateMilestoneField = (index, field, value) => {
     setEditableMilestones((prev) =>

@@ -50,7 +50,7 @@ class VolunteerService:
         all_assigned = tasks_query.all()
 
         active_count = sum(1 for t in all_assigned if t.status in [TaskStatus.TODO, TaskStatus.IN_PROGRESS, TaskStatus.BLOCKED])
-        completed_count = sum(1 for t in all_assigned if t.status == TaskStatus.DONE)
+        completed_count = sum(1 for t in all_assigned if t.status in (TaskStatus.COMPLETED, TaskStatus.DONE))
 
         assigned_task_briefs = []
         if include_task_details:

@@ -24,7 +24,9 @@ import {
   getEventDetails,
   updateEvent,
   toggleMilestone,
-  deleteEvent
+  deleteEvent,
+  getEventStaffingPlan,
+  approveEventStaffingPlan,
 } from '../services/api';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
@@ -59,13 +61,49 @@ export default function EventDetailsPage() {
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState(null);
 
-  // Delete Event State
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  // AI Staffing & Volunteer Estimation State
+  const [staffingPlan, setStaffingPlan] = useState(null);
+  const [staffingLoading, setStaffingLoading] = useState(false);
+  const [staffingSuccessMsg, setStaffingSuccessMsg] = useState(null);
 
-  const canEditEvent = ['PRESIDENT', 'ORGANIZER'].includes(activeRole);
-  const canToggleMilestone = ['PRESIDENT', 'ORGANIZER', 'TEAM_LEAD'].includes(activeRole);
+  const canEditEvent = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(activeRole);
+  const canToggleMilestone = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER', 'TEAM_LEAD'].includes(activeRole);
   const isPresident = activeRole === 'PRESIDENT';
+
+  const handleLoadStaffing = async () => {
+    if (!activeClub?.id || !eventId) return;
+    setStaffingLoading(true);
+    setStaffingSuccessMsg(null);
+    try {
+      const res = await getEventStaffingPlan(activeClub.id, eventId);
+      if (res.success) {
+        setStaffingPlan(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to load AI staffing plan:', err);
+    } finally {
+      setStaffingLoading(false);
+    }
+  };
+
+  const handleApprovePlan = async () => {
+    if (!activeClub?.id || !eventId || !staffingPlan) return;
+    setStaffingLoading(true);
+    try {
+      const res = await approveEventStaffingPlan(activeClub.id, eventId, {
+        tasks: staffingPlan.proposed_tasks,
+        dispatch_notifications: true,
+      });
+      if (res.success) {
+        setStaffingSuccessMsg(`Plan approved! Created ${res.data.created_tasks} tasks and notified ${res.data.assigned_volunteers} volunteers.`);
+        fetchEvent();
+      }
+    } catch (err) {
+      console.error('Failed to approve plan:', err);
+    } finally {
+      setStaffingLoading(false);
+    }
+  };
 
   const fetchEvent = async () => {
     if (!activeClub?.id || !eventId) return;
@@ -369,6 +407,21 @@ export default function EventDetailsPage() {
           <Calendar className="w-4 h-4" />
           <span>Schedule & Logistics</span>
         </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('staffing');
+            if (!staffingPlan) handleLoadStaffing();
+          }}
+          className={`pb-3 px-5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === 'staffing'
+              ? 'border-emerald-600 text-emerald-700'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-emerald-600" />
+          <span>AI Staffing & Volunteer Breakdown</span>
+        </button>
       </div>
 
       {/* TAB 1: MILESTONES TIMELINE */}
@@ -556,6 +609,160 @@ export default function EventDetailsPage() {
             </div>
           </CardContent>
         </Card>
+      {/* TAB 4: AI STAFFING & VOLUNTEER BREAKDOWN */}
+      {activeTab === 'staffing' && (
+        <div className="space-y-6">
+          {/* Header Action Banner */}
+          <div className="p-6 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-600 text-white">
+                  AI Operations
+                </span>
+                <h2 className="font-bold text-lg text-slate-900">
+                  Staffing & Volunteer Skill Requirements
+                </h2>
+              </div>
+              <p className="text-xs text-slate-600">
+                AI estimates minimum headcount, specific skill quotas, and candidate assignments with zero schedule overlap.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLoadStaffing}
+                disabled={staffingLoading}
+                leftIcon={Sparkles}
+              >
+                {staffingLoading ? 'Analyzing...' : 'Recalculate Plan'}
+              </Button>
+              {canEditEvent && staffingPlan && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleApprovePlan}
+                  disabled={staffingLoading}
+                  leftIcon={CheckSquare}
+                >
+                  Approve & Dispatch Alerts
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {staffingSuccessMsg && (
+            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>{staffingSuccessMsg}</span>
+            </div>
+          )}
+
+          {/* Key Metrics: Minimum Volunteers Required & Explanation */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="border-slate-200">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold shrink-0">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium">Minimum Volunteers Required</p>
+                  <p className="text-xl font-bold text-slate-900">
+                    {staffingPlan?.min_volunteers_required || event.min_volunteers_required || 8} Volunteers
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 md:col-span-2">
+              <CardContent className="p-4 flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 font-medium">AI Staffing Rationale</p>
+                  <p className="text-xs text-slate-700 font-medium mt-0.5 leading-relaxed">
+                    {staffingPlan?.ai_explanation ||
+                      'Computed based on event scope, duration, and multi-track logistics requirements to ensure smooth execution.'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Skill Breakdown in Count */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-slate-800">
+              Volunteers Required by Skill (Count Breakdown)
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {(staffingPlan?.skill_requirements || event.skill_requirements || []).map((s, idx) => (
+                <div
+                  key={idx}
+                  className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-2xs space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-slate-900 truncate">{s.skill_name}</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {s.required_count} Needed
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                    <span>Target quota</span>
+                    <span className="font-semibold text-slate-700">{s.required_count} Volunteers</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Proposed Tasks & Volunteer Matches */}
+          {staffingPlan?.proposed_tasks?.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold text-slate-800">
+                Proposed Tasks & Candidate Assignments ({staffingPlan.proposed_tasks.length})
+              </h3>
+              <div className="space-y-3">
+                {staffingPlan.proposed_tasks.map((t, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 bg-white border border-slate-200 rounded-xl shadow-2xs hover:border-emerald-300 transition-colors"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm text-slate-900">{t.task_title}</span>
+                          <Badge variant="info" size="sm">{t.priority}</Badge>
+                          {t.required_skill && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 bg-purple-50 text-purple-700 rounded border border-purple-200">
+                              Skill: {t.required_skill}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-600">{t.task_description}</p>
+                      </div>
+
+                      {t.suggested_volunteer_name && (
+                        <div className="sm:text-right shrink-0 bg-emerald-50/60 p-2.5 rounded-lg border border-emerald-200">
+                          <div className="text-xs font-bold text-emerald-900">
+                            Match: {t.suggested_volunteer_name}
+                          </div>
+                          <div className="text-[10px] text-emerald-700 font-semibold">
+                            {t.skill_match_pct}% Match • Available
+                          </div>
+                          <div className="text-[10px] text-slate-500 max-w-xs mt-0.5 italic">
+                            {t.match_reason}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Edit Modal */}

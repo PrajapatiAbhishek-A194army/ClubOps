@@ -49,7 +49,7 @@ const STATUS_COLUMNS = [
   { id: 'TODO', label: 'To Do', color: 'border-slate-300 bg-slate-50/70 text-slate-700', badgeVariant: 'neutral' },
   { id: 'IN_PROGRESS', label: 'In Progress', color: 'border-blue-400 bg-blue-50/40 text-blue-800', badgeVariant: 'info' },
   { id: 'BLOCKED', label: 'Blocked', color: 'border-rose-400 bg-rose-50/40 text-rose-800', badgeVariant: 'error' },
-  { id: 'DONE', label: 'Done', color: 'border-emerald-400 bg-emerald-50/40 text-emerald-800', badgeVariant: 'success' },
+  { id: 'COMPLETED', label: 'Completed', color: 'border-emerald-400 bg-emerald-50/40 text-emerald-800', badgeVariant: 'success' },
 ];
 
 const PRIORITY_CONFIG = {
@@ -601,7 +601,10 @@ export default function TasksPage() {
       {!loading && !error && viewMode === 'kanban' && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
           {STATUS_COLUMNS.map((col) => {
-            const columnTasks = filteredTasks.filter((t) => t.status === col.id);
+            const columnTasks = filteredTasks.filter((t) => {
+              if (col.id === 'COMPLETED') return t.status === 'COMPLETED' || t.status === 'DONE';
+              return t.status === col.id;
+            });
             return (
               <div
                 key={col.id}

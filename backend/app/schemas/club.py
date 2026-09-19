@@ -1,6 +1,6 @@
 from datetime import datetime
-from typing import List, Optional
-from pydantic import BaseModel, EmailStr
+from typing import Optional
+from pydantic import BaseModel
 from app.models.club import ClubRole
 
 
@@ -8,7 +8,7 @@ class ClubBase(BaseModel):
     name: str
     code: str
     description: Optional[str] = None
-    institution: str = "University Campus"
+    institution: Optional[str] = "University Campus"
     logo_url: Optional[str] = None
 
 
@@ -27,7 +27,7 @@ class ClubResponse(ClubBase):
     id: str
     created_by_id: Optional[str] = None
     created_at: datetime
-    member_count: Optional[int] = 0
+    member_count: int = 0
 
     class Config:
         from_attributes = True
@@ -39,7 +39,7 @@ class ClubWithRoleResponse(ClubResponse):
 
 
 class MemberCreate(BaseModel):
-    email: EmailStr
+    email: str
     role: ClubRole = ClubRole.MEMBER
     department: Optional[str] = "General"
 

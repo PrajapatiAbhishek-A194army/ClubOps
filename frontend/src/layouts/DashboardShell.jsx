@@ -28,6 +28,7 @@ import { useAuth } from '../context/AuthContext';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import CommandPalette from '../components/CommandPalette';
+import NotificationCenter from '../components/NotificationCenter';
 import { APP_NAME } from '../utils/constants';
 
 export default function DashboardShell({ children }) {
@@ -344,15 +345,8 @@ export default function DashboardShell({ children }) {
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
 
-            {/* Notifications Bell */}
-            <button
-              onClick={() => navigate('/app/risks')}
-              className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors relative cursor-pointer"
-              aria-label="Notifications"
-            >
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
-            </button>
+            {/* Notification Center */}
+            <NotificationCenter />
 
             {/* User Profile avatar & logout */}
             {user ? (

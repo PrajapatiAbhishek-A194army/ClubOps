@@ -12,6 +12,7 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(120), nullable=False)
+    phone_number = Column(String(30), nullable=True)
     avatar_url = Column(String(500), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
@@ -20,3 +21,6 @@ class User(Base):
 
     # Relationships
     memberships = relationship("ClubMembership", back_populates="user", cascade="all, delete-orphan")
+    skills = relationship("VolunteerSkill", back_populates="user", cascade="all, delete-orphan")
+    availabilities = relationship("Availability", back_populates="user", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")

@@ -39,6 +39,16 @@ class MemberService:
         if existing:
             raise ValueError(f"User '{email}' is already a member of this club.")
 
+        # Hard Rule: A club can have at most ONE active Club Head.
+        if member_in.role == ClubRole.CLUB_HEAD:
+            existing_head = (
+                db.query(ClubMembership)
+                .filter(ClubMembership.club_id == club_id, ClubMembership.role == ClubRole.CLUB_HEAD)
+                .first()
+            )
+            if existing_head:
+                existing_head.role = ClubRole.VOLUNTEER
+
         membership = ClubMembership(
             club_id=club_id,
             user_id=user.id,
@@ -85,6 +95,20 @@ class MemberService:
     @staticmethod
     def update_member(db: Session, membership: ClubMembership, update_in: MemberUpdate) -> ClubMembership:
         if update_in.role is not None:
+            # Hard Rule: A club can have at most ONE active Club Head.
+            if update_in.role == ClubRole.CLUB_HEAD and membership.role != ClubRole.CLUB_HEAD:
+                existing_head = (
+                    db.query(ClubMembership)
+                    .filter(
+                        ClubMembership.club_id == membership.club_id,
+                        ClubMembership.role == ClubRole.CLUB_HEAD,
+                        ClubMembership.id != membership.id,
+                    )
+                    .first()
+                )
+                if existing_head:
+                    existing_head.role = ClubRole.VOLUNTEER
+
             membership.role = update_in.role
         if update_in.department is not None:
             membership.department = update_in.department

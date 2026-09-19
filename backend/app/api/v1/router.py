@@ -1,11 +1,28 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import health, auth, clubs, events, tasks, volunteers
+from app.api.v1.endpoints import (
+    auth,
+    clubs,
+    events,
+    health,
+    join_requests,
+    knowledge,
+    meetings,
+    notifications,
+    risks,
+    tasks,
+    volunteers,
+)
 
 api_router = APIRouter()
 
 api_router.include_router(health.router, tags=["Health"])
 api_router.include_router(auth.router, tags=["Auth"])
-api_router.include_router(clubs.router, tags=["Clubs & Members"])
-api_router.include_router(events.router, tags=["Events"])
+api_router.include_router(clubs.router, tags=["Clubs & Governance"])
+api_router.include_router(join_requests.router, tags=["Join Requests"])
+api_router.include_router(events.router, tags=["Events & AI Staffing"])
 api_router.include_router(tasks.router, tags=["Tasks & Kanban"])
-api_router.include_router(volunteers.router, tags=["Volunteers"])
+api_router.include_router(volunteers.router, tags=["Volunteers & Skills"])
+api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
+api_router.include_router(risks.router, prefix="/risks", tags=["Risks Radar"])
+api_router.include_router(meetings.router, prefix="/meetings", tags=["Meeting Intelligence"])
+api_router.include_router(knowledge.router, prefix="/knowledge", tags=["Institutional Knowledge RAG"])

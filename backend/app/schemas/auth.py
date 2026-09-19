@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from app.models.club import ClubRole
 
 
@@ -19,12 +19,12 @@ class TokenPayload(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 
 class UserRegisterRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
     full_name: str
     club_name: Optional[str] = None

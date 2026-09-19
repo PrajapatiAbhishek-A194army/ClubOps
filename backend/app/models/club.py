@@ -8,10 +8,23 @@ from app.database.session import Base
 
 class ClubRole(str, enum.Enum):
     PRESIDENT = "PRESIDENT"
+    CLUB_HEAD = "CLUB_HEAD"
     ORGANIZER = "ORGANIZER"
     TEAM_LEAD = "TEAM_LEAD"
     VOLUNTEER = "VOLUNTEER"
     MEMBER = "MEMBER"
+
+
+class ClubStatus(str, enum.Enum):
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    ARCHIVED = "ARCHIVED"
+
+
+class MembershipStatus(str, enum.Enum):
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    SUSPENDED = "SUSPENDED"
 
 
 class Club(Base):
@@ -23,12 +36,15 @@ class Club(Base):
     description = Column(Text, nullable=True)
     institution = Column(String(200), nullable=False, default="University Campus")
     logo_url = Column(String(500), nullable=True)
+    status = Column(Enum(ClubStatus), default=ClubStatus.ACTIVE, nullable=False)
     created_by_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
     memberships = relationship("ClubMembership", back_populates="club", cascade="all, delete-orphan")
+    events = relationship("Event", back_populates="club", cascade="all, delete-orphan")
+    join_requests = relationship("JoinRequest", back_populates="club", cascade="all, delete-orphan")
 
 
 class ClubMembership(Base):
@@ -37,8 +53,9 @@ class ClubMembership(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     club_id = Column(String(36), ForeignKey("clubs.id", ondelete="CASCADE"), nullable=False, index=True)
     user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    role = Column(Enum(ClubRole), default=ClubRole.MEMBER, nullable=False)
-    department = Column(String(80), nullable=True, default="General")  # e.g., Technical, Media, Logistics
+    role = Column(Enum(ClubRole), default=ClubRole.VOLUNTEER, nullable=False)
+    status = Column(Enum(MembershipStatus), default=MembershipStatus.ACTIVE, nullable=False)
+    department = Column(String(80), nullable=True, default="General")
     joined_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     __table_args__ = (

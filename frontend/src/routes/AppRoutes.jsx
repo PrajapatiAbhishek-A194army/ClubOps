@@ -12,6 +12,9 @@ import EventsPage from '../pages/EventsPage';
 import EventDetailsPage from '../pages/EventDetailsPage';
 import TasksPage from '../pages/TasksPage';
 import VolunteersPage from '../pages/VolunteersPage';
+import MeetingsPage from '../pages/MeetingsPage';
+import KnowledgePage from '../pages/KnowledgePage';
+import RisksPage from '../pages/RisksPage';
 import PlaceholderFeature from '../pages/PlaceholderFeature';
 
 export default function AppRoutes() {
@@ -91,17 +94,7 @@ export default function AppRoutes() {
         path="/app/meetings"
         element={
           <DashboardShell>
-            <PlaceholderFeature
-              title="Meeting Intelligence & Action Extraction"
-              phase="Phase 7"
-              description="Paste raw meeting notes or audio transcripts to automatically extract atomic tasks, owners, and relative deadlines."
-              capabilities={[
-                'Natural language action item parser',
-                'Owner detection and roster matching',
-                'Relative deadline resolver ("before Friday")',
-                '1-click auto task generation into Kanban',
-              ]}
-            />
+            <MeetingsPage />
           </DashboardShell>
         }
       />
@@ -110,17 +103,7 @@ export default function AppRoutes() {
         path="/app/knowledge"
         element={
           <DashboardShell>
-            <PlaceholderFeature
-              title="Club Knowledge Repository (RAG)"
-              phase="Phase 8"
-              description="Vectorized institutional memory. Upload PDFs, budgets, and reports to ask questions and retrieve historical club context."
-              capabilities={[
-                'PDF and DOCX document ingestion',
-                'Vector embeddings and semantic retrieval',
-                'Historical budget and sponsorship lookup',
-                'Audit-logged document permissions',
-              ]}
-            />
+            <KnowledgePage />
           </DashboardShell>
         }
       />
@@ -129,17 +112,7 @@ export default function AppRoutes() {
         path="/app/risks"
         element={
           <DashboardShell>
-            <PlaceholderFeature
-              title="Proactive Risk & Deadlines Radar"
-              phase="Phase 10"
-              description="Background risk analysis engine detecting blocked task chains, overdue items, understaffed shifts, and sponsor payment delays."
-              capabilities={[
-                'Critical path dependency block detection',
-                'Volunteer shift shortage warnings',
-                'Explainable AI mitigation recommendations',
-                'President escalation alerts',
-              ]}
-            />
+            <RisksPage />
           </DashboardShell>
         }
       />

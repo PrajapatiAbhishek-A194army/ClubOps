@@ -95,7 +95,7 @@ def add_club_member(
     club_id: str,
     member_in: MemberCreate,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER])),
+    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.CLUB_HEAD, ClubRole.ORGANIZER])),
     db: Session = Depends(get_db),
 ):
     """Adds a new member or invites a student to the club."""
