@@ -72,6 +72,7 @@ class AIPlanRequest(BaseModel):
     title: str = Field(..., min_length=2, max_length=200)
     event_type: EventType = EventType.WORKSHOP
     duration_days: int = Field(default=1, ge=1, le=14)
+    duration_hours: Optional[float] = Field(default=None, ge=0.5, le=336.0)
     expected_attendees: int = Field(default=100, ge=10, le=10000)
     focus_areas: Optional[str] = None
 

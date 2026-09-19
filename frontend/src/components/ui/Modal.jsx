@@ -7,8 +7,19 @@ export default function Modal({
   title,
   description,
   children,
-  maxWidth = 'max-w-lg',
+  size = 'md',
+  maxWidth,
 }) {
+  const sizeMap = {
+    sm: 'max-w-md',
+    md: 'max-w-lg',
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl',
+    '2xl': 'max-w-5xl',
+    '3xl': 'max-w-6xl',
+  };
+
+  const resolvedMaxWidth = maxWidth || sizeMap[size] || 'max-w-lg';
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && isOpen) {
@@ -31,7 +42,7 @@ export default function Modal({
 
       {/* Dialog box */}
       <div
-        className={`relative bg-white w-full ${maxWidth} rounded-2xl border border-slate-200 shadow-xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150`}
+        className={`relative bg-white w-full ${resolvedMaxWidth} rounded-2xl border border-slate-200 shadow-xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150`}
         role="dialog"
         aria-modal="true"
       >

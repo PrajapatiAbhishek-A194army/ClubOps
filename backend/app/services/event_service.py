@@ -264,10 +264,15 @@ class EventService:
                 "4. 'checklists': Object with 'sponsor_checklist' (array of strings), 'judge_checklist' (array of strings), and 'volunteer_specs' (array of strings).\n"
                 "Respond ONLY with valid JSON."
             )
+            duration_str = (
+                f"{plan_req.duration_hours:g} hour(s)"
+                if plan_req.duration_hours
+                else f"{plan_req.duration_days} day(s)"
+            )
             user_prompt = (
                 f"Event Title: {plan_req.title}\n"
                 f"Event Type: {plan_req.event_type.value}\n"
-                f"Duration: {plan_req.duration_days} day(s)\n"
+                f"Planned Duration: {duration_str}\n"
                 f"Expected Attendees: {plan_req.expected_attendees}\n"
                 f"Focus Areas: {plan_req.focus_areas or 'Interactive hands-on session, student collaboration'}\n"
             )

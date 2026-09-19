@@ -15,7 +15,8 @@ import {
   ArrowRight,
   Loader2,
   CalendarDays,
-  Users
+  Users,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getClubEvents, createEvent, planEventWithAI } from '../services/api';
@@ -40,18 +41,20 @@ export default function EventsPage() {
 
   // AI Planner Form
   const [aiTitle, setAiTitle] = useState('');
-  const [aiType, setAiType] = useState('HACKATHON');
-  const [aiDuration, setAiDuration] = useState(2);
-  const [aiAttendees, setAiAttendees] = useState(150);
-  const [aiFocus, setAiFocus] = useState('AI Agents, Open Source Tools');
+  const [aiType, setAiType] = useState('WORKSHOP');
+  const [aiDurationUnit, setAiDurationUnit] = useState('HOURS'); // 'HOURS' or 'DAYS'
+  const [aiDurationValue, setAiDurationValue] = useState(3);
+  const [aiAttendees, setAiAttendees] = useState(60);
+  const [aiFocus, setAiFocus] = useState('Hands-on interactive training');
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiPlanResult, setAiPlanResult] = useState(null);
+  const [editableMilestones, setEditableMilestones] = useState([]);
 
   // Manual / Staged Event Form
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    location: 'Campus Auditorium',
+    location: 'Campus Innovation Center',
     event_type: 'WORKSHOP',
     start_date: '',
     end_date: '',
@@ -61,6 +64,29 @@ export default function EventsPage() {
   const [createError, setCreateError] = useState(null);
 
   const canManageEvents = ['PRESIDENT', 'ORGANIZER'].includes(activeRole);
+
+  const updateMilestoneField = (index, field, value) => {
+    setEditableMilestones((prev) =>
+      prev.map((m, i) => (i === index ? { ...m, [field]: value } : m))
+    );
+  };
+
+  const removeMilestone = (index) => {
+    setEditableMilestones((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addMilestone = () => {
+    setEditableMilestones((prev) => [
+      ...prev,
+      {
+        id: 'm-' + Date.now(),
+        title: '',
+        target_date: '1 Week Prior',
+        assigned_to: 'Team Lead',
+        completed: false,
+      },
+    ]);
+  };
 
   const fetchEvents = async () => {
     if (!activeClub?.id) return;
@@ -91,35 +117,61 @@ export default function EventsPage() {
     fetchEvents();
   };
 
+  const formatLocalISO = (d) => {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
   const handleGenerateAiPlan = async (e) => {
     e.preventDefault();
     if (!aiTitle.trim()) return;
     try {
       setAiGenerating(true);
       setCreateError(null);
-      const res = await planEventWithAI(activeClub.id, {
+
+      const isHours = aiDurationUnit === 'HOURS';
+      const durationVal = parseFloat(aiDurationValue) || (isHours ? 3 : 1);
+
+      const requestPayload = {
         title: aiTitle.trim(),
         event_type: aiType,
-        duration_days: parseInt(aiDuration) || 1,
-        expected_attendees: parseInt(aiAttendees) || 100,
+        expected_attendees: parseInt(aiAttendees) || 60,
         focus_areas: aiFocus.trim(),
-      });
+      };
+
+      if (isHours) {
+        requestPayload.duration_hours = durationVal;
+        requestPayload.duration_days = Math.max(1, Math.ceil(durationVal / 24));
+      } else {
+        requestPayload.duration_days = parseInt(durationVal) || 1;
+      }
+
+      const res = await planEventWithAI(activeClub.id, requestPayload);
       if (res.success) {
         setAiPlanResult(res.data);
-        // Pre-populate standard fields from AI plan
+        setEditableMilestones(res.data.timeline || []);
+
+        // Compute start and end dates with clean local times
         const today = new Date();
         const start = new Date(today);
-        start.setDate(today.getDate() + 14); // 2 weeks out by default
+        start.setDate(today.getDate() + 14); // 2 weeks out
+        start.setHours(10, 0, 0, 0); // 10:00 AM start
+
         const end = new Date(start);
-        end.setDate(start.getDate() + (parseInt(aiDuration) || 1));
+        if (isHours) {
+          end.setTime(start.getTime() + durationVal * 60 * 60 * 1000);
+        } else {
+          end.setDate(start.getDate() + Math.max(1, parseInt(durationVal)));
+          end.setHours(18, 0, 0, 0); // 6:00 PM
+        }
 
         setFormData({
           title: aiTitle.trim(),
           description: res.data.suggested_description,
           location: 'Campus Innovation Center',
           event_type: aiType,
-          start_date: start.toISOString().slice(0, 16),
-          end_date: end.toISOString().slice(0, 16),
+          start_date: formatLocalISO(start),
+          end_date: formatLocalISO(end),
           budget: res.data.suggested_budget,
         });
       }
@@ -146,9 +198,9 @@ export default function EventsPage() {
         budget: parseFloat(formData.budget) || 0,
       };
 
-      // If created from AI plan, include generated timeline and checklists
+      // If created from AI plan, include customized milestones and checklists
       if (aiPlanResult) {
-        payload.timeline = aiPlanResult.timeline;
+        payload.timeline = editableMilestones;
         payload.checklists = aiPlanResult.checklists;
       }
 
@@ -156,6 +208,7 @@ export default function EventsPage() {
       if (res.success) {
         setIsCreateModalOpen(false);
         setAiPlanResult(null);
+        setEditableMilestones([]);
         fetchEvents();
       }
     } catch (err) {
@@ -373,25 +426,25 @@ export default function EventsPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Plan New Campus Event"
-        size="lg"
+        size="2xl"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Tab Selector */}
           <div className="flex border-b border-slate-200">
             <button
               onClick={() => setCreateTab('ai')}
-              className={`pb-3 px-4 text-xs font-semibold flex items-center gap-2 border-b-2 transition-colors ${
+              className={`pb-3 px-5 text-xs font-semibold flex items-center gap-2 border-b-2 transition-colors cursor-pointer ${
                 createTab === 'ai'
                   ? 'border-emerald-600 text-emerald-700'
                   : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-4 h-4 text-emerald-600" />
               <span>AI Event Architect (Fast Blueprint)</span>
             </button>
             <button
               onClick={() => setCreateTab('manual')}
-              className={`pb-3 px-4 text-xs font-semibold border-b-2 transition-colors ${
+              className={`pb-3 px-5 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
                 createTab === 'manual'
                   ? 'border-emerald-600 text-emerald-700'
                   : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -402,39 +455,42 @@ export default function EventsPage() {
           </div>
 
           {createError && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs flex items-center gap-2">
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>{createError}</span>
             </div>
           )}
 
-          {/* AI TAB */}
+          {/* AI TAB - PROMPT INPUT */}
           {createTab === 'ai' && !aiPlanResult && (
             <form onSubmit={handleGenerateAiPlan} className="space-y-4 pt-1">
-              <p className="text-xs text-slate-500">
-                Provide high-level parameters and our AI engine will generate a multi-stage timeline, sponsor checklist, and volunteer allocation specs.
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Describe your campus event or workshop. Our AI engine will craft a tailored description, realistic budget estimate, multi-phase milestones, and operational checklists.
               </p>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Event Name / Concept</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Event Name or Prompt
+                </label>
                 <Input
                   required
-                  placeholder="e.g. HackOut 2026 36-Hour National Hackathon"
+                  placeholder="e.g. Hands-on PowerBI 3-Hour Workshop for 60 students"
                   value={aiTitle}
                   onChange={(e) => setAiTitle(e.target.value)}
+                  className="text-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Event Type</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Event Type</label>
                   <select
                     value={aiType}
                     onChange={(e) => setAiType(e.target.value)}
-                    className="w-full text-xs bg-white border border-slate-200 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    className="w-full text-xs bg-white border border-slate-200 rounded-lg p-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                   >
-                    <option value="HACKATHON">Hackathon</option>
                     <option value="WORKSHOP">Workshop</option>
+                    <option value="HACKATHON">Hackathon</option>
                     <option value="SEMINAR">Seminar</option>
                     <option value="EXPO">Expo / Exhibition</option>
                     <option value="CULTURAL">Cultural Festival</option>
@@ -443,51 +499,67 @@ export default function EventsPage() {
                   </select>
                 </div>
 
+                {/* Duration with Unit Selector (Hours vs Days) */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Duration (Days)</label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="14"
-                    value={aiDuration}
-                    onChange={(e) => setAiDuration(e.target.value)}
-                  />
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Planned Duration</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max={aiDurationUnit === 'HOURS' ? 72 : 14}
+                      value={aiDurationValue}
+                      onChange={(e) => setAiDurationValue(e.target.value)}
+                      className="w-20 text-xs bg-white border border-slate-200 rounded-lg p-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    />
+                    <select
+                      value={aiDurationUnit}
+                      onChange={(e) => setAiDurationUnit(e.target.value)}
+                      className="flex-1 text-xs bg-white border border-slate-200 rounded-lg p-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    >
+                      <option value="HOURS">Hours</option>
+                      <option value="DAYS">Days</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Target Attendees</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Expected Attendees</label>
                   <Input
                     type="number"
-                    min="10"
+                    min="5"
                     max="5000"
                     value={aiAttendees}
                     onChange={(e) => setAiAttendees(e.target.value)}
+                    className="text-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Focus Areas & Highlights</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Focus Topics & Requirements (Optional)
+                </label>
                 <Input
-                  placeholder="e.g. Cloud deployment, prizes, keynote speaker from industry"
+                  placeholder="e.g. DAX calculations, report visualization, student laptop lab setup"
                   value={aiFocus}
                   onChange={(e) => setAiFocus(e.target.value)}
+                  className="text-sm"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                 <Button variant="outline" type="button" onClick={() => setIsCreateModalOpen(false)}>
                   Cancel
                 </Button>
                 <Button variant="primary" type="submit" disabled={aiGenerating || !aiTitle.trim()}>
                   {aiGenerating ? (
                     <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Generating Blueprint...</span>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Generating Blueprint with AI...</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <Sparkles className="w-4 h-4 text-emerald-300" />
                       <span>Generate Blueprint with AI</span>
                     </>
                   )}
@@ -496,110 +568,183 @@ export default function EventsPage() {
             </form>
           )}
 
-          {/* AI RESULT REVIEW TAB */}
+          {/* AI RESULT REVIEW TAB - SPACIOUS & FULLY EDITABLE */}
           {createTab === 'ai' && aiPlanResult && (
-            <div className="space-y-4 pt-1 max-h-[70vh] overflow-y-auto pr-1">
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span className="text-xs font-semibold text-emerald-900">
-                    AI Blueprint Generated for "{aiTitle}"
-                  </span>
+            <div className="space-y-5 pt-1 max-h-[75vh] overflow-y-auto pr-2">
+              {/* Success Notification Banner */}
+              <div className="p-3.5 bg-emerald-50/90 border border-emerald-200 rounded-xl flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <div>
+                    <span className="text-xs font-bold text-emerald-950 block">
+                      AI Operational Blueprint Ready
+                    </span>
+                    <span className="text-[11px] text-emerald-700">
+                      Generated for "{aiTitle}" ({aiDurationValue} {aiDurationUnit.toLowerCase()})
+                    </span>
+                  </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setAiPlanResult(null)}
-                  className="text-xs text-emerald-700 underline font-medium hover:text-emerald-900"
+                  className="text-xs text-emerald-700 hover:text-emerald-900 font-semibold underline cursor-pointer shrink-0"
                 >
                   Regenerate
                 </button>
               </div>
 
-              {/* Editable Fields */}
-              <form onSubmit={handleCreateSubmit} className="space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Editable Fields Form */}
+              <form onSubmit={handleCreateSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Event Title</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Event Title</label>
                     <Input
                       required
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      className="text-sm font-medium"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Campus Venue</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Campus Venue</label>
                     <Input
                       required
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                      className="text-sm font-medium"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Start Date & Time</label>
-                    <Input
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Start Date & Time</label>
+                    <input
                       type="datetime-local"
                       required
                       value={formData.start_date}
                       onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                      className="w-full text-xs font-medium bg-white border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">End Date & Time</label>
-                    <Input
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">End Date & Time</label>
+                    <input
                       type="datetime-local"
                       required
                       value={formData.end_date}
                       onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                      className="w-full text-xs font-medium bg-white border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Target Budget ($)</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Estimated Budget ($)</label>
                     <Input
                       type="number"
                       required
+                      min="0"
                       value={formData.budget}
                       onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                      className="text-xs font-medium"
                     />
                   </div>
                 </div>
 
+                {/* Full-width Description Textarea */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Description</label>
-                  <Textarea
-                    rows={2}
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Event Overview & Description
+                  </label>
+                  <textarea
+                    rows={4}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full text-sm leading-relaxed bg-white border border-slate-200 rounded-xl p-3 text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    placeholder="Provide detailed information regarding the workshop curriculum, speakers, and schedule..."
                   />
                 </div>
 
-                {/* AI Timeline Preview */}
-                <div>
-                  <h4 className="text-xs font-semibold text-slate-800 mb-2 flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Generated Milestones ({aiPlanResult.timeline?.length || 0})</span>
-                  </h4>
-                  <div className="space-y-1.5 bg-slate-50 p-2.5 rounded-lg border border-slate-200 max-h-40 overflow-y-auto">
-                    {aiPlanResult.timeline?.map((m, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-xs text-slate-700">
-                        <span className="font-medium">• {m.title}</span>
-                        <span className="text-[11px] text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200">
-                          {m.assigned_to}
+                {/* Fully Editable AI Milestones Section */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                        <Clock className="w-4 h-4 text-emerald-600" />
+                        <span>AI-Generated Milestones ({editableMilestones.length})</span>
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        You can edit titles, assign roles, tweak deadlines, or add new milestones directly below.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addMilestone}
+                      className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Milestone</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {editableMilestones.map((m, idx) => (
+                      <div
+                        key={m.id || idx}
+                        className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200 shadow-2xs"
+                      >
+                        <span className="text-xs font-bold text-slate-400 w-5 shrink-0 pl-1">
+                          {idx + 1}.
                         </span>
+
+                        {/* Title input */}
+                        <input
+                          type="text"
+                          value={m.title}
+                          onChange={(e) => updateMilestoneField(idx, 'title', e.target.value)}
+                          placeholder="Milestone description..."
+                          className="flex-1 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+
+                        {/* Assigned lead */}
+                        <input
+                          type="text"
+                          value={m.assigned_to || ''}
+                          onChange={(e) => updateMilestoneField(idx, 'assigned_to', e.target.value)}
+                          placeholder="Assigned to..."
+                          className="w-full sm:w-36 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+
+                        {/* Target Date */}
+                        <input
+                          type="text"
+                          value={m.target_date || ''}
+                          onChange={(e) => updateMilestoneField(idx, 'target_date', e.target.value)}
+                          placeholder="e.g. 2 Weeks Prior"
+                          className="w-full sm:w-28 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+
+                        {/* Remove button */}
+                        <button
+                          type="button"
+                          onClick={() => removeMilestone(idx)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer shrink-0"
+                          title="Delete this milestone"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+                <div className="pt-4 flex items-center justify-end gap-2 border-t border-slate-100">
                   <Button variant="outline" type="button" onClick={() => setIsCreateModalOpen(false)}>
                     Cancel
                   </Button>
                   <Button variant="primary" type="submit" disabled={createSubmitting}>
                     {createSubmitting ? (
                       <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                         <span>Creating Event...</span>
                       </>
                     ) : (
