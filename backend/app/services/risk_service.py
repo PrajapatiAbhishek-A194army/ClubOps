@@ -156,12 +156,23 @@ class RiskService:
         return db.query(Risk).filter(Risk.event_id == event_id, Risk.status == RiskStatus.OPEN).all()
 
     @staticmethod
-    def get_event_risks(db: Session, event_id: Optional[str] = None, club_id: Optional[str] = None) -> List[Risk]:
+    def get_event_risks(
+        db: Session,
+        event_id: Optional[str] = None,
+        club_id: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> List[Risk]:
         query = db.query(Risk)
         if event_id:
             query = query.filter(Risk.event_id == event_id)
         elif club_id:
             query = query.join(Event, Risk.event_id == Event.id).filter(Event.club_id == club_id)
+        if status:
+            try:
+                status_enum = RiskStatus(status.upper())
+                query = query.filter(Risk.status == status_enum)
+            except ValueError:
+                query = query.filter(Risk.status == status)
         return query.order_by(Risk.detected_at.desc()).all()
 
     @staticmethod

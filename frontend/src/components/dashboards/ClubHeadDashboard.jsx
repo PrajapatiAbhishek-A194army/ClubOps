@@ -14,6 +14,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/Card';
+import StatCard from '../ui/StatCard';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 
@@ -30,59 +31,43 @@ export default function ClubHeadDashboard({ data, clubId, onRefresh }) {
 
   return (
     <div className="space-y-6">
-      {/* Metrics Row */}
+      {/* Metrics Row using StatCard */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
-              <CheckSquare className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Today's Focus</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{todayTasks.length}</h3>
-              <p className="text-[11px] text-emerald-700 font-medium mt-0.5">Tasks Due Soon</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Today's Focus"
+          value={todayTasks.length}
+          subtitle="Scheduled for immediate action"
+          icon={CheckSquare}
+          badge={todayTasks.length > 0 ? `${todayTasks.length} Urgent` : 'Clear'}
+          badgeVariant={todayTasks.length > 0 ? 'warning' : 'emerald'}
+        />
 
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 border border-blue-100">
-              <UserCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Available Volunteers</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{volStats.available}</h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">{volStats.total} total in roster</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Available Volunteers"
+          value={volStats.available}
+          subtitle={`${volStats.total} total in roster`}
+          icon={UserCheck}
+          badge={volStats.checked_in > 0 ? `${volStats.checked_in} Active` : null}
+          badgeVariant="emerald"
+        />
 
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 border border-purple-100">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Active Events</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{totalEvents}</h3>
-              <p className="text-[11px] text-purple-700 font-medium mt-0.5">Live On Campus</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Active Events"
+          value={totalEvents}
+          subtitle="Live on campus schedule"
+          icon={Calendar}
+          badge="In Flight"
+          badgeVariant="emerald"
+        />
 
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-100">
-              <Clock className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Meeting Follow-ups</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{meetingActions.length}</h3>
-              <p className="text-[11px] text-amber-700 font-medium mt-0.5">Action Items Pending</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Meeting Follow-ups"
+          value={meetingActions.length}
+          subtitle="Action items pending completion"
+          icon={Clock}
+          badge={meetingActions.length > 0 ? 'Pending' : 'Synced'}
+          badgeVariant={meetingActions.length > 0 ? 'warning' : 'emerald'}
+        />
       </div>
 
       {/* Main Operations Grid */}
@@ -103,49 +88,49 @@ export default function ClubHeadDashboard({ data, clubId, onRefresh }) {
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/app/tasks')}
-                className="text-xs"
+                rightIcon={ArrowRight}
               >
-                Task Board <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                Kanban Board
               </Button>
             </CardHeader>
             <CardContent>
               {todayTasks.length === 0 ? (
-                <div className="text-center py-8 text-sm text-slate-500 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2 opacity-60" />
-                  All clear for today! No urgent pending tasks.
+                <div className="p-8 text-center text-slate-400 space-y-1">
+                  <p className="text-xs font-medium">No urgent tasks due today.</p>
+                  <p className="text-[11px]">All deliverables are progressing on track.</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
-                  {todayTasks.map((task) => (
-                    <div key={task.id} className="py-3 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{task.title}</p>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
-                          {task.event_title && (
-                            <span className="text-primary-700 font-medium">{task.event_title}</span>
-                          )}
-                          {task.assignee_name && (
-                            <span>&bull; Assigned: {task.assignee_name}</span>
-                          )}
+                  {todayTasks.map((t) => (
+                    <div
+                      key={t.id}
+                      className="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/70 p-2 rounded-xl transition-colors"
+                    >
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-900 truncate">{t.title}</span>
+                          <Badge
+                            variant={
+                              t.priority === 'CRITICAL'
+                                ? 'error'
+                                : t.priority === 'HIGH'
+                                ? 'warning'
+                                : 'neutral'
+                            }
+                            size="sm"
+                          >
+                            {t.priority}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                          <span>Event: {t.event_title || 'General'}</span>
+                          <span>•</span>
+                          <span>Owner: {t.assignee_name || 'Unassigned'}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Badge
-                          variant={
-                            task.priority === 'HIGH' || task.priority === 'CRITICAL'
-                              ? 'danger'
-                              : task.priority === 'MEDIUM'
-                              ? 'warning'
-                              : 'neutral'
-                          }
-                          size="sm"
-                        >
-                          {task.priority}
-                        </Badge>
-                        <Badge variant="outline" size="sm">
-                          {task.status}
-                        </Badge>
-                      </div>
+                      <Badge variant="neutral" size="sm">
+                        {t.status}
+                      </Badge>
                     </div>
                   ))}
                 </div>
@@ -153,47 +138,42 @@ export default function ClubHeadDashboard({ data, clubId, onRefresh }) {
             </CardContent>
           </Card>
 
-          {/* Meeting Action Items */}
+          {/* Meeting Action Items Extract */}
           <Card>
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-purple-600" />
-                  Post-Meeting Action Items
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                  AI Extracted Meeting Actions
                 </CardTitle>
-                <CardDescription>Extracted commitments from AI-transcribed sprint meetings</CardDescription>
+                <CardDescription>Committee assignments automatically ingested from standup transcripts</CardDescription>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/app/meetings')}
-                className="text-xs"
+                rightIcon={ArrowRight}
               >
-                View Meetings <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                Meetings
               </Button>
             </CardHeader>
             <CardContent>
               {meetingActions.length === 0 ? (
-                <div className="text-center py-6 text-sm text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-                  No pending action items from recent meetings.
+                <div className="p-8 text-center text-slate-400 space-y-1">
+                  <p className="text-xs font-medium">No unassigned meeting action items.</p>
+                  <p className="text-[11px]">Paste new minutes in the Meeting Intelligence tab to auto-extract deliverables.</p>
                 </div>
               ) : (
-                <div className="space-y-2.5">
-                  {meetingActions.map((action) => (
-                    <div
-                      key={action.id}
-                      className="p-3 bg-slate-50/70 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs"
-                    >
-                      <div className="min-w-0">
-                        <p className="font-medium text-slate-900">{action.task_description}</p>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
-                          {action.meeting_title ? `From: ${action.meeting_title}` : 'Meeting Action'}
-                          {action.suggested_owner && ` &bull; Assigned to ${action.suggested_owner}`}
+                <div className="divide-y divide-slate-100">
+                  {meetingActions.slice(0, 5).map((act, idx) => (
+                    <div key={idx} className="py-2.5 flex items-center justify-between gap-3">
+                      <div className="space-y-0.5 min-w-0">
+                        <p className="text-xs font-semibold text-slate-800 truncate">{act.title}</p>
+                        <p className="text-[11px] text-slate-400">
+                          Owner: <span className="text-slate-600 font-medium">{act.suggested_owner || 'Unassigned'}</span>
                         </p>
                       </div>
-                      <Badge variant="info" size="sm">
-                        {action.priority || 'MEDIUM'}
-                      </Badge>
+                      <Badge variant="emerald" size="sm">AI Extracted</Badge>
                     </div>
                   ))}
                 </div>
@@ -202,121 +182,73 @@ export default function ClubHeadDashboard({ data, clubId, onRefresh }) {
           </Card>
         </div>
 
-        {/* Right Column: Volunteers & Operations (1 col) */}
+        {/* Right Column: Volunteer Telemetry & Broadcasts (1 col) */}
         <div className="space-y-6">
-          {/* Quick Actions Card */}
-          <Card className="bg-gradient-to-br from-primary-900 to-slate-900 text-white border-0 shadow-lg shadow-primary-950/20">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 text-primary-200 text-xs font-semibold uppercase tracking-wider mb-2">
-                <Sparkles className="w-4 h-4" /> Operations Hub
-              </div>
-              <h4 className="text-lg font-bold">Fast Operational Workflows</h4>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Dispatch announcements, organize shifts, coordinate campus events, and synchronize volunteer assignments.
-              </p>
-              <div className="mt-4 space-y-2">
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onClick={() => navigate('/app/events')}
-                  className="w-full justify-start bg-primary-600 hover:bg-primary-500 text-xs text-white"
-                >
-                  <Calendar className="w-3.5 h-3.5 mr-2" /> Launch Campus Event
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => navigate('/app/volunteers')}
-                  className="w-full justify-start text-xs text-white border-white/20 hover:bg-white/10"
-                >
-                  <Users className="w-3.5 h-3.5 mr-2" /> Assign Volunteer Squad
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => navigate('/app/announcements')}
-                  className="w-full justify-start text-xs text-white border-white/20 hover:bg-white/10"
-                >
-                  <Megaphone className="w-3.5 h-3.5 mr-2" /> Post Announcement
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Volunteer Availability Matrix */}
+          {/* Volunteer Status Card */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Volunteer Availability Matrix</CardTitle>
-              <CardDescription>Live staffing readiness for shifts & duties</CardDescription>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Users className="w-4 h-4 text-purple-600" />
+                Volunteer Squad Health
+              </CardTitle>
+              <CardDescription>Real-time staffing and shift distribution</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900">
-                  <span className="font-semibold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Available for Shift
-                  </span>
-                  <span className="font-bold text-sm">{volStats.available}</span>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-3 bg-slate-50 rounded-xl text-center">
+                  <div className="text-lg font-bold text-slate-900">{volStats.checked_in}</div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Checked In</div>
                 </div>
-
-                <div className="flex items-center justify-between p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-900">
-                  <span className="font-semibold flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-amber-600" /> On Duty / Busy
-                  </span>
-                  <span className="font-bold text-sm">{volStats.busy}</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-blue-900">
-                  <span className="font-semibold flex items-center gap-1.5">
-                    <UserCheck className="w-3.5 h-3.5 text-blue-600" /> Checked-In Today
-                  </span>
-                  <span className="font-bold text-sm">{volStats.checked_in}</span>
+                <div className="p-3 bg-slate-50 rounded-xl text-center">
+                  <div className="text-lg font-bold text-slate-900">{volStats.available}</div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase">Ready for Duty</div>
                 </div>
               </div>
 
               <Button
                 variant="outline"
                 size="sm"
+                className="w-full"
                 onClick={() => navigate('/app/volunteers')}
-                className="w-full text-xs"
+                rightIcon={ArrowRight}
               >
-                Manage Volunteer Squad <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                Manage Volunteer Pool
               </Button>
             </CardContent>
           </Card>
 
-          {/* Recent Announcements */}
+          {/* Quick Announcements Card */}
           <Card>
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-sm">Campus Broadcasts</CardTitle>
-                <CardDescription>Recent club notices</CardDescription>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/app/announcements')}
-                className="text-[11px] p-1.5 h-7"
-              >
-                Draft <ArrowRight className="w-3 h-3 ml-0.5" />
-              </Button>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Megaphone className="w-4 h-4 text-emerald-600" />
+                Recent Club Broadcasts
+              </CardTitle>
+              <CardDescription>Campus updates dispatched across channels</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2.5">
+            <CardContent className="space-y-3">
               {announcements.length === 0 ? (
-                <div className="text-center py-4 text-xs text-slate-400">
-                  No announcements published yet.
-                </div>
+                <p className="text-xs text-slate-400 text-center py-4">No recent announcements sent.</p>
               ) : (
-                announcements.map((ann) => (
-                  <div key={ann.id} className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
-                    <div className="font-bold text-slate-900 leading-tight">{ann.title}</div>
-                    <div className="text-[10px] text-slate-400 flex items-center gap-1">
-                      <span className="font-mono uppercase">{ann.target_channel}</span>
-                      <span>&bull;</span>
+                announcements.slice(0, 3).map((ann) => (
+                  <div key={ann.id} className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs space-y-1">
+                    <div className="font-bold text-slate-900 truncate">{ann.title}</div>
+                    <div className="text-[10px] text-slate-400 flex items-center justify-between">
+                      <span>{ann.target_channel || 'General'}</span>
                       <span>{new Date(ann.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
                 ))
               )}
+
+              <Button
+                variant="primary"
+                size="sm"
+                className="w-full"
+                onClick={() => navigate('/app/announcements')}
+              >
+                Create Announcement
+              </Button>
             </CardContent>
           </Card>
         </div>

@@ -1,6 +1,15 @@
 export { default as Button } from './Button';
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';
 export { default as Badge } from './Badge';
-export { Input, Textarea } from './Input';
+export { Input } from './Input';
+export { default as Textarea } from './Textarea';
+export { default as Select } from './Select';
+export { default as SearchInput } from './SearchInput';
+export { default as StatCard } from './StatCard';
+export { Table, TableHead, TableRow, TableHeader, TableCell, TableEmpty } from './Table';
+export { default as EmptyState } from './EmptyState';
+export { Skeleton, CardSkeleton, TableSkeleton } from './Skeleton';
+export { default as PageHeader } from './PageHeader';
+export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as Tabs } from './Tabs';
 export { default as Modal } from './Modal';

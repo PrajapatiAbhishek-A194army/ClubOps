@@ -16,11 +16,12 @@ router = APIRouter()
 def get_risks(
     event_id: Optional[str] = Query(None, description="Target event ID (optional)"),
     club_id: Optional[str] = Query(None, description="Target club ID (optional)"),
+    status: Optional[str] = Query(None, description="Filter by risk status (e.g. OPEN, RESOLVED)"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Retrieves all detected risks and anomalies for an event or club."""
-    risks = RiskService.get_event_risks(db=db, event_id=event_id, club_id=club_id)
+    risks = RiskService.get_event_risks(db=db, event_id=event_id, club_id=club_id, status=status)
     return ApiResponse(
         success=True,
         data=[RiskResponse.model_validate(r) for r in risks],

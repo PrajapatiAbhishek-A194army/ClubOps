@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -28,6 +28,7 @@ import {
 
 import { useHealth } from '../hooks/useHealth';
 import { useAuth } from '../context/AuthContext';
+import { getClubRisks } from '../services/api';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import CommandPalette from '../components/CommandPalette';
@@ -44,11 +45,46 @@ export default function DashboardShell({ children }) {
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [workflowModalOpen, setWorkflowModalOpen] = useState(false);
+  const [openRiskCount, setOpenRiskCount] = useState(0);
 
   const { health } = useHealth();
   const { user, clubs, activeClub, activeRole, switchClub, switchRole, logout, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const fetchOpenRisks = useCallback(async () => {
+    if (!activeClub?.id) {
+      setOpenRiskCount(0);
+      return;
+    }
+    try {
+      const res = await getClubRisks(activeClub.id, 'OPEN');
+      if (res?.success && Array.isArray(res?.data)) {
+        setOpenRiskCount(res.data.length);
+      } else {
+        setOpenRiskCount(0);
+      }
+    } catch (err) {
+      console.error('Failed to fetch open risks count:', err);
+      setOpenRiskCount(0);
+    }
+  }, [activeClub?.id]);
+
+  useEffect(() => {
+    fetchOpenRisks();
+
+    const handleRiskUpdate = () => {
+      fetchOpenRisks();
+    };
+
+    window.addEventListener('risk-status-changed', handleRiskUpdate);
+    const interval = setInterval(fetchOpenRisks, 30000);
+
+    return () => {
+      window.removeEventListener('risk-status-changed', handleRiskUpdate);
+      clearInterval(interval);
+    };
+  }, [fetchOpenRisks]);
 
   useEffect(() => {
     const token = localStorage.getItem('clubops_token');
@@ -97,7 +133,13 @@ export default function DashboardShell({ children }) {
       items: [
         { path: '/app/meetings', label: 'Meeting Intelligence', icon: FileText, ai: true },
         { path: '/app/knowledge', label: 'Knowledge Base (RAG)', icon: BookOpen },
-        { path: '/app/risks', label: 'Risk & Deadlines Radar', icon: AlertTriangle, badge: '2 Alerts', alert: true },
+        {
+          path: '/app/risks',
+          label: 'Risk & Deadlines Radar',
+          icon: AlertTriangle,
+          badge: openRiskCount > 0 ? `${openRiskCount} ${openRiskCount === 1 ? 'Alert' : 'Alerts'}` : null,
+          alert: openRiskCount > 0,
+        },
         { path: '/app/announcements', label: 'Announcements', icon: Bell },
         { path: '/app/analytics', label: 'Operations Analytics', icon: BarChart3, badge: 'Insights' },
       ],

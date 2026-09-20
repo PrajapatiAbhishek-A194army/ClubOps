@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogIn, ArrowRight, ShieldCheck, Mail, Lock, AlertCircle, Sparkles, UserCheck } from 'lucide-react';
+import { LogIn, ArrowRight, ShieldCheck, Mail, Lock, AlertCircle, Sparkles, CheckCircle2, Crown, ClipboardList, HeartHandshake } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import Badge from '../components/ui/Badge';
-import { Card } from '../components/ui/Card';
 import { APP_NAME } from '../utils/constants';
 
 export default function LoginPage() {
@@ -40,20 +39,23 @@ export default function LoginPage() {
     {
       role: 'Club President',
       email: 'president@clubops.ai',
-      desc: 'Full administrative access across clubs and approvals',
-      color: 'emerald',
+      desc: 'Multi-club executive oversight & approvals',
+      icon: Crown,
+      variant: 'emerald',
     },
     {
-      role: 'Club Head',
+      role: 'Club Head / Lead',
       email: 'organizer@clubops.ai',
-      desc: 'Operational leadership over club tasks, meetings, and announcements',
-      color: 'info',
+      desc: 'Events, tasks, meeting actions & announcements',
+      icon: ClipboardList,
+      variant: 'info',
     },
     {
-      role: 'Volunteer',
+      role: 'Volunteer Squad',
       email: 'volunteer@clubops.ai',
-      desc: 'View personal tasks, work shifts, and event check-ins',
-      color: 'warning',
+      desc: 'Assigned tasks, shift check-ins & war room chat',
+      icon: HeartHandshake,
+      variant: 'warning',
     },
   ];
 
@@ -73,111 +75,154 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      {/* Brand Header */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-2">
-        <Link to="/" className="inline-flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white font-bold text-xl flex items-center justify-center shadow-md shadow-emerald-600/20">
-            CO
+    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
+      {/* Left Branding Panel (Desktop) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-slate-900 text-white p-12 flex-col justify-between relative overflow-hidden">
+        {/* Subtle decorative glow */}
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-emerald-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-emerald-800/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-4">
+          <Link to="/" className="inline-flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-emerald-600/30">
+              CO
+            </div>
+            <span className="font-extrabold text-2xl tracking-tight">{APP_NAME}</span>
+          </Link>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            University Club Operations Platform
           </div>
-          <span className="font-extrabold text-2xl text-slate-900 tracking-tight">
-            {APP_NAME}
-          </span>
-        </Link>
-        <h2 className="text-xl font-bold text-slate-900">
-          Sign In to Your Club Portal
-        </h2>
-        <p className="text-xs text-slate-500">
-          Centralized campus operations for student leaders and volunteers
-        </p>
+        </div>
+
+        <div className="relative z-10 space-y-6 max-w-lg">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-snug">
+            Orchestrate Campus Events with Intelligent Guardrails
+          </h1>
+          <p className="text-sm text-slate-400 leading-relaxed">
+            Eliminate scattered WhatsApp groups and outdated spreadsheets. Synchronize your committee,
+            automate milestone tracking, and maintain clean institutional audit records.
+          </p>
+
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center gap-3 text-xs text-slate-300">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Automated Meeting Minutes &rarr; Atomic Deliverables</span>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-slate-300">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Milestone Stepper with Real-Time Task Auto-Completion</span>
+            </div>
+            <div className="flex items-center gap-3 text-xs text-slate-300">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>WebSockets Team Live Hub with Online Presence Roster</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 pt-8 border-t border-slate-800 text-xs text-slate-500 flex items-center justify-between">
+          <span>Enterprise Campus Security</span>
+          <span>© 2026 ClubOps AI</span>
+        </div>
       </div>
 
-      {/* Main Login Card */}
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0 space-y-6">
-        <div className="bg-white py-8 px-6 shadow-sm border border-slate-200/90 rounded-2xl sm:px-10 space-y-6">
-          {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2 font-medium">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <Input
-              label="Campus Email Address"
-              type="email"
-              placeholder="e.g. president@clubops.ai"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              icon={Mail}
-              required
-            />
-
-            <Input
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              icon={Lock}
-              required
-            />
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full"
-              loading={loading}
-              rightIcon={ArrowRight}
-            >
-              Sign In
-            </Button>
-          </form>
-
-          <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-slate-200"></div>
-            <span className="flex-shrink mx-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              1-Click Demo Accounts
-            </span>
-            <div className="flex-grow border-t border-slate-200"></div>
+      {/* Right Login Form Panel */}
+      <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 lg:px-16 py-12">
+        <div className="w-full max-w-md mx-auto space-y-6">
+          {/* Mobile Header */}
+          <div className="lg:hidden text-center space-y-2 mb-4">
+            <Link to="/" className="inline-flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center">
+                CO
+              </div>
+              <span className="font-bold text-xl text-slate-900">{APP_NAME}</span>
+            </Link>
           </div>
 
-          {/* Quick Demo Accounts Selection */}
-          <div className="grid grid-cols-1 gap-2">
-            {demoAccounts.map((account) => (
-              <button
-                key={account.email}
-                type="button"
-                onClick={() => selectDemoAccount(account)}
-                disabled={loading}
-                className="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all flex items-center justify-between group cursor-pointer"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-900 group-hover:text-emerald-950">
-                      {account.role}
-                    </span>
-                    <span className="text-[10px] font-mono text-slate-400">
-                      {account.email}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">
-                    {account.desc}
-                  </div>
-                </div>
-                <UserCheck className="w-4 h-4 text-slate-300 group-hover:text-emerald-600 shrink-0 transition-colors" />
-              </button>
-            ))}
-          </div>
-
-          <div className="text-center pt-2">
-            <p className="text-xs text-slate-500">
-              New student organization?{' '}
-              <Link to="/signup" className="font-semibold text-emerald-700 hover:text-emerald-800">
-                Register a new club
-              </Link>
+          <div>
+            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+              Sign In to Your Club Portal
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">
+              Select a quick demo role below or enter your registered campus credentials.
             </p>
+          </div>
+
+          {/* Quick Demo Accounts */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              1-Click Demo Profiles
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {demoAccounts.map((acc) => {
+                const Icon = acc.icon;
+                return (
+                  <button
+                    key={acc.email}
+                    type="button"
+                    onClick={() => selectDemoAccount(acc)}
+                    className="p-3 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 hover:shadow-sm text-left transition-all cursor-pointer group space-y-1"
+                  >
+                    <div className="flex items-center justify-between">
+                      <Icon className="w-4 h-4 text-slate-500 group-hover:text-emerald-600 transition-colors" />
+                      <span className="text-[10px] font-bold text-emerald-700">Quick</span>
+                    </div>
+                    <div className="text-xs font-bold text-slate-900 truncate">{acc.role}</div>
+                    <div className="text-[10px] text-slate-400 truncate">{acc.email}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Form */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
+            {error && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center gap-2 font-medium">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <Input
+                label="Campus Email Address"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="e.g. president@clubops.ai"
+                leftIcon={Mail}
+              />
+
+              <Input
+                label="Password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                leftIcon={Lock}
+              />
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                className="w-full font-bold"
+                loading={loading}
+                rightIcon={ArrowRight}
+              >
+                Sign In
+              </Button>
+            </form>
+          </div>
+
+          <div className="text-center text-xs text-slate-500">
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-emerald-700 font-bold hover:underline">
+              Register as Volunteer or Member
+            </Link>
           </div>
         </div>
       </div>

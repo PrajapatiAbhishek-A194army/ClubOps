@@ -17,6 +17,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/Card';
+import StatCard from '../ui/StatCard';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 
@@ -37,258 +38,237 @@ export default function PresidentDashboard({ data, clubId, onRefresh }) {
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards Row */}
+      {/* KPI Cards Row using StatCard */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Active Events</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{activeEvents.length}</h3>
-              <p className="text-[11px] text-emerald-700 font-medium mt-0.5">Campus Schedule</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Active Events"
+          value={activeEvents.length}
+          subtitle="Campus schedule in flight"
+          icon={Calendar}
+          badge="Live"
+          badgeVariant="emerald"
+        />
 
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 border border-blue-100">
-              <CheckSquare className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Task Completion</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{completionRate}%</h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">{completedTasks} of {totalTasks} finished</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Task Completion"
+          value={`${completionRate}%`}
+          subtitle={`${completedTasks} of ${totalTasks} finished`}
+          icon={CheckSquare}
+          trend={`${completionRate}%`}
+          trendDirection={completionRate >= 50 ? 'up' : 'down'}
+        />
 
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 border border-purple-100">
-              <Users className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Club Roster</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{volunteersCount}</h3>
-              <p className="text-[11px] text-purple-700 font-medium mt-0.5">Active Volunteers</p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Club Roster"
+          value={volunteersCount}
+          subtitle="Active registered volunteers"
+          icon={Users}
+          badge={pendingJoins > 0 ? `${pendingJoins} Pending` : 'Verified'}
+          badgeVariant={pendingJoins > 0 ? 'warning' : 'emerald'}
+        />
 
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${
-              criticalRisks > 0 ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-amber-50 text-amber-700 border-amber-100'
-            }`}>
-              <ShieldAlert className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Risk Radar</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{totalRisks} Flags</h3>
-              <p className="text-[11px] font-medium mt-0.5 text-rose-700">
-                {criticalRisks} Critical Severity
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Risk Radar"
+          value={`${totalRisks} Flags`}
+          subtitle={`${criticalRisks} critical severity`}
+          icon={ShieldAlert}
+          badge={criticalRisks > 0 ? 'Intervention' : 'Monitored'}
+          badgeVariant={criticalRisks > 0 ? 'error' : 'emerald'}
+        />
       </div>
 
       {/* Main Grid: Active Events & Pending Approvals */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Active Events Overview (2 cols) */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Left Column: Active Events & Health (2 cols) */}
+        <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Active Events & Milestone Progress</CardTitle>
-                <CardDescription>Live operational status across all scheduled campus events</CardDescription>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-emerald-600" />
+                  Campus Event Operations
+                </CardTitle>
+                <CardDescription>Major programs and current milestone progression</CardDescription>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/app/events')}
-                className="text-xs"
+                rightIcon={ArrowRight}
               >
-                View All Events <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                All Events
               </Button>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent>
               {activeEvents.length === 0 ? (
-                <div className="text-center py-8 text-slate-400 text-xs">
-                  No active events scheduled yet.
+                <div className="p-8 text-center text-slate-400 space-y-1">
+                  <p className="text-xs font-medium">No active events currently scheduled.</p>
+                  <p className="text-[11px]">Initialize an event to activate automated milestone decomposition.</p>
                 </div>
               ) : (
-                activeEvents.map((ev) => (
-                  <div
-                    key={ev.id}
-                    onClick={() => navigate(`/app/events/${ev.id}`)}
-                    className="p-4 bg-slate-50/70 hover:bg-slate-100/80 border border-slate-200/80 rounded-xl transition-all cursor-pointer space-y-2 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-slate-900 group-hover:text-emerald-800 transition-colors">
-                          {ev.title}
-                        </span>
-                        <Badge variant="emerald" size="sm">
-                          {ev.status}
-                        </Badge>
+                <div className="divide-y divide-slate-100">
+                  {activeEvents.map((ev) => (
+                    <div
+                      key={ev.id}
+                      onClick={() => navigate(`/app/events/${ev.id}`)}
+                      className="py-3.5 flex items-center justify-between gap-4 hover:bg-slate-50/80 p-2.5 rounded-xl cursor-pointer transition-colors"
+                    >
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-900 truncate">{ev.title}</span>
+                          <Badge
+                            variant={
+                              ev.status === 'PLANNING'
+                                ? 'info'
+                                : ev.status === 'ONGOING'
+                                ? 'success'
+                                : 'neutral'
+                            }
+                            size="sm"
+                          >
+                            {ev.status}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                          <span>Date: {ev.start_date ? new Date(ev.start_date).toLocaleDateString() : 'TBD'}</span>
+                          <span>•</span>
+                          <span>Venue: {ev.location || 'Campus Center'}</span>
+                        </div>
                       </div>
-                      <span className="text-xs text-slate-500 font-mono">
-                        {ev.days_until_event > 0 ? `In ${ev.days_until_event} days` : 'Happening Soon'}
-                      </span>
+                      <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
                     </div>
-
-                    <div className="flex items-center justify-between text-xs text-slate-500">
-                      <span>Venue: {ev.location || 'Campus Auditorium'}</span>
-                      <span className="font-semibold text-slate-700">{ev.progress_percent}% completed</span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className="bg-emerald-600 h-1.5 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min(100, ev.progress_percent || 15)}%` }}
-                      />
-                    </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Risk Radar Summary */}
+          {/* Critical Path Risks */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="flex items-center gap-1.5 text-rose-900">
-                  <AlertTriangle className="w-4 h-4 text-rose-600" />
-                  Risk Detection Radar
+                <CardTitle className="text-base flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-rose-600" />
+                  Active Risk & Dependency Radar
                 </CardTitle>
-                <CardDescription>Automated AI risk detection across staffing, deadlines, and dependencies</CardDescription>
+                <CardDescription>Automated detection of overdue deliverables and bottlenecks</CardDescription>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/app/risks')}
-                className="text-xs"
+                rightIcon={ArrowRight}
               >
-                Open Risk Radar <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                Risk Radar
               </Button>
             </CardHeader>
-            <CardContent className="space-y-2.5">
+            <CardContent>
               {recentRisks.length === 0 ? (
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>No high-priority risks detected. Event operations are running smoothly!</span>
+                <div className="p-6 text-center text-slate-400 text-xs">
+                  All critical paths are on track. No open risks detected.
                 </div>
               ) : (
-                recentRisks.map((r) => (
-                  <div
-                    key={r.id}
-                    className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between text-xs hover:border-rose-300 transition-colors"
-                  >
-                    <div className="space-y-0.5">
-                      <div className="font-bold text-slate-900">{r.title}</div>
-                      <div className="text-[11px] text-slate-500 line-clamp-1">{r.description}</div>
+                <div className="divide-y divide-slate-100">
+                  {recentRisks.slice(0, 4).map((r) => (
+                    <div key={r.id} className="py-2.5 flex items-center justify-between gap-3">
+                      <div className="space-y-0.5 min-w-0">
+                        <p className="text-xs font-semibold text-slate-900 truncate">{r.title}</p>
+                        <p className="text-[11px] text-slate-400 truncate">{r.description}</p>
+                      </div>
+                      <Badge
+                        variant={
+                          r.severity === 'CRITICAL'
+                            ? 'error'
+                            : r.severity === 'HIGH'
+                            ? 'warning'
+                            : 'info'
+                        }
+                        size="sm"
+                      >
+                        {r.severity}
+                      </Badge>
                     </div>
-                    <Badge variant={r.severity === 'CRITICAL' ? 'error' : 'warning'} size="sm">
-                      {r.severity}
-                    </Badge>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Pending Approvals & Actions Column (1 col) */}
-        <div className="space-y-4">
+        {/* Right Column: Strategic Actions & Approvals (1 col) */}
+        <div className="space-y-6">
+          {/* Executive Approvals Queue */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Pending Leadership Approvals</CardTitle>
-              <CardDescription>Items awaiting your presidential authorization</CardDescription>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-600" />
+                Presidential Approval Queue
+              </CardTitle>
+              <CardDescription>Items awaiting executive authorization</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 text-xs">
-              {/* Join Requests */}
-              <div
-                onClick={() => navigate('/app/members')}
-                className="p-3.5 bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 rounded-xl transition-colors cursor-pointer flex items-center justify-between"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
-                    <UserCheck className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-slate-900">Volunteer Applications</div>
-                    <div className="text-[11px] text-slate-500">Applicant join requests</div>
-                  </div>
+            <CardContent className="space-y-3">
+              <div className="p-3 bg-slate-50 rounded-xl flex items-center justify-between text-xs">
+                <div>
+                  <div className="font-bold text-slate-900">Volunteer Applications</div>
+                  <div className="text-[10px] text-slate-400">{pendingJoins} requests awaiting signoff</div>
                 </div>
-                <Badge variant={pendingJoins > 0 ? 'warning' : 'neutral'} size="sm">
-                  {pendingJoins} Pending
-                </Badge>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate('/app/volunteers')}
+                >
+                  Review
+                </Button>
               </div>
 
-              {/* Announcement Drafts */}
-              <div
-                onClick={() => navigate('/app/announcements')}
-                className="p-3.5 bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 rounded-xl transition-colors cursor-pointer flex items-center justify-between"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                    <Megaphone className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-slate-900">Announcement Broadcasts</div>
-                    <div className="text-[11px] text-slate-500">Draft notices to publish</div>
-                  </div>
+              <div className="p-3 bg-slate-50 rounded-xl flex items-center justify-between text-xs">
+                <div>
+                  <div className="font-bold text-slate-900">Broadcast Dispatches</div>
+                  <div className="text-[10px] text-slate-400">{pendingAnnouncements} announcements queued</div>
                 </div>
-                <Badge variant={pendingAnnouncements > 0 ? 'warning' : 'neutral'} size="sm">
-                  {pendingAnnouncements} Drafts
-                </Badge>
-              </div>
-
-              {/* Governance & Club Head */}
-              <div
-                onClick={() => navigate('/app/club-settings')}
-                className="p-3.5 bg-slate-50 hover:bg-emerald-50/50 border border-slate-200 rounded-xl transition-colors cursor-pointer flex items-center justify-between"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                    <Sparkles className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-slate-900">Club Governance</div>
-                    <div className="text-[11px] text-slate-500">Assign Club Head & settings</div>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate('/app/announcements')}
+                >
+                  Review
+                </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Quick Actions Card */}
-          <Card className="bg-gradient-to-br from-emerald-800 to-emerald-950 text-white border-0">
-            <CardContent className="p-5 space-y-3">
-              <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-                <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
-                Presidential Copilot
-              </div>
-              <h4 className="text-base font-bold leading-snug">
-                Autonomous Event Operations Engine Active
-              </h4>
-              <p className="text-xs text-emerald-100/90 leading-relaxed">
-                Execute end-to-end multi-agent directives with LangGraph tool calling to plan events, assign tasks, and broadcast updates without manual overhead.
-              </p>
+          {/* Quick Navigation Links */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Strategic Governance</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
               <Button
-                variant="secondary"
+                variant="outline"
                 size="sm"
-                onClick={() => navigate('/app/events')}
-                className="w-full text-xs font-bold bg-white text-emerald-950 hover:bg-emerald-50"
+                className="w-full justify-between"
+                onClick={() => navigate('/app/analytics')}
+                rightIcon={ArrowRight}
               >
-                Plan New Event with AI
+                Operations Analytics
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-between"
+                onClick={() => navigate('/app/audit')}
+                rightIcon={ArrowRight}
+              >
+                Immutable Audit Trail
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-between"
+                onClick={() => navigate('/app/settings')}
+                rightIcon={ArrowRight}
+              >
+                Club Governance Settings
               </Button>
             </CardContent>
           </Card>

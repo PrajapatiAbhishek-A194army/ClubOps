@@ -273,6 +273,13 @@ export const getEventRisks = async (eventId) => {
   return response.data;
 };
 
+export const getClubRisks = async (clubId, status = null) => {
+  const params = { club_id: clubId };
+  if (status) params.status = status;
+  const response = await api.get(`/risks`, { params });
+  return response.data;
+};
+
 export const scanEventRisks = async (eventId) => {
   const response = await api.post(`/risks/scan`, null, { params: { event_id: eventId } });
   return response.data;

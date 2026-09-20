@@ -16,6 +16,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/Card';
+import StatCard from '../ui/StatCard';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
 import { volunteerCheckIn, updateTaskStatus } from '../../services/api';
@@ -45,7 +46,7 @@ export default function VolunteerDashboard({ data, clubId, onRefresh }) {
         setIsCheckedIn(nextStatus === 'CHECKED_IN');
         setCheckInMessage(
           nextStatus === 'CHECKED_IN'
-            ? '✅ Checked in successfully! Your event shift status is active.'
+            ? 'Checked in successfully! Your shift status is currently active.'
             : 'Checked out from shift.'
         );
         setTimeout(() => setCheckInMessage(null), 4000);
@@ -88,214 +89,175 @@ export default function VolunteerDashboard({ data, clubId, onRefresh }) {
       {/* Row 1: Check-in Card & Duty Metrics */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Interactive Event Check-In Station Card */}
-        <Card className="lg:col-span-1 border-emerald-200 shadow-sm overflow-hidden">
+        <Card className="lg:col-span-1 border-emerald-200 shadow-2xs overflow-hidden">
           <CardHeader className="bg-emerald-50/50 pb-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
                 <QrCode className="w-4 h-4 text-emerald-600" />
                 Shift Check-In Station
               </span>
-              <Badge variant={isCheckedIn ? 'success' : 'neutral'} size="sm">
+              <Badge variant={isCheckedIn ? 'success' : 'neutral'} size="sm" dot>
                 {isCheckedIn ? 'Checked In' : 'Not Checked In'}
               </Badge>
             </div>
             <CardTitle className="text-base mt-2">
-              {isCheckedIn ? 'You are On Duty' : 'Ready for Your Shift?'}
+              {activeEvent?.title || 'Active Campus Program'}
             </CardTitle>
             <CardDescription>
-              Confirm your presence at the event venue for official participation credentials
+              {activeEvent?.location ? `Venue: ${activeEvent.location}` : 'Campus Center'}
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-5 space-y-4">
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
-              <div className="text-slate-500 font-medium">Assigned Event Venue:</div>
-              <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                {activeEvent?.location || 'Main Campus Auditorium'}
-              </div>
+          <CardContent className="space-y-4 pt-4">
+            <div className="text-xs text-slate-500 leading-relaxed">
+              Verify your presence when reporting for duty. Your check-in is logged on the organizer's active roster.
             </div>
 
             <Button
               variant={isCheckedIn ? 'outline' : 'primary'}
-              leftIcon={UserCheck}
-              loading={checkInLoading}
+              size="md"
+              className="w-full font-bold"
               onClick={handleToggleCheckIn}
-              className={`w-full text-xs font-bold py-2.5 shadow-xs ${
-                isCheckedIn ? 'border-emerald-300 text-emerald-800 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300' : ''
-              }`}
+              loading={checkInLoading}
+              leftIcon={isCheckedIn ? CheckCircle2 : QrCode}
             >
-              {isCheckedIn ? 'Check Out from Shift' : 'One-Click Check In Now'}
+              {isCheckedIn ? 'Complete Shift & Check Out' : 'Check In to Shift'}
             </Button>
           </CardContent>
         </Card>
 
-        {/* Assigned Tasks Summary & Duty Timeline (2 cols) */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="grid grid-cols-3 gap-3">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-[11px] font-semibold text-slate-500 uppercase">My Tasks</p>
-                <h3 className="text-2xl font-bold text-slate-900 mt-1">{myTasks.length}</h3>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-[11px] font-semibold text-slate-500 uppercase">Pending</p>
-                <h3 className="text-2xl font-bold text-amber-700 mt-1">{pendingCount}</h3>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-[11px] font-semibold text-slate-500 uppercase">Completed</p>
-                <h3 className="text-2xl font-bold text-emerald-700 mt-1">{completedCount}</h3>
-              </CardContent>
-            </Card>
-          </div>
+        {/* Volunteer Duty Metrics using StatCard */}
+        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <StatCard
+            title="My Assigned Tasks"
+            value={pendingCount}
+            subtitle={`${completedCount} deliverables completed`}
+            icon={CheckSquare}
+            badge={pendingCount === 0 ? 'All Clear' : `${pendingCount} Pending`}
+            badgeVariant={pendingCount === 0 ? 'emerald' : 'warning'}
+          />
 
-          {/* Today's Shift Schedule */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-emerald-600" />
-                Today's Shift & Operations Schedule
-              </CardTitle>
-              <CardDescription>Confirmed duty hours and meeting locations</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2.5">
-              {todayShifts.length === 0 ? (
-                <div className="text-center py-4 text-xs text-slate-400">
-                  No shifts scheduled for today.
-                </div>
-              ) : (
-                todayShifts.map((sh, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 bg-emerald-50/60 border border-emerald-200/80 rounded-xl flex items-center justify-between text-xs"
-                  >
-                    <div className="space-y-0.5">
-                      <div className="font-bold text-slate-900">{sh.event_title}</div>
-                      <div className="text-[11px] text-emerald-900 font-medium">{sh.role}</div>
-                      <div className="text-[10px] text-slate-500">{sh.location}</div>
-                    </div>
-                    <Badge variant="emerald" size="sm">
-                      {sh.shift_time}
-                    </Badge>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Today's Shifts"
+            value={todayShifts.length}
+            subtitle={isCheckedIn ? 'Currently on duty' : 'Awaiting check-in'}
+            icon={Calendar}
+            badge={isCheckedIn ? 'Active Duty' : 'Ready'}
+            badgeVariant={isCheckedIn ? 'emerald' : 'neutral'}
+          />
         </div>
       </div>
 
-      {/* Row 2: Assigned Tasks Checklist & Club Notices */}
+      {/* Row 2: Assigned Tasks List & Live War Room Shortcut */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* My Tasks Checklist (2 cols) */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Left Column: My Tasks (2 cols) */}
+        <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="flex items-center gap-1.5">
-                  <CheckSquare className="w-4 h-4 text-blue-600" />
-                  My Assigned Tasks Checklist
+                <CardTitle className="text-base flex items-center gap-2">
+                  <CheckSquare className="w-4 h-4 text-emerald-600" />
+                  My Task Deliverables
                 </CardTitle>
-                <CardDescription>Track deliverables and mark tasks complete as you finish them</CardDescription>
+                <CardDescription>Direct responsibilities assigned to your volunteer profile</CardDescription>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/app/tasks')}
-                className="text-xs"
+                rightIcon={ArrowRight}
               >
-                Kanban View <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                Kanban View
               </Button>
             </CardHeader>
-            <CardContent className="space-y-2.5">
+            <CardContent>
               {myTasks.length === 0 ? (
-                <div className="text-center py-8 text-xs text-slate-400">
-                  You have no tasks assigned at the moment. Enjoy the event or volunteer for open roles!
+                <div className="p-8 text-center text-slate-400 space-y-1">
+                  <p className="text-xs font-medium">No active tasks assigned to you.</p>
+                  <p className="text-[11px]">The Club Head will match you to upcoming event tracks.</p>
                 </div>
               ) : (
-                myTasks.map((t) => {
-                  const isDone = t.status === 'DONE' || t.status === 'COMPLETED';
-                  return (
-                    <div
-                      key={t.id}
-                      className={`p-3.5 border rounded-xl flex items-center justify-between text-xs transition-all ${
-                        isDone
-                          ? 'bg-slate-50 border-slate-200 opacity-70'
-                          : 'bg-white border-slate-200 hover:border-emerald-300'
-                      }`}
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-bold ${isDone ? 'line-through text-slate-500' : 'text-slate-900'}`}>
-                            {t.title}
-                          </span>
-                          {t.event_title && (
-                            <span className="text-[10px] text-slate-400">({t.event_title})</span>
-                          )}
-                        </div>
-                        {t.due_datetime && (
-                          <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> Due: {new Date(t.due_datetime).toLocaleDateString()}
+                <div className="divide-y divide-slate-100">
+                  {myTasks.map((t) => {
+                    const isDone = t.status === 'DONE' || t.status === 'COMPLETED';
+                    return (
+                      <div
+                        key={t.id}
+                        className="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/70 p-2 rounded-xl transition-colors"
+                      >
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-bold ${isDone ? 'line-through text-slate-400' : 'text-slate-900'} truncate`}>
+                              {t.title}
+                            </span>
+                            <Badge
+                              variant={
+                                t.priority === 'CRITICAL'
+                                  ? 'error'
+                                  : t.priority === 'HIGH'
+                                  ? 'warning'
+                                  : 'neutral'
+                              }
+                              size="sm"
+                            >
+                              {t.priority}
+                            </Badge>
                           </div>
-                        )}
-                      </div>
+                          <div className="text-[11px] text-slate-400">
+                            {t.due_datetime
+                              ? `Due: ${new Date(t.due_datetime).toLocaleDateString()}`
+                              : 'No set deadline'}
+                          </div>
+                        </div>
 
-                      <div className="flex items-center gap-2">
-                        <Badge variant={t.priority === 'HIGH' ? 'error' : 'neutral'} size="sm">
-                          {t.priority}
-                        </Badge>
-
-                        {!isDone && (
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            leftIcon={CheckCircle2}
-                            loading={taskUpdatingId === t.id}
-                            onClick={() => handleCompleteTask(t.id)}
-                            className="text-[11px] px-2 py-1 h-7"
-                          >
-                            Mark Done
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-2 shrink-0">
+                          {!isDone && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCompleteTask(t.id)}
+                              loading={taskUpdatingId === t.id}
+                              leftIcon={CheckCircle2}
+                            >
+                              Mark Done
+                            </Button>
+                          )}
+                          <Badge variant={isDone ? 'success' : 'neutral'} size="sm">
+                            {t.status}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })
+                    );
+                  })}
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Club Notices Stream (1 col) */}
-        <div className="space-y-4">
+        {/* Right Column: Live Hub & Team Roster (1 col) */}
+        <div className="space-y-6">
           <Card>
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-sm">Club Notices & Announcements</CardTitle>
-                <CardDescription>Live updates from club leadership</CardDescription>
-              </div>
-              <Radio className="w-4 h-4 text-emerald-600 animate-pulse" />
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Radio className="w-4 h-4 text-emerald-600" />
+                Live Hub War Room
+              </CardTitle>
+              <CardDescription>Instant coordination with squad leads</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2.5">
-              {announcements.length === 0 ? (
-                <div className="text-center py-4 text-xs text-slate-400">
-                  No new announcements.
-                </div>
-              ) : (
-                announcements.map((ann) => (
-                  <div key={ann.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
-                    <div className="font-bold text-slate-900 leading-tight">{ann.title}</div>
-                    <div className="text-[10px] text-slate-500 flex items-center gap-1">
-                      <span className="text-emerald-700 font-semibold">{ann.category}</span>
-                      <span>&bull;</span>
-                      <span>{new Date(ann.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                ))
-              )}
+            <CardContent className="space-y-3">
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Connect directly to the <strong># Volunteer Pool</strong> or dedicated event war room for real-time announcements, questions, and shift handovers.
+              </p>
+
+              <Button
+                variant="primary"
+                size="sm"
+                className="w-full"
+                onClick={() => navigate('/app/collaboration')}
+                rightIcon={ArrowRight}
+              >
+                Enter Team Live Hub
+              </Button>
             </CardContent>
           </Card>
         </div>

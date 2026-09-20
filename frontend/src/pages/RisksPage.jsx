@@ -79,6 +79,7 @@ export default function RisksPage() {
       if (res.success) {
         setRisks(res.data || []);
         setMsg(`Radar scan completed. ${res.data?.length || 0} active risks detected.`);
+        window.dispatchEvent(new CustomEvent('risk-status-changed'));
       }
     } catch (err) {
       setError('Failed to execute risk radar scan.');
@@ -95,6 +96,7 @@ export default function RisksPage() {
           prev.map((r) => (r.id === riskId ? { ...r, status: 'RESOLVED' } : r))
         );
         setMsg('Risk marked as resolved.');
+        window.dispatchEvent(new CustomEvent('risk-status-changed'));
       }
     } catch (e) {
       setError('Failed to resolve risk.');
