@@ -47,37 +47,23 @@ export default function Navbar() {
           </a>
         </nav>
 
-        {/* Action Buttons */}
+        {/* Action Buttons: Sign In & Sign Up */}
         <div className="flex items-center gap-2.5">
-          {token ? (
-            <Button
-              size="sm"
-              variant="primary"
-              rightIcon={ArrowRight}
-              onClick={() => navigate('/app')}
-            >
-              Open Console
-            </Button>
-          ) : (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                leftIcon={LogIn}
-                onClick={() => navigate('/login')}
-              >
-                Sign In
-              </Button>
-              <Button
-                size="sm"
-                variant="primary"
-                rightIcon={ArrowRight}
-                onClick={() => navigate('/login')}
-              >
-                Launch App
-              </Button>
-            </>
-          )}
+          <Button
+            size="sm"
+            variant="outline"
+            leftIcon={LogIn}
+            onClick={() => navigate('/login')}
+          >
+            Sign In
+          </Button>
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => navigate('/signup')}
+          >
+            Sign Up
+          </Button>
 
           {/* Mobile Menu Button */}
           <button
