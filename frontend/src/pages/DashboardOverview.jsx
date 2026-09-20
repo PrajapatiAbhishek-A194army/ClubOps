@@ -209,7 +209,7 @@ export default function DashboardOverview() {
         <div>
           {selectedPerspective === 'PRESIDENT' && (
             <PresidentDashboard
-              data={dashboardData.president_data}
+              data={dashboardData.data || dashboardData.president_data || dashboardData}
               clubId={activeClub?.id}
               onRefresh={loadMetrics}
             />
@@ -217,7 +217,7 @@ export default function DashboardOverview() {
 
           {selectedPerspective === 'ORGANIZER' && (
             <OrganizerDashboard
-              data={dashboardData.organizer_data}
+              data={dashboardData.data || dashboardData.organizer_data || dashboardData}
               clubId={activeClub?.id}
               onRefresh={loadMetrics}
             />
@@ -225,7 +225,7 @@ export default function DashboardOverview() {
 
           {selectedPerspective === 'TEAM_LEAD' && (
             <TeamLeadDashboard
-              data={dashboardData.team_lead_data}
+              data={dashboardData.data || dashboardData.team_lead_data || dashboardData}
               clubId={activeClub?.id}
               onRefresh={loadMetrics}
             />
@@ -233,7 +233,7 @@ export default function DashboardOverview() {
 
           {selectedPerspective === 'VOLUNTEER' && (
             <VolunteerDashboard
-              data={dashboardData.volunteer_data}
+              data={dashboardData.data || dashboardData.volunteer_data || dashboardData}
               clubId={activeClub?.id}
               onRefresh={loadMetrics}
             />
