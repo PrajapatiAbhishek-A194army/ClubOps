@@ -166,3 +166,111 @@ def test_rbac_member_cannot_create_or_delete_event():
         headers={"Authorization": f"Bearer {token}"},
     )
     assert create_resp.status_code == 403
+
+
+def test_stable_staffing_plan_approval_and_kanban_progress_sync():
+    token = get_token("president@clubops.ai")
+    club_id = get_gdsc_club_id(token)
+
+    start = (datetime.utcnow() + timedelta(days=20)).isoformat()
+    end = (datetime.utcnow() + timedelta(days=21)).isoformat()
+
+    # 1. Create a fresh event
+    create_resp = client.post(
+        f"/api/v1/clubs/{club_id}/events",
+        json={
+            "title": "Automated Staffing Test Workshop",
+            "description": "Testing stable AI staffing, Kanban sync, and event progression impact.",
+            "event_type": "WORKSHOP",
+            "start_date": start,
+            "end_date": end,
+            "budget": 3000.0,
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert create_resp.status_code == 201
+    event_id = create_resp.json()["data"]["id"]
+
+    try:
+        # 2. Fetch staffing plan first time (generates and caches)
+        res1 = client.get(
+            f"/api/v1/clubs/{club_id}/events/{event_id}/staffing-plan",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert res1.status_code == 200
+        plan1 = res1.json()["data"]
+        assert plan1["is_approved"] is False
+        assert len(plan1["proposed_tasks"]) >= 2
+
+        # 3. Fetch staffing plan second time -> MUST be identical (no random regeneration)
+        res2 = client.get(
+            f"/api/v1/clubs/{club_id}/events/{event_id}/staffing-plan",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert res2.status_code == 200
+        plan2 = res2.json()["data"]
+        assert plan1["min_volunteers_required"] == plan2["min_volunteers_required"]
+        assert [t["task_title"] for t in plan1["proposed_tasks"]] == [t["task_title"] for t in plan2["proposed_tasks"]]
+
+        # 4. Approve the plan & assign tasks
+        approve_resp = client.post(
+            f"/api/v1/clubs/{club_id}/events/{event_id}/approve-plan",
+            json={"tasks": plan1["proposed_tasks"], "dispatch_notifications": False},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert approve_resp.status_code == 200
+        assert approve_resp.json()["data"]["created_tasks"] == len(plan1["proposed_tasks"])
+
+        # 5. Re-fetching staffing plan now returns live approved plan with is_approved=True
+        res3 = client.get(
+            f"/api/v1/clubs/{club_id}/events/{event_id}/staffing-plan",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert res3.status_code == 200
+        plan3 = res3.json()["data"]
+        assert plan3["is_approved"] is True
+        assert plan3["task_count"] == len(plan1["proposed_tasks"])
+        assert plan3["completed_task_count"] == 0
+
+        # 6. Verify tasks are visible on the club's Kanban task query
+        tasks_resp = client.get(
+            f"/api/v1/clubs/{club_id}/tasks?event_id={event_id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert tasks_resp.status_code == 200
+        created_tasks = tasks_resp.json()["data"]
+        assert len(created_tasks) == len(plan1["proposed_tasks"])
+        first_task_id = created_tasks[0]["id"]
+
+        # 7. Check initial progress of event
+        ev_before = client.get(
+            f"/api/v1/clubs/{club_id}/events/{event_id}",
+            headers={"Authorization": f"Bearer {token}"},
+        ).json()["data"]
+        init_progress = ev_before["progress_percent"]
+        init_completed_tasks = ev_before.get("completed_tasks", 0)
+        assert init_completed_tasks == 0
+
+        # 8. Mark first task as DONE on the Kanban board
+        patch_resp = client.patch(
+            f"/api/v1/clubs/{club_id}/tasks/{first_task_id}/status",
+            json={"status": "DONE"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert patch_resp.status_code == 200
+
+        # 9. Verify event progression metric increased!
+        ev_after = client.get(
+            f"/api/v1/clubs/{club_id}/events/{event_id}",
+            headers={"Authorization": f"Bearer {token}"},
+        ).json()["data"]
+        assert ev_after["completed_tasks"] == 1
+        assert ev_after["progress_percent"] > init_progress
+
+    finally:
+        # Clean up test event and cascaded tasks
+        client.delete(
+            f"/api/v1/clubs/{club_id}/events/{event_id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+

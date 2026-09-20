@@ -25,24 +25,116 @@ class StaffingService:
     def estimate_event_staffing_and_plan(
         db: Session,
         event: Event,
+        force_regenerate: bool = False,
     ) -> AIEventPlanResponse:
         """
         Calculates:
         1. Minimum volunteers required based on event type, duration, and scope.
         2. Breakdown of volunteers required with particular skills in count.
         3. Actionable tasks mapped to eligible club volunteers matching skills & availability.
+        
+        Persists state:
+        - If tasks already exist for this event, returns the active, approved staffing plan with live statuses.
+        - If a draft plan is already cached on the event, returns it deterministically (preventing random regeneration).
+        - If force_regenerate is True, queries AI afresh and updates the cache.
         """
-        # Fetch available skills registered in the system
-        skills = db.query(Skill).all()
-        skill_catalog = {s.name.lower(): s for s in skills}
+        # 1. If tasks already exist in the database for this event, return the live approved plan
+        existing_tasks = db.query(Task).filter(Task.event_id == event.id).order_by(Task.created_at.asc()).all()
+        if existing_tasks and not force_regenerate:
+            proposed_tasks: List[SuggestedTaskAssignment] = []
+            assigned_user_ids = set()
 
-        # Calculate event duration in hours
+            for t in existing_tasks:
+                assignment = (
+                    db.query(TaskAssignment)
+                    .filter(TaskAssignment.task_id == t.id)
+                    .first()
+                )
+                sugg_id = None
+                sugg_name = None
+                if assignment and assignment.user_id:
+                    sugg_id = assignment.user_id
+                    assigned_user = db.query(User).filter(User.id == sugg_id).first()
+                    if assigned_user:
+                        sugg_name = assigned_user.full_name
+                        assigned_user_ids.add(sugg_id)
+
+                status_str = t.status.value if hasattr(t.status, "value") else str(t.status)
+                priority_str = t.priority.value if hasattr(t.priority, "value") else str(t.priority)
+
+                proposed_tasks.append(
+                    SuggestedTaskAssignment(
+                        task_id=t.id,
+                        task_title=t.title,
+                        task_description=t.description,
+                        priority=priority_str,
+                        due_datetime=t.due_datetime.isoformat() if t.due_datetime else None,
+                        required_skill="Operations",
+                        suggested_volunteer_id=sugg_id,
+                        suggested_volunteer_name=sugg_name,
+                        match_reason="Assigned & active on Kanban board",
+                        skill_match_pct=100 if sugg_id else None,
+                        status=status_str,
+                    )
+                )
+
+            completed_count = sum(1 for pt in proposed_tasks if pt.status in ("DONE", "COMPLETED"))
+            
+            skill_requirements: List[SkillRequirementItem] = []
+            for s in (event.skill_requirements or []):
+                skill_requirements.append(
+                    SkillRequirementItem(
+                        skill_name=s.get("skill_name", "General Operations"),
+                        required_count=int(s.get("required_count", 1)),
+                        assigned_count=len(assigned_user_ids),
+                    )
+                )
+
+            return AIEventPlanResponse(
+                event_id=event.id,
+                min_volunteers_required=event.min_volunteers_required or max(len(assigned_user_ids), 1),
+                skill_requirements=skill_requirements,
+                proposed_tasks=proposed_tasks,
+                ai_explanation=f"Staffing plan is finalized and active. {len(existing_tasks)} tasks are running on the Kanban board with {completed_count} completed.",
+                is_approved=True,
+                task_count=len(existing_tasks),
+                completed_task_count=completed_count,
+            )
+
+        # 2. Check if a draft proposal is already cached in event.checklists
+        checklists = event.checklists or {}
+        cached_plan = checklists.get("cached_staffing_plan")
+        if cached_plan and not force_regenerate:
+            try:
+                skill_reqs = [
+                    SkillRequirementItem(**sr) if isinstance(sr, dict) else sr 
+                    for sr in cached_plan.get("skill_requirements", [])
+                ]
+                prop_tasks = [
+                    SuggestedTaskAssignment(**pt) if isinstance(pt, dict) else pt 
+                    for pt in cached_plan.get("proposed_tasks", [])
+                ]
+                return AIEventPlanResponse(
+                    event_id=event.id,
+                    min_volunteers_required=cached_plan.get("min_volunteers_required", event.min_volunteers_required or 6),
+                    skill_requirements=skill_reqs,
+                    proposed_tasks=prop_tasks,
+                    ai_explanation=cached_plan.get("ai_explanation", "Calculated staffing proposal based on event scope."),
+                    is_approved=False,
+                    task_count=len(prop_tasks),
+                    completed_task_count=0,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to parse cached_staffing_plan: {e}. Recomputing.")
+
+        # 3. Otherwise, compute with AI / heuristic fallback
+        skills = db.query(Skill).all()
+
         duration_hours = max(
             2.0,
             (event.end_date - event.start_date).total_seconds() / 3600.0,
         )
 
-        # AI prompt or deterministic calculation
         plan_data = StaffingService._call_llm_or_fallback_estimation(
             event_title=event.title,
             event_desc=event.description or "",
@@ -56,7 +148,6 @@ class StaffingService:
         raw_tasks = plan_data.get("proposed_tasks", [])
         explanation = plan_data.get("ai_explanation", "Calculated based on event scope and skill needs.")
 
-        # Structure skill count breakdown
         skill_requirements: List[SkillRequirementItem] = []
         for s in raw_skills:
             skill_requirements.append(
@@ -67,7 +158,6 @@ class StaffingService:
                 )
             )
 
-        # Retrieve all active club volunteers
         active_memberships = (
             db.query(ClubMembership)
             .filter(
@@ -78,7 +168,6 @@ class StaffingService:
         )
         active_user_ids = [m.user_id for m in active_memberships]
 
-        # Match tasks to candidates deterministically based on skills, availability, and workload
         proposed_tasks: List[SuggestedTaskAssignment] = []
         assigned_user_ids = set()
 
@@ -105,7 +194,6 @@ class StaffingService:
                 match_pct = matched_candidate["score"]
                 assigned_user_ids.add(sugg_id)
 
-                # Increment assigned count in skill breakdown
                 for sr in skill_requirements:
                     if sr.skill_name.lower() == req_skill_name.lower():
                         sr.assigned_count += 1
@@ -122,12 +210,22 @@ class StaffingService:
                     suggested_volunteer_name=sugg_name,
                     match_reason=match_reason,
                     skill_match_pct=match_pct,
+                    status="TODO",
                 )
             )
 
-        # Update event record with computed minimum and skill breakdown
+        # Update event record and save the cached proposal
         event.min_volunteers_required = min_volunteers
         event.skill_requirements = [sr.model_dump() for sr in skill_requirements]
+        
+        updated_checklists = dict(event.checklists or {})
+        updated_checklists["cached_staffing_plan"] = {
+            "min_volunteers_required": min_volunteers,
+            "skill_requirements": [sr.model_dump() for sr in skill_requirements],
+            "proposed_tasks": [pt.model_dump() for pt in proposed_tasks],
+            "ai_explanation": explanation,
+        }
+        event.checklists = updated_checklists
         db.commit()
 
         return AIEventPlanResponse(
@@ -136,6 +234,9 @@ class StaffingService:
             skill_requirements=skill_requirements,
             proposed_tasks=proposed_tasks,
             ai_explanation=explanation,
+            is_approved=False,
+            task_count=len(proposed_tasks),
+            completed_task_count=0,
         )
 
     @staticmethod

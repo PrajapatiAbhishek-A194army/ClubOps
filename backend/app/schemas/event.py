@@ -63,6 +63,8 @@ class EventResponse(EventBase):
     updated_at: datetime
     days_until_event: int = 0
     progress_percent: int = 0
+    total_tasks: int = 0
+    completed_tasks: int = 0
 
     class Config:
         from_attributes = True

@@ -216,6 +216,7 @@ def toggle_milestone(
 def generate_staffing_plan(
     club_id: str,
     event_id: str,
+    force_regenerate: bool = Query(False, description="Forces re-running AI estimation instead of returning cached plan"),
     current_user: User = Depends(get_current_user),
     membership=Depends(require_club_role(LEADERSHIP_ROLES)),
     db: Session = Depends(get_db),
@@ -225,12 +226,13 @@ def generate_staffing_plan(
     - Calculates minimum volunteers required.
     - Calculates count of volunteers required with particular skills.
     - Matches proposed tasks to eligible club volunteers based on skills and availability.
+    - Returns existing approved tasks or cached proposal to prevent random re-generation on reload.
     """
     event = EventService.get_event_by_id(db=db, event_id=event_id, club_id=club_id)
     if not event:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found in this club")
 
-    plan = StaffingService.estimate_event_staffing_and_plan(db=db, event=event)
+    plan = StaffingService.estimate_event_staffing_and_plan(db=db, event=event, force_regenerate=force_regenerate)
     return ApiResponse(
         success=True,
         data=plan,
@@ -259,10 +261,19 @@ def approve_staffing_plan(
     if not event:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found in this club")
 
+    tasks_to_create = approve_req.tasks
+    if not tasks_to_create:
+        cached = (event.checklists or {}).get("cached_staffing_plan", {})
+        raw_cached = cached.get("proposed_tasks", [])
+        tasks_to_create = [SuggestedTaskAssignment(**t) if isinstance(t, dict) else t for t in raw_cached]
+
+    if not tasks_to_create:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No proposed tasks found to approve.")
+
     created_task_count = 0
     assigned_volunteers = []
 
-    for item in approve_req.tasks:
+    for item in tasks_to_create:
         priority_enum = TaskPriority.MEDIUM
         try:
             priority_enum = TaskPriority(item.priority.upper())

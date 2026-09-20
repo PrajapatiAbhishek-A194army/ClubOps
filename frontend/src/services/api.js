@@ -249,8 +249,9 @@ export const assignVolunteerToTask = async (clubId, assignData) => {
 };
 
 // AI Staffing & Event Planning
-export const getEventStaffingPlan = async (clubId, eventId) => {
-  const response = await api.post(`/clubs/${clubId}/events/${eventId}/staffing-plan`);
+export const getEventStaffingPlan = async (clubId, eventId, forceRegenerate = false) => {
+  const params = forceRegenerate ? { force_regenerate: true } : {};
+  const response = await api.get(`/clubs/${clubId}/events/${eventId}/staffing-plan`, { params });
   return response.data;
 };
 

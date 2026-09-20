@@ -17,7 +17,9 @@ import {
   Layers,
   Sparkles,
   Loader2,
-  CheckSquare
+  CheckSquare,
+  ExternalLink,
+  Lock
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -74,13 +76,13 @@ export default function EventDetailsPage() {
   const canToggleMilestone = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER', 'VOLUNTEER'].includes(activeRole);
   const isPresident = activeRole === 'PRESIDENT';
 
-  const handleLoadStaffing = async () => {
+  const handleLoadStaffing = async (forceRegenerate = false) => {
     const targetClubId = event?.club_id || activeClub?.id;
     if (!targetClubId || !eventId) return;
     setStaffingLoading(true);
     setStaffingSuccessMsg(null);
     try {
-      const res = await getEventStaffingPlan(targetClubId, eventId);
+      const res = await getEventStaffingPlan(targetClubId, eventId, forceRegenerate);
       if (res.success) {
         setStaffingPlan(res.data);
       }
@@ -101,8 +103,9 @@ export default function EventDetailsPage() {
         dispatch_notifications: true,
       });
       if (res.success) {
-        setStaffingSuccessMsg(`Plan approved! Created ${res.data.created_tasks} tasks and notified ${res.data.assigned_volunteers} volunteers.`);
-        fetchEvent();
+        setStaffingSuccessMsg(`Staffing plan finalized! Created ${res.data.created_tasks} tasks on the Kanban board and dispatched notifications.`);
+        await fetchEvent();
+        await handleLoadStaffing(false);
       }
     } catch (err) {
       console.error('Failed to approve plan:', err);
@@ -358,11 +361,14 @@ export default function EventDetailsPage() {
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-500 font-medium">Milestones</p>
+                <p className="text-xs text-slate-500 font-medium">Event Readiness</p>
                 <span className="text-xs font-bold text-slate-700">{event.progress_percent}%</span>
               </div>
-              <p className="text-lg font-bold text-slate-900">
-                {timeline.filter((m) => m.completed).length} / {timeline.length}
+              <p className="text-base font-bold text-slate-900 mt-0.5">
+                {timeline.filter((m) => m.completed).length} / {timeline.length} Milestones
+              </p>
+              <p className="text-[11px] text-slate-500 font-medium">
+                {event.completed_tasks || 0} / {event.total_tasks || 0} Kanban Tasks Done
               </p>
             </div>
           </CardContent>
@@ -640,39 +646,70 @@ export default function EventDetailsPage() {
           {/* Header Action Banner */}
           <div className="p-6 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-600 text-white">
                   AI Operations
                 </span>
+                {staffingPlan?.is_approved && (
+                  <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                    <Lock className="w-3 h-3 text-emerald-700" />
+                    Finalized & Active on Kanban
+                  </span>
+                )}
                 <h2 className="font-bold text-lg text-slate-900">
                   Staffing & Volunteer Skill Requirements
                 </h2>
               </div>
               <p className="text-xs text-slate-600">
-                AI estimates minimum headcount, specific skill quotas, and candidate assignments with zero schedule overlap.
+                {staffingPlan?.is_approved
+                  ? `This staffing plan is finalized and locked. All ${staffingPlan.task_count || staffingPlan.proposed_tasks?.length} tasks are running on the Kanban board.`
+                  : 'AI estimates minimum headcount, specific skill quotas, and candidate assignments with zero schedule overlap.'}
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLoadStaffing}
-                disabled={staffingLoading}
-                leftIcon={Sparkles}
-              >
-                {staffingLoading ? 'Analyzing...' : 'Recalculate Plan'}
-              </Button>
-              {canEditEvent && staffingPlan && (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleApprovePlan}
-                  disabled={staffingLoading}
-                  leftIcon={CheckSquare}
-                >
-                  Approve & Dispatch Alerts
-                </Button>
+            <div className="flex items-center gap-2 flex-wrap">
+              {staffingPlan?.is_approved ? (
+                <>
+                  <Link
+                    to="/app/tasks"
+                    className="inline-flex items-center gap-1.5 py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-2xs"
+                  >
+                    <span>View in Kanban Board</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleLoadStaffing(true)}
+                    disabled={staffingLoading}
+                    leftIcon={Sparkles}
+                  >
+                    {staffingLoading ? 'Re-analyzing...' : 'Recalculate with AI'}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleLoadStaffing(true)}
+                    disabled={staffingLoading}
+                    leftIcon={Sparkles}
+                  >
+                    {staffingLoading ? 'Analyzing...' : 'Recalculate Plan'}
+                  </Button>
+                  {canEditEvent && staffingPlan && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={handleApprovePlan}
+                      disabled={staffingLoading}
+                      leftIcon={CheckSquare}
+                    >
+                      Approve & Dispatch Alerts
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -745,45 +782,66 @@ export default function EventDetailsPage() {
           {/* Proposed Tasks & Volunteer Matches */}
           {staffingPlan?.proposed_tasks?.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-slate-800">
-                Proposed Tasks & Candidate Assignments ({staffingPlan.proposed_tasks.length})
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-800">
+                  {staffingPlan?.is_approved ? 'Active Event Tasks & Volunteer Assignments' : 'Proposed Tasks & Candidate Assignments'} ({staffingPlan.proposed_tasks.length})
+                </h3>
+                {staffingPlan?.is_approved && (
+                  <span className="text-xs text-slate-500">
+                    {staffingPlan.completed_task_count || 0} / {staffingPlan.task_count || staffingPlan.proposed_tasks.length} Completed
+                  </span>
+                )}
+              </div>
               <div className="space-y-3">
-                {staffingPlan.proposed_tasks.map((t, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 bg-white border border-slate-200 rounded-xl shadow-2xs hover:border-emerald-300 transition-colors"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                      <div className="space-y-1 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-sm text-slate-900">{t.task_title}</span>
-                          <Badge variant="info" size="sm">{t.priority}</Badge>
-                          {t.required_skill && (
-                            <span className="text-[10px] font-semibold px-2 py-0.5 bg-purple-50 text-purple-700 rounded border border-purple-200">
-                              Skill: {t.required_skill}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-600">{t.task_description}</p>
-                      </div>
+                {staffingPlan.proposed_tasks.map((t, idx) => {
+                  const isDone = t.status === 'DONE' || t.status === 'COMPLETED';
+                  const isInProgress = t.status === 'IN_PROGRESS';
+                  const isBlocked = t.status === 'BLOCKED';
 
-                      {t.suggested_volunteer_name && (
-                        <div className="sm:text-right shrink-0 bg-emerald-50/60 p-2.5 rounded-lg border border-emerald-200">
-                          <div className="text-xs font-bold text-emerald-900">
-                            Match: {t.suggested_volunteer_name}
+                  return (
+                    <div
+                      key={t.task_id || idx}
+                      className="p-4 bg-white border border-slate-200 rounded-xl shadow-2xs hover:border-emerald-300 transition-colors"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm text-slate-900">{t.task_title}</span>
+                            <Badge variant="info" size="sm">{t.priority}</Badge>
+                            {t.status && (
+                              <Badge
+                                variant={isDone ? 'success' : isInProgress ? 'info' : isBlocked ? 'danger' : 'outline'}
+                                size="sm"
+                              >
+                                {isDone ? 'Done' : isInProgress ? 'In Progress' : isBlocked ? 'Blocked' : 'To Do'}
+                              </Badge>
+                            )}
+                            {t.required_skill && (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 bg-purple-50 text-purple-700 rounded border border-purple-200">
+                                Skill: {t.required_skill}
+                              </span>
+                            )}
                           </div>
-                          <div className="text-[10px] text-emerald-700 font-semibold">
-                            {t.skill_match_pct}% Match • Available
-                          </div>
-                          <div className="text-[10px] text-slate-500 max-w-xs mt-0.5 italic">
-                            {t.match_reason}
-                          </div>
+                          <p className="text-xs text-slate-600">{t.task_description}</p>
                         </div>
-                      )}
+
+                        {t.suggested_volunteer_name && (
+                          <div className="sm:text-right shrink-0 bg-emerald-50/60 p-2.5 rounded-lg border border-emerald-200">
+                            <div className="text-xs font-bold text-emerald-900">
+                              {staffingPlan?.is_approved ? 'Assigned to:' : 'Match:'} {t.suggested_volunteer_name}
+                            </div>
+                            <div className="text-[10px] text-emerald-700 font-semibold">
+                              {staffingPlan?.is_approved ? 'Active Assignee' : `${t.skill_match_pct}% Match • Available`}
+                            </div>
+                            <div className="text-[10px] text-slate-500 max-w-xs mt-0.5 italic">
+                              {t.match_reason}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

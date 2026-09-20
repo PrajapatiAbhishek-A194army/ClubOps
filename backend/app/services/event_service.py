@@ -33,11 +33,37 @@ def compute_event_metrics(event: Event) -> Dict[str, Any]:
     timeline = event.timeline or []
     total_milestones = len(timeline)
     completed_milestones = sum(1 for m in timeline if m.get("completed", False))
-    progress_percent = int((completed_milestones / total_milestones) * 100) if total_milestones > 0 else 0
+
+    tasks = []
+    try:
+        tasks = event.tasks or []
+    except Exception:
+        pass
+
+    total_tasks = len(tasks)
+    completed_tasks = sum(
+        1 for t in tasks 
+        if (hasattr(t.status, "value") and t.status.value in ("DONE", "COMPLETED")) 
+        or str(t.status) in ("DONE", "COMPLETED")
+    )
+
+    total_units = total_milestones + total_tasks
+    completed_units = completed_milestones + completed_tasks
+
+    if total_units > 0:
+        progress_percent = int((completed_units / total_units) * 100)
+    elif total_milestones > 0:
+        progress_percent = int((completed_milestones / total_milestones) * 100)
+    else:
+        progress_percent = 0
 
     return {
         "days_until_event": days_until_event,
-        "progress_percent": progress_percent
+        "progress_percent": progress_percent,
+        "total_milestones": total_milestones,
+        "completed_milestones": completed_milestones,
+        "total_tasks": total_tasks,
+        "completed_tasks": completed_tasks,
     }
 
 
@@ -45,6 +71,8 @@ def enrich_event_response(event: Event) -> Event:
     metrics = compute_event_metrics(event)
     event.days_until_event = metrics["days_until_event"]
     event.progress_percent = metrics["progress_percent"]
+    event.total_tasks = metrics["total_tasks"]
+    event.completed_tasks = metrics["completed_tasks"]
     return event
 
 

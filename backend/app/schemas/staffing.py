@@ -9,6 +9,7 @@ class SkillRequirementItem(BaseModel):
 
 
 class SuggestedTaskAssignment(BaseModel):
+    task_id: Optional[str] = None
     task_title: str
     task_description: Optional[str] = None
     priority: str = "MEDIUM"  # LOW, MEDIUM, HIGH, CRITICAL
@@ -18,6 +19,7 @@ class SuggestedTaskAssignment(BaseModel):
     suggested_volunteer_name: Optional[str] = None
     match_reason: Optional[str] = None
     skill_match_pct: Optional[int] = None
+    status: Optional[str] = "TODO"
 
 
 class AIEventPlanResponse(BaseModel):
@@ -26,8 +28,12 @@ class AIEventPlanResponse(BaseModel):
     skill_requirements: List[SkillRequirementItem]
     proposed_tasks: List[SuggestedTaskAssignment]
     ai_explanation: str
+    is_approved: bool = False
+    approved_at: Optional[str] = None
+    task_count: int = 0
+    completed_task_count: int = 0
 
 
 class ApprovePlanRequest(BaseModel):
-    tasks: List[SuggestedTaskAssignment]
+    tasks: Optional[List[SuggestedTaskAssignment]] = None
     dispatch_notifications: bool = True
