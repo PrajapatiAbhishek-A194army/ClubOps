@@ -102,10 +102,9 @@ export default function SignupPage() {
 
         <div className="relative z-10 space-y-4">
           <Link to="/" className="inline-flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-emerald-600/30">
-              CO
+            <div className="bg-white/95 backdrop-blur-xs px-3.5 py-2 rounded-2xl shadow-md border border-white/20 hover:bg-white transition-all">
+              <img src="/clubops-logo.png" alt="ClubOps" className="h-10 w-auto object-contain" />
             </div>
-            <span className="font-extrabold text-2xl tracking-tight">{APP_NAME}</span>
           </Link>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800">
             <HeartHandshake className="w-3.5 h-3.5 text-emerald-400" />
@@ -150,11 +149,8 @@ export default function SignupPage() {
       <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 lg:px-12 py-10">
         <div className="w-full max-w-xl mx-auto space-y-6">
           <div className="lg:hidden text-center space-y-2 mb-2">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center">
-                CO
-              </div>
-              <span className="font-bold text-lg text-slate-900">{APP_NAME}</span>
+            <Link to="/" className="inline-flex items-center justify-center">
+              <img src="/clubops-logo.png" alt="ClubOps" className="h-10 w-auto object-contain mx-auto" />
             </Link>
           </div>
 

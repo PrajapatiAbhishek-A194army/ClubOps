@@ -179,12 +179,12 @@ export default function DashboardShell({ children }) {
           collapsed ? 'justify-center px-2' : 'justify-between px-4'
         }`}>
           <Link to="/app" className="flex items-center gap-2.5">
-            <div 
-              className="w-9 h-9 rounded-xl bg-emerald-600 text-white font-bold flex items-center justify-center shadow-sm shadow-emerald-600/20 shrink-0 hover:scale-105 transition-transform"
+            <img 
+              src="/clubops-mark.png" 
+              alt={APP_NAME} 
+              className="w-9 h-9 rounded-xl shadow-xs shrink-0 hover:scale-105 transition-transform object-contain"
               title={APP_NAME}
-            >
-              CO
-            </div>
+            />
             {!collapsed && (
               <div className="flex flex-col">
                 <span className="font-bold text-base tracking-tight text-slate-900 leading-tight">
