@@ -84,8 +84,9 @@ export default function LoginPage() {
 
         <div className="relative z-10 space-y-4">
           <Link to="/" className="inline-flex items-center gap-3">
-            <div className="bg-white/95 backdrop-blur-xs px-3.5 py-2 rounded-2xl shadow-md border border-white/20 hover:bg-white transition-all">
-              <img src="/clubops-logo.png" alt="ClubOps" className="h-10 w-auto object-contain" />
+            <div className="bg-white/95 backdrop-blur-xs px-3.5 py-2 rounded-2xl shadow-md border border-white/20 hover:bg-white transition-all flex items-center gap-2.5">
+              <img src="/clubops-logo.png" alt="ClubOps" className="h-8 w-auto object-contain" />
+              <span className="font-extrabold text-xl tracking-tight text-slate-900 pr-1">{APP_NAME}</span>
             </div>
           </Link>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800">
@@ -130,8 +131,9 @@ export default function LoginPage() {
         <div className="w-full max-w-md mx-auto space-y-6">
           {/* Mobile Header */}
           <div className="lg:hidden text-center space-y-2 mb-4">
-            <Link to="/" className="inline-flex items-center justify-center">
-              <img src="/clubops-logo.png" alt="ClubOps" className="h-12 w-auto object-contain mx-auto" />
+            <Link to="/" className="inline-flex items-center justify-center gap-2.5">
+              <img src="/clubops-logo.png" alt="ClubOps" className="h-9 w-auto object-contain" />
+              <span className="font-bold text-xl text-slate-900">{APP_NAME}</span>
             </Link>
           </div>
 

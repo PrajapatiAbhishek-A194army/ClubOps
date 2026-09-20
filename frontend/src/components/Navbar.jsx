@@ -13,15 +13,21 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand */}
-        <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+        <Link to="/" className="flex items-center gap-3 shrink-0 group">
           <img 
             src="/clubops-logo.png" 
             alt={APP_NAME} 
-            className="h-10 w-auto object-contain transition-transform group-hover:scale-102"
+            className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
           />
-          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 hidden sm:inline">
-            v1.0
-          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-base tracking-tight text-slate-900">{APP_NAME}</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                v1.0
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-400 hidden sm:block">Campus Event Operations Platform</p>
+          </div>
         </Link>
 
         {/* Center Nav Links (Desktop) */}
