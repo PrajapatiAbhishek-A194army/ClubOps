@@ -62,3 +62,12 @@ class MemberResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AssignClubHeadRequest(BaseModel):
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    password: Optional[str] = None
+    send_email: bool = True
+

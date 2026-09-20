@@ -102,10 +102,12 @@ export const removeClubMember = async (clubId, membershipId) => {
   return response.data;
 };
 
-export const assignClubHead = async (clubId, userId) => {
-  const response = await api.post(`/clubs/${clubId}/assign-club-head`, { user_id: userId });
+export const assignClubHead = async (clubId, payload) => {
+  const body = typeof payload === 'string' ? { user_id: payload } : payload;
+  const response = await api.post(`/clubs/${clubId}/assign-club-head`, body);
   return response.data;
 };
+
 
 // Volunteer Join & Application Requests
 export const getClubJoinRequests = async (clubId, params = {}) => {

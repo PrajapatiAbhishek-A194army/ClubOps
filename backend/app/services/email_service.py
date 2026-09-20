@@ -126,3 +126,115 @@ class EmailService:
         </body>
         </html>
         """
+
+    @classmethod
+    def send_club_head_credentials_email(
+        cls,
+        to_email: str,
+        to_name: str,
+        club_name: str,
+        password: str,
+        login_url: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Dispatches an official onboarding and credentials email to a newly appointed Club Head.
+        Includes their email, password, club name, and portal login link.
+        """
+        portal_url = login_url or "http://localhost:5173/login"
+        name_display = to_name or to_email.split("@")[0]
+
+        subject = f"👑 You've been appointed as Club Head of {club_name} - Login Credentials"
+
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Club Head Appointment</title>
+        </head>
+        <body style="margin: 0; padding: 24px; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%); padding: 32px 32px; color: #ffffff;">
+              <div style="display: inline-block; background-color: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
+                Leadership Appointment
+              </div>
+              <h1 style="margin: 0; font-size: 22px; font-weight: 800; line-height: 1.3;">
+                Welcome, Club Head!
+              </h1>
+              <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">
+                You have been designated as the operational leader of <strong>{club_name}</strong>.
+              </p>
+            </div>
+
+            <!-- Body Content -->
+            <div style="padding: 32px; color: #334155; font-size: 14px; line-height: 1.6;">
+              <p style="margin-top: 0; font-size: 15px; color: #1e293b;">
+                Hello <strong>{name_display}</strong>,
+              </p>
+              <p style="color: #475569;">
+                The Campus President has officially appointed you as the <strong>Club Head</strong> of <strong>{club_name}</strong> in ClubOps AI. You now have full operational command over event planning, team delegation, volunteer rosters, and club announcements.
+              </p>
+
+              <!-- Credentials Box -->
+              <div style="background-color: #faf5ff; border: 1px solid #e9d5ff; border-radius: 12px; padding: 20px; margin: 24px 0;">
+                <div style="font-size: 12px; font-weight: 700; color: #6b21a8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
+                  Your ClubOps Login Credentials
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                  <tr>
+                    <td style="padding: 6px 0; color: #64748b; width: 130px; font-weight: 600;">Login Email:</td>
+                    <td style="padding: 6px 0; color: #0f172a; font-family: monospace; font-size: 15px; font-weight: 700;">{to_email}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Password:</td>
+                    <td style="padding: 6px 0; color: #6b21a8; font-family: monospace; font-size: 15px; font-weight: 700;">{password}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Assigned Role:</td>
+                    <td style="padding: 6px 0; color: #0f172a; font-weight: 600;">Club Head ({club_name})</td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Action Button -->
+              <div style="margin: 28px 0 20px 0; text-align: center;">
+                <a href="{portal_url}" style="background-color: #7c3aed; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 15px; display: inline-block; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);">
+                  Log In to ClubOps Portal &rarr;
+                </a>
+              </div>
+
+              <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 0;">
+                For security reasons, please change your password under Settings after your first login.
+              </p>
+            </div>
+
+            <!-- Footer -->
+            <div style="background-color: #f8fafc; padding: 16px 32px; font-size: 12px; color: #64748b; text-align: center; border-top: 1px solid #e2e8f0;">
+              Sent via <strong>ClubOps AI</strong> &bull; Campus Student Organization Operating System
+            </div>
+          </div>
+        </body>
+        </html>
+        """
+
+        text_content = (
+            f"Hello {name_display},\n\n"
+            f"You have been officially appointed as the Club Head of {club_name} in ClubOps AI.\n\n"
+            f"Your Login Credentials:\n"
+            f"Login Email: {to_email}\n"
+            f"Password: {password}\n"
+            f"Role: Club Head\n"
+            f"Portal URL: {portal_url}\n\n"
+            f"Log in and take charge of your club operations!"
+        )
+
+        return cls.send_email(
+            to_email=to_email,
+            to_name=name_display,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content,
+        )
+

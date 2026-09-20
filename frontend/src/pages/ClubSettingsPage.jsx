@@ -14,8 +14,14 @@ import {
   KeyRound,
   Crown,
   UserCheck,
+  UserPlus,
   Loader2,
-  ArrowRight
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Lock,
+  RefreshCw,
+  Send
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useHealth } from '../hooks/useHealth';
@@ -47,12 +53,30 @@ export default function ClubSettingsPage() {
   const [createError, setCreateError] = useState(null);
 
   // Club Head appointment state
+  const [appointmentMode, setAppointmentMode] = useState('new'); // 'new' or 'existing'
   const [members, setMembers] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [selectedHeadId, setSelectedHeadId] = useState('');
+  const [newHeadName, setNewHeadName] = useState('');
+  const [newHeadEmail, setNewHeadEmail] = useState('');
+  const [newHeadPassword, setNewHeadPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [sendCredentialsEmail, setSendCredentialsEmail] = useState(true);
+  const [existingHeadPassword, setExistingHeadPassword] = useState('');
+  const [resetExistingPassword, setResetExistingPassword] = useState(false);
   const [assignLoading, setAssignLoading] = useState(false);
   const [assignSuccess, setAssignSuccess] = useState(null);
   const [assignError, setAssignError] = useState(null);
+
+  const generateNewPassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$';
+    let pwd = 'CO-';
+    for (let i = 0; i < 8; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewHeadPassword(pwd);
+  };
+
 
   const loadMembers = async () => {
     if (!activeClub?.id) return;
@@ -302,48 +326,239 @@ export default function ClubSettingsPage() {
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
-                  if (!selectedHeadId || !activeClub?.id) return;
+                  if (!activeClub?.id) return;
                   try {
                     setAssignLoading(true);
                     setAssignError(null);
                     setAssignSuccess(null);
-                    const res = await assignClubHead(activeClub.id, selectedHeadId);
+
+                    let payload;
+                    if (appointmentMode === 'new') {
+                      if (!newHeadEmail.trim() || !newHeadPassword.trim()) {
+                        setAssignError('Both email address and password are required to onboard a new Club Head.');
+                        setAssignLoading(false);
+                        return;
+                      }
+                      payload = {
+                        email: newHeadEmail.trim(),
+                        full_name: newHeadName.trim() || undefined,
+                        password: newHeadPassword.trim(),
+                        send_email: sendCredentialsEmail,
+                      };
+                    } else {
+                      if (!selectedHeadId) {
+                        setAssignError('Please select a member to appoint as Club Head.');
+                        setAssignLoading(false);
+                        return;
+                      }
+                      payload = {
+                        user_id: selectedHeadId,
+                        password: resetExistingPassword && existingHeadPassword.trim() ? existingHeadPassword.trim() : undefined,
+                        send_email: resetExistingPassword && Boolean(existingHeadPassword.trim()),
+                      };
+                    }
+
+                    const res = await assignClubHead(activeClub.id, payload);
                     setAssignSuccess(res.message || 'Club Head appointed successfully!');
+                    setNewHeadEmail('');
+                    setNewHeadName('');
+                    setNewHeadPassword('');
+                    setExistingHeadPassword('');
+                    setResetExistingPassword(false);
+
                     await loadMembers();
                     await refreshProfile();
-                    setTimeout(() => setAssignSuccess(null), 5000);
+                    setTimeout(() => setAssignSuccess(null), 7000);
                   } catch (err) {
                     setAssignError(err.response?.data?.detail || err.message || 'Failed to appoint Club Head');
                   } finally {
                     setAssignLoading(false);
                   }
                 }}
-                className="space-y-3"
+                className="space-y-4"
               >
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Select Member to Appoint as Club Head:
-                  </label>
-                  <select
-                    value={selectedHeadId}
-                    onChange={(e) => setSelectedHeadId(e.target.value)}
-                    className="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 font-medium text-slate-800"
-                    disabled={loadingMembers || assignLoading}
+                {/* Mode Selector Tabs */}
+                <div className="flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/80">
+                  <button
+                    type="button"
+                    onClick={() => setAppointmentMode('new')}
+                    className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      appointmentMode === 'new'
+                        ? 'bg-white text-purple-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
                   >
-                    <option value="">-- Choose Club Member --</option>
-                    {members
-                      .filter((m) => m.role !== 'PRESIDENT')
-                      .map((m) => (
-                        <option key={m.user_id} value={m.user_id}>
-                          {m.full_name} ({m.email}) &bull; Currently {m.role}
-                        </option>
-                      ))}
-                  </select>
+                    <UserPlus className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Onboard New Club Head (With Password)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAppointmentMode('existing')}
+                    className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      appointmentMode === 'existing'
+                        ? 'bg-white text-purple-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <UserCheck className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Select Existing Member</span>
+                  </button>
                 </div>
 
-                <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl text-[11px] text-slate-600 leading-relaxed">
+                {/* TAB 1: ONBOARD NEW CLUB HEAD WITH EMAIL & PASSWORD */}
+                {appointmentMode === 'new' && (
+                  <div className="space-y-3 pt-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Full Name
+                        </label>
+                        <Input
+                          placeholder="e.g. Rohan Sharma"
+                          value={newHeadName}
+                          onChange={(e) => setNewHeadName(e.target.value)}
+                          className="text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Email Address <span className="text-purple-600">*</span>
+                        </label>
+                        <Input
+                          type="email"
+                          required
+                          placeholder="e.g. rohan.sharma@campus.edu"
+                          value={newHeadEmail}
+                          onChange={(e) => setNewHeadEmail(e.target.value)}
+                          className="text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-semibold text-slate-700">
+                          Assigned Login Password <span className="text-purple-600">*</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={generateNewPassword}
+                          className="text-[11px] font-semibold text-purple-700 hover:text-purple-900 flex items-center gap-1 cursor-pointer"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          <span>Generate Strong Password</span>
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          placeholder="Enter or generate temporary password..."
+                          value={newHeadPassword}
+                          onChange={(e) => setNewHeadPassword(e.target.value)}
+                          className="w-full text-xs font-mono bg-white border border-slate-200 rounded-xl px-3 py-2.5 pr-10 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-slate-800"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                          tabIndex={-1}
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        The new Club Head will use this email and password to log in to ClubOps.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="checkbox"
+                        id="sendCredsCheckbox"
+                        checked={sendCredentialsEmail}
+                        onChange={(e) => setSendCredentialsEmail(e.target.checked)}
+                        className="rounded text-purple-600 focus:ring-purple-500 w-4 h-4 border-slate-300 cursor-pointer"
+                      />
+                      <label htmlFor="sendCredsCheckbox" className="text-xs font-medium text-slate-700 cursor-pointer select-none flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-purple-600" />
+                        <span>Send login credentials and portal link to this email address automatically</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 2: PROMOTE EXISTING MEMBER */}
+                {appointmentMode === 'existing' && (
+                  <div className="space-y-3 pt-1">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Select Member to Appoint as Club Head:
+                      </label>
+                      <select
+                        value={selectedHeadId}
+                        onChange={(e) => setSelectedHeadId(e.target.value)}
+                        className="w-full text-xs bg-white border border-slate-200 rounded-xl p-2.5 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 font-medium text-slate-800"
+                        disabled={loadingMembers || assignLoading}
+                      >
+                        <option value="">-- Choose Club Member --</option>
+                        {members
+                          .filter((m) => m.role !== 'PRESIDENT')
+                          .map((m) => (
+                            <option key={m.user_id} value={m.user_id}>
+                              {m.full_name} ({m.email}) &bull; Currently {m.role}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <div className="pt-1">
+                      <label className="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={resetExistingPassword}
+                          onChange={(e) => setResetExistingPassword(e.target.checked)}
+                          className="rounded text-purple-600 focus:ring-purple-500 w-4 h-4 border-slate-300 cursor-pointer"
+                        />
+                        <span>Reset login password & dispatch credentials email to this member</span>
+                      </label>
+
+                      {resetExistingPassword && (
+                        <div className="mt-2 pl-6 space-y-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[11px] font-semibold text-slate-600">New Password:</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$';
+                                let pwd = 'CO-';
+                                for (let i = 0; i < 8; i++) {
+                                  pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+                                }
+                                setExistingHeadPassword(pwd);
+                              }}
+                              className="text-[11px] font-semibold text-purple-700 hover:text-purple-900 flex items-center gap-1 cursor-pointer"
+                            >
+                              <RefreshCw className="w-3 h-3" />
+                              <span>Generate Password</span>
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Enter new password for member..."
+                            value={existingHeadPassword}
+                            onChange={(e) => setExistingHeadPassword(e.target.value)}
+                            className="w-full text-xs font-mono bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-3 bg-purple-50/50 border border-purple-100 rounded-xl text-[11px] text-slate-600 leading-relaxed">
                   <p>
-                    <strong>Governance Invariant:</strong> Under campus operational rules, each club holds strictly <strong>one active Club Head</strong>. Appointing a new candidate will automatically rotate the previous Club Head back to Volunteer status and dispatch notification & email alerts.
+                    <strong>Governance Invariant:</strong> Under campus rules, each club holds strictly <strong>one active Club Head</strong>. Appointing a candidate will rotate any previous Club Head to Volunteer status and dispatch the credentials email so the new Club Head can immediately log in.
                   </p>
                 </div>
 
@@ -352,11 +567,20 @@ export default function ClubSettingsPage() {
                     type="submit"
                     variant="primary"
                     size="sm"
-                    disabled={!selectedHeadId || assignLoading}
-                    leftIcon={assignLoading ? Loader2 : Crown}
-                    className="bg-purple-700 hover:bg-purple-800 border-purple-800"
+                    disabled={
+                      assignLoading ||
+                      (appointmentMode === 'new'
+                        ? !newHeadEmail.trim() || !newHeadPassword.trim()
+                        : !selectedHeadId)
+                    }
+                    leftIcon={assignLoading ? Loader2 : Send}
+                    className="bg-purple-700 hover:bg-purple-800 border-purple-800 cursor-pointer"
                   >
-                    {assignLoading ? 'Appointing...' : 'Appoint / Change Club Head'}
+                    {assignLoading
+                      ? 'Appointing & Sending Credentials...'
+                      : appointmentMode === 'new'
+                      ? 'Appoint & Dispatch Credentials'
+                      : 'Appoint / Change Club Head'}
                   </Button>
                 </div>
               </form>

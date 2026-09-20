@@ -6,6 +6,7 @@ from app.models.club import Club, ClubMembership, ClubRole, MembershipStatus
 from app.models.notification import Notification, NotificationType
 from app.models.user import User
 from app.schemas.club import (
+    AssignClubHeadRequest,
     ClubCreate,
     ClubResponse,
     ClubUpdate,
@@ -18,6 +19,8 @@ from app.schemas.common import ApiResponse
 from app.services.club_service import ClubService
 from app.services.email_service import EmailService
 from app.services.member_service import MemberService
+from app.utils.security import get_password_hash
+
 
 router = APIRouter()
 
@@ -245,26 +248,69 @@ def update_member_role(
 @router.post("/clubs/{club_id}/assign-club-head", response_model=ApiResponse[MemberResponse])
 def assign_club_head(
     club_id: str,
-    payload: dict,
+    payload: AssignClubHeadRequest,
     current_user: User = Depends(get_current_user),
     membership=Depends(require_club_role([ClubRole.PRESIDENT])),
     db: Session = Depends(get_db),
 ):
     """
     Appoints or changes the Club Head for a club (President only).
-    Enforces the domain rule: Single Active Club Head per club.
+    Enforces the domain rule: Single Active Club Head per club and per user across the platform.
+    Supports:
+      1. Appointing existing user by user_id
+      2. Appointing/onboarding new or existing user by email + password + full_name
+      3. Automatically dispatching credentials email with login email & password.
     """
-    user_id = payload.get("user_id")
-    if not user_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="user_id is required")
-
-    target_user = db.query(User).filter(User.id == user_id).first()
-    if not target_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
     club = db.query(Club).filter(Club.id == club_id).first()
     if not club:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Club not found")
+
+    target_user = None
+    assigned_password = None
+
+    if payload.user_id:
+        target_user = db.query(User).filter(User.id == payload.user_id).first()
+        if not target_user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        if payload.password and payload.password.strip():
+            assigned_password = payload.password.strip()
+            target_user.hashed_password = get_password_hash(assigned_password)
+            db.add(target_user)
+            db.flush()
+    elif payload.email and payload.email.strip():
+        clean_email = payload.email.strip().lower()
+        target_user = db.query(User).filter(User.email == clean_email).first()
+        if payload.password and payload.password.strip():
+            assigned_password = payload.password.strip()
+
+        if not target_user:
+            if not assigned_password:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Password is required when onboarding a new Club Head so they can log in."
+                )
+            full_name = payload.full_name.strip() if payload.full_name and payload.full_name.strip() else clean_email.split("@")[0].capitalize()
+            target_user = User(
+                email=clean_email,
+                full_name=full_name,
+                hashed_password=get_password_hash(assigned_password),
+                is_active=True,
+                is_superuser=False,
+            )
+            db.add(target_user)
+            db.flush()
+        else:
+            if payload.full_name and payload.full_name.strip():
+                target_user.full_name = payload.full_name.strip()
+            if assigned_password:
+                target_user.hashed_password = get_password_hash(assigned_password)
+            db.add(target_user)
+            db.flush()
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Either user_id or email must be provided to appoint a Club Head."
+        )
 
     # Enforce: A user can only be the Club Head of ONE club across the platform
     other_club_headship = (
@@ -319,7 +365,7 @@ def assign_club_head(
     db.commit()
     db.refresh(target_membership)
 
-    # Dispatch in-app notification & Brevo email to the appointed Club Head
+    # Dispatch in-app notification
     notif = Notification(
         user_id=target_user.id,
         title=f"⭐ Appointed Club Head: {club.name}",
@@ -330,25 +376,44 @@ def assign_club_head(
     db.add(notif)
     db.commit()
 
-    if target_user.email:
-        html = EmailService.build_notification_html(
-            title=f"Appointed Club Head of {club.name}",
-            message=(
-                f"Congratulations {target_user.full_name},<br><br>"
-                f"<strong>{current_user.full_name}</strong> (President) has designated you as the official <strong>Club Head</strong> of <strong>{club.name}</strong>.<br><br>"
-                f"You have executive control over event logistics, task allocations, and volunteer approvals."
-            ),
-            badge_text="Executive Appointment",
-            badge_color="#7c3aed",
-            action_url="http://localhost:5173/app",
-            action_label="Access Club Leadership",
-        )
-        EmailService.send_email(
-            to_email=target_user.email,
-            to_name=target_user.full_name,
-            subject=f"ClubOps Appointment: You are now Club Head of {club.name}",
-            html_content=html,
-        )
+    # Dispatch Email
+    email_dispatched = False
+    if payload.send_email and target_user.email:
+        if assigned_password:
+            # Send credentials email with login info
+            EmailService.send_club_head_credentials_email(
+                to_email=target_user.email,
+                to_name=target_user.full_name,
+                club_name=club.name,
+                password=assigned_password,
+                login_url="http://localhost:5173/login",
+            )
+            email_dispatched = True
+        else:
+            # Send standard appointment notification email
+            html = EmailService.build_notification_html(
+                title=f"Appointed Club Head of {club.name}",
+                message=(
+                    f"Congratulations {target_user.full_name},<br><br>"
+                    f"<strong>{current_user.full_name}</strong> (President) has designated you as the official <strong>Club Head</strong> of <strong>{club.name}</strong>.<br><br>"
+                    f"You have executive control over event logistics, task allocations, and volunteer approvals."
+                ),
+                badge_text="Executive Appointment",
+                badge_color="#7c3aed",
+                action_url="http://localhost:5173/app",
+                action_label="Access Club Leadership",
+            )
+            EmailService.send_email(
+                to_email=target_user.email,
+                to_name=target_user.full_name,
+                subject=f"ClubOps Appointment: You are now Club Head of {club.name}",
+                html_content=html,
+            )
+            email_dispatched = True
+
+    resp_msg = f"'{target_user.full_name}' is now the active Club Head of {club.name}."
+    if assigned_password:
+        resp_msg += f" Login credentials successfully dispatched to {target_user.email}."
 
     return ApiResponse(
         success=True,
@@ -362,8 +427,9 @@ def assign_club_head(
             department=target_membership.department,
             joined_at=target_membership.joined_at,
         ),
-        message=f"'{target_user.full_name}' is now the active Club Head of {club.name}",
+        message=resp_msg,
     )
+
 
 
 @router.delete("/clubs/{club_id}/members/{membership_id}", response_model=ApiResponse[bool])
