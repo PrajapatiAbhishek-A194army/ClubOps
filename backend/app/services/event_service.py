@@ -236,11 +236,87 @@ class EventService:
         db.commit()
 
     @staticmethod
-    def generate_ai_plan(plan_req: AIPlanRequest) -> AIPlanResponse:
+    def _default_timeline(anchor_date) -> List[Dict[str, Any]]:
+        return [
+            {
+                "id": "m1",
+                "title": "Finalize Event Charter & Seek Administrative Approvals",
+                "target_date": (anchor_date - timedelta(days=21)).strftime("%Y-%m-%d"),
+                "completed": True,
+                "assigned_to": "President",
+            },
+            {
+                "id": "m2",
+                "title": "Secure Campus Auditorium & Audiovisual Rigging",
+                "target_date": (anchor_date - timedelta(days=14)).strftime("%Y-%m-%d"),
+                "completed": False,
+                "assigned_to": "Club Head",
+            },
+            {
+                "id": "m3",
+                "title": "Launch Student Registration & Social Media PR Campaign",
+                "target_date": (anchor_date - timedelta(days=7)).strftime("%Y-%m-%d"),
+                "completed": False,
+                "assigned_to": "Volunteer",
+            },
+            {
+                "id": "m4",
+                "title": "Confirm Industry Mentors & Finalize Judging Rubric",
+                "target_date": (anchor_date - timedelta(days=3)).strftime("%Y-%m-%d"),
+                "completed": False,
+                "assigned_to": "Club Head",
+            },
+            {
+                "id": "m5",
+                "title": "Volunteer Briefing, Shift Schedules & Badge Assembly",
+                "target_date": (anchor_date - timedelta(days=1)).strftime("%Y-%m-%d"),
+                "completed": False,
+                "assigned_to": "Volunteer",
+            },
+            {
+                "id": "m6",
+                "title": "Live Day Execution, On-Site Moderation & Awards Ceremony",
+                "target_date": anchor_date.strftime("%Y-%m-%d"),
+                "completed": False,
+                "assigned_to": "Club Head",
+            },
+        ]
+
+    @classmethod
+    def generate_ai_plan(cls, plan_req: AIPlanRequest) -> AIPlanResponse:
         """
-        Calls Groq API (llama-3.3-70b-versatile) to generate a high-structure
-        event operation plan. Includes deterministic fallback if Groq API fails.
+        Calls Groq API to generate a high-structure event operation plan.
+        Supports prompt-driven generation where AI crafts the event title,
+        respects user-provided budget, schedules concrete calendar dates (YYYY-MM-DD),
+        and strictly maps responsibilities to President, Club Head, or Volunteer.
         """
+        prompt_text = (plan_req.prompt or plan_req.title or "Campus Technical Workshop").strip()
+        user_budget = float(plan_req.budget) if (plan_req.budget is not None and plan_req.budget > 0) else None
+
+        # Anchor date for timeline milestones (default: 14 days in the future if not specified)
+        if plan_req.start_date:
+            anchor_date = plan_req.start_date.date() if hasattr(plan_req.start_date, "date") else plan_req.start_date
+        else:
+            anchor_date = (datetime.utcnow() + timedelta(days=14)).date()
+
+        anchor_date_str = anchor_date.strftime("%Y-%m-%d")
+
+        def normalize_role(raw_role: str) -> str:
+            r = (raw_role or "").lower()
+            if "president" in r:
+                return "President"
+            elif "head" in r or "organizer" in r or "chair" in r:
+                return "Club Head"
+            else:
+                return "Volunteer"
+
+        def is_valid_date(val: str) -> bool:
+            try:
+                datetime.strptime(val, "%Y-%m-%d")
+                return True
+            except (ValueError, TypeError):
+                return False
+
         if settings.GROQ_API_KEY:
             from groq import Groq
             client = Groq(api_key=settings.GROQ_API_KEY)
@@ -251,31 +327,44 @@ class EventService:
                 "groq/compound-mini",
                 "qwen/qwen3.8-27b",
             ]
-            # Deduplicate while preserving order
             seen_models = set()
             models_to_try = [m for m in candidate_models if m and not (m in seen_models or seen_models.add(m))]
 
+            budget_instruction = (
+                f"The user has explicitly allocated an exact budget of ₹{user_budget:g} INR. You MUST return {user_budget:g} as 'suggested_budget'."
+                if user_budget
+                else "Suggest a realistic budget in Indian Rupees (₹ INR) as a single number (e.g. 8000, 15000, 35000)."
+            )
+
             system_prompt = (
-                "You are the senior event operations architect for ClubOps AI for Indian university campus clubs. "
-                "Given the student club event parameters, output a structured JSON plan with:\n"
-                "1. 'suggested_description': A professional 2-3 sentence overview.\n"
-                "2. 'suggested_budget': Total estimated cost in Indian Rupees (₹ INR) as a single realistic number (e.g. 5000, 15000, 45000).\n"
-                "3. 'timeline': Array of 4 to 6 milestones, each with 'id', 'title', 'target_date' (e.g. '2 Weeks Prior'), 'completed': false, and 'assigned_to' (e.g. 'Tech Lead', 'Event Chair').\n"
-                "4. 'checklists': Object with 'sponsor_checklist' (array of strings), 'judge_checklist' (array of strings), and 'volunteer_specs' (array of strings).\n"
+                "You are the senior event operations architect for ClubOps AI for Indian university campus clubs.\n"
+                "Given the student club event prompt and parameters, output a structured JSON plan with:\n"
+                "1. 'suggested_title': A compelling, professional 3-7 word event title based on the prompt.\n"
+                "2. 'suggested_description': A professional 2-3 sentence overview.\n"
+                f"3. 'suggested_budget': {budget_instruction}\n"
+                f"4. 'timeline': Array of 4 to 6 milestones leading up to the event date ({anchor_date_str}). Each milestone MUST have:\n"
+                "   - 'id': e.g. 'm1', 'm2'\n"
+                "   - 'title': Clear operational deliverable\n"
+                f"   - 'target_date': Real concrete calendar date in YYYY-MM-DD format (calculated backwards from {anchor_date_str}). DO NOT use relative text like '2 Weeks Prior' or 'Week Prior'.\n"
+                "   - 'completed': false\n"
+                "   - 'assigned_to': Strictly ONE of these three campus roles: 'President', 'Club Head', or 'Volunteer'.\n"
+                "5. 'checklists': Object with 'sponsor_checklist' (array of strings), 'judge_checklist' (array of strings), and 'volunteer_specs' (array of strings).\n"
                 "Respond ONLY with valid JSON."
             )
+
             duration_str = (
                 f"{plan_req.duration_hours:g} hour(s)"
                 if plan_req.duration_hours
                 else f"{plan_req.duration_days} day(s)"
             )
             user_prompt = (
-                f"Event Title: {plan_req.title}\n"
+                f"Event Prompt / Vision: {prompt_text}\n"
                 f"Event Type: {plan_req.event_type.value}\n"
+                f"Planned Event Date: {anchor_date_str}\n"
                 f"Planned Duration: {duration_str}\n"
                 f"Expected Attendees: {plan_req.expected_attendees}\n"
-                f"Focus Areas: {plan_req.focus_areas or 'Interactive hands-on session, student collaboration'}\n"
-                f"Currency: Indian Rupees (INR ₹)\n"
+                + (f"User Allocated Budget: ₹{user_budget:g} INR\n" if user_budget else "")
+                + f"Focus Areas: {plan_req.focus_areas or 'Hands-on practical session, student collaboration'}\n"
             )
 
             for model_name in models_to_try:
@@ -294,52 +383,61 @@ class EventService:
                     content = chat_completion.choices[0].message.content
                     data = json.loads(content)
 
-                    # Normalize budget
-                    raw_budget = data.get("suggested_budget", 10000.0)
-                    if isinstance(raw_budget, dict):
-                        budget_val = float(raw_budget.get("total_inr", raw_budget.get("total_usd", raw_budget.get("total", sum(v for v in raw_budget.values() if isinstance(v, (int, float)))))))
+                    # Title
+                    suggested_title = data.get("suggested_title") or plan_req.title or prompt_text[:60].strip()
+
+                    # Budget
+                    if user_budget is not None:
+                        budget_val = user_budget
                     else:
-                        try:
-                            budget_val = float(raw_budget)
-                        except (TypeError, ValueError):
-                            budget_val = 10000.0
+                        raw_budget = data.get("suggested_budget", 10000.0)
+                        if isinstance(raw_budget, dict):
+                            budget_val = float(raw_budget.get("total_inr", raw_budget.get("total", 10000.0)))
+                        else:
+                            try:
+                                budget_val = float(raw_budget)
+                            except (TypeError, ValueError):
+                                budget_val = 10000.0
 
                     # Normalize timeline milestones
                     raw_timeline = data.get("timeline", [])
                     clean_timeline = []
+                    fallback_offsets = [21, 14, 7, 3, 1, 0]
+
                     if isinstance(raw_timeline, list):
                         for idx, item in enumerate(raw_timeline):
                             if isinstance(item, dict):
+                                m_id = str(item.get("id") or f"m{idx+1}")
+                                m_title = item.get("title") or item.get("milestone") or f"Milestone {idx+1}"
+                                raw_date = str(item.get("target_date") or item.get("deadline") or "")
+                                if is_valid_date(raw_date):
+                                    m_date = raw_date
+                                else:
+                                    days_back = fallback_offsets[idx] if idx < len(fallback_offsets) else 1
+                                    m_date = (anchor_date - timedelta(days=days_back)).strftime("%Y-%m-%d")
+
                                 clean_timeline.append({
-                                    "id": str(item.get("id") or f"m{idx+1}"),
-                                    "title": item.get("title") or item.get("milestone") or f"Milestone {idx+1}",
-                                    "target_date": str(item.get("target_date") or item.get("deadline") or "Ongoing"),
+                                    "id": m_id,
+                                    "title": m_title,
+                                    "target_date": m_date,
                                     "completed": bool(item.get("completed", False)),
-                                    "assigned_to": str(item.get("assigned_to") or "Organizing Committee"),
+                                    "assigned_to": normalize_role(str(item.get("assigned_to", ""))),
                                 })
 
                     # Normalize checklists
                     raw_checklists = data.get("checklists", {})
-                    if isinstance(raw_checklists, dict):
-                        clean_checklists = {
-                            "sponsor_checklist": raw_checklists.get("sponsor_checklist", []),
-                            "judge_checklist": raw_checklists.get("judge_checklist", []),
-                            "volunteer_specs": raw_checklists.get("volunteer_specs", []),
-                        }
-                    elif isinstance(raw_checklists, list):
-                        clean_checklists = {
-                            "sponsor_checklist": raw_checklists[:3],
-                            "judge_checklist": [],
-                            "volunteer_specs": raw_checklists[3:],
-                        }
-                    else:
-                        clean_checklists = {"sponsor_checklist": [], "judge_checklist": [], "volunteer_specs": []}
+                    clean_checklists = {
+                        "sponsor_checklist": raw_checklists.get("sponsor_checklist", []) if isinstance(raw_checklists, dict) else [],
+                        "judge_checklist": raw_checklists.get("judge_checklist", []) if isinstance(raw_checklists, dict) else [],
+                        "volunteer_specs": raw_checklists.get("volunteer_specs", []) if isinstance(raw_checklists, dict) else [],
+                    }
 
                     logger.info(f"Successfully generated AI event plan using Groq model: {model_name}")
                     return AIPlanResponse(
-                        suggested_description=str(data.get("suggested_description", f"Interactive {plan_req.title} for campus students.")),
+                        suggested_title=str(suggested_title),
+                        suggested_description=str(data.get("suggested_description", f"Interactive {suggested_title} for campus students.")),
                         suggested_budget=max(0.0, budget_val),
-                        timeline=clean_timeline,
+                        timeline=clean_timeline or cls._default_timeline(anchor_date),
                         checklists=clean_checklists,
                     )
                 except Exception as e:
@@ -348,57 +446,19 @@ class EventService:
             logger.warning("All Groq models failed. Utilizing intelligent deterministic fallback.")
 
         # Deterministic Fallback Plan (in INR)
-        budget_calc = max(5000.0, plan_req.expected_attendees * 150.0)
+        budget_calc = user_budget if user_budget is not None else max(5000.0, plan_req.expected_attendees * 150.0)
+        clean_fallback_title = plan_req.title or f"{prompt_text[:50].strip().title()}"
+        if not any(clean_fallback_title.lower().endswith(w) for w in ["workshop", "hackathon", "summit", "meetup", "bootcamp", "expo"]):
+            clean_fallback_title += f" {plan_req.event_type.value.title()}"
+
         return AIPlanResponse(
+            suggested_title=clean_fallback_title,
             suggested_description=(
                 f"A high-impact {plan_req.event_type.value.lower()} bringing together {plan_req.expected_attendees} students "
-                f"for collaborative innovation, hands-on building, and mentorship. Focus: {plan_req.focus_areas or 'Interactive learning and real-world execution'}."
+                f"for collaborative innovation, hands-on building, and mentorship. Focus: {plan_req.focus_areas or prompt_text}."
             ),
             suggested_budget=budget_calc,
-            timeline=[
-                {
-                    "id": "m1",
-                    "title": "Establish Core Committee & Finalize Event Concept",
-                    "target_date": "4 Weeks Prior",
-                    "completed": True,
-                    "assigned_to": "President & Leads",
-                },
-                {
-                    "id": "m2",
-                    "title": "Secure Auditorium / Lab Booking & AV Permissions",
-                    "target_date": "3 Weeks Prior",
-                    "completed": False,
-                    "assigned_to": "Logistics Lead",
-                },
-                {
-                    "id": "m3",
-                    "title": "Launch Registration Portal & Social Media Teaser Campaign",
-                    "target_date": "2 Weeks Prior",
-                    "completed": False,
-                    "assigned_to": "Marketing Team",
-                },
-                {
-                    "id": "m4",
-                    "title": "Confirm Guest Speakers, Workshop Mentors & Industry Judges",
-                    "target_date": "10 Days Prior",
-                    "completed": False,
-                    "assigned_to": "Faculty Coordinator",
-                },
-                {
-                    "id": "m5",
-                    "title": "Volunteer Briefing & Swag / Refreshment Deliveries",
-                    "target_date": "2 Days Prior",
-                    "completed": False,
-                    "assigned_to": "Volunteer Head",
-                },
-                {
-                    "id": "m6",
-                    "title": "Event Execution, Live Moderation & Closing Ceremony",
-                    "target_date": "Event Day",
-                    "completed": False,
-                    "assigned_to": "All Hands",
-                },
-            ],
+            timeline=cls._default_timeline(anchor_date),
             checklists={
                 "sponsor_checklist": [
                     "Prepare tier brochure (Title, Platinum, Gold) with branding slots",

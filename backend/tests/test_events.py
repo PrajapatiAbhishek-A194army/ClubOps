@@ -115,11 +115,13 @@ def test_ai_event_planner_endpoint():
     club_id = get_gdsc_club_id(token)
 
     plan_payload = {
-        "title": "Campus Web3 & AI Builders Summit",
+        "prompt": "Organize a flagship AI & Robotics exhibition showcasing autonomous drones and humanoid robots with keynote speakers.",
+        "budget": 25000.0,
+        "start_date": "2026-11-15",
         "event_type": "HACKATHON",
         "duration_days": 2,
         "expected_attendees": 200,
-        "focus_areas": "Smart contracts, Agentic workflows",
+        "focus_areas": "Autonomous drones, LLMs, Humanoid robotics",
     }
 
     resp = client.post(
@@ -129,10 +131,21 @@ def test_ai_event_planner_endpoint():
     )
     assert resp.status_code == 200
     plan_data = resp.json()["data"]
+    assert "suggested_title" in plan_data
+    assert len(plan_data["suggested_title"]) > 0
     assert "suggested_description" in plan_data
-    assert "suggested_budget" in plan_data
+    assert plan_data["suggested_budget"] == 25000.0
     assert len(plan_data["timeline"]) >= 3
     assert "sponsor_checklist" in plan_data["checklists"]
+
+    import re
+    date_regex = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+    allowed_roles = {"President", "Club Head", "Volunteer"}
+
+    for item in plan_data["timeline"]:
+        assert date_regex.match(item["target_date"]), f"Invalid target_date format: {item['target_date']}"
+        assert item["assigned_to"] in allowed_roles, f"Invalid assigned_to: {item['assigned_to']}"
+
 
 
 def test_rbac_member_cannot_create_or_delete_event():

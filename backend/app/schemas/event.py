@@ -69,7 +69,10 @@ class EventResponse(EventBase):
 
 
 class AIPlanRequest(BaseModel):
-    title: str = Field(..., min_length=2, max_length=200)
+    prompt: Optional[str] = Field(default=None, description="Event concept or description provided by user")
+    title: Optional[str] = Field(default=None, max_length=200, description="Optional title, or generated from prompt")
+    budget: Optional[float] = Field(default=None, ge=0, description="User allocated budget in INR")
+    start_date: Optional[datetime] = Field(default=None, description="Planned event start datetime")
     event_type: EventType = EventType.WORKSHOP
     duration_days: int = Field(default=1, ge=1, le=14)
     duration_hours: Optional[float] = Field(default=None, ge=0.5, le=336.0)
@@ -78,6 +81,7 @@ class AIPlanRequest(BaseModel):
 
 
 class AIPlanResponse(BaseModel):
+    suggested_title: str
     suggested_description: str
     suggested_budget: float
     timeline: List[Dict[str, Any]]

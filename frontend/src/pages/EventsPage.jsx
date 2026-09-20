@@ -40,13 +40,21 @@ export default function EventsPage() {
   const [createTab, setCreateTab] = useState('ai'); // 'ai' or 'manual'
 
   // AI Planner Form
-  const [aiTitle, setAiTitle] = useState('');
+  const [aiPrompt, setAiPrompt] = useState('');
   const [aiType, setAiType] = useState('WORKSHOP');
   const [aiDurationUnit, setAiDurationUnit] = useState('HOURS'); // 'HOURS' or 'DAYS'
   const [aiDurationValue, setAiDurationValue] = useState(3);
   const [aiAttendees, setAiAttendees] = useState(60);
+  const [aiBudget, setAiBudget] = useState(5000);
+  const [aiTargetDate, setAiTargetDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 14);
+    return d.toISOString().split('T')[0];
+  });
   const [aiFocus, setAiFocus] = useState('Hands-on interactive training');
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiProgress, setAiProgress] = useState(0);
+  const [aiStageMessage, setAiStageMessage] = useState('');
   const [aiPlanResult, setAiPlanResult] = useState(null);
   const [editableMilestones, setEditableMilestones] = useState([]);
 
@@ -76,13 +84,16 @@ export default function EventsPage() {
   };
 
   const addMilestone = () => {
+    const defaultDate = formData.start_date
+      ? formData.start_date.split('T')[0]
+      : (aiTargetDate || new Date().toISOString().split('T')[0]);
     setEditableMilestones((prev) => [
       ...prev,
       {
         id: 'm-' + Date.now(),
         title: '',
-        target_date: '1 Week Prior',
-        assigned_to: 'Volunteer Lead',
+        target_date: defaultDate,
+        assigned_to: 'Volunteer',
         completed: false,
       },
     ]);
@@ -124,19 +135,38 @@ export default function EventsPage() {
 
   const handleGenerateAiPlan = async (e) => {
     e.preventDefault();
-    if (!aiTitle.trim()) return;
+    if (!aiPrompt.trim()) return;
     try {
       setAiGenerating(true);
+      setAiProgress(15);
+      setAiStageMessage('Analyzing vision and scoping campus event theme...');
       setCreateError(null);
+
+      const timer1 = setTimeout(() => {
+        setAiProgress(40);
+        setAiStageMessage('Architecting executive title, venue requirements & budget...');
+      }, 400);
+
+      const timer2 = setTimeout(() => {
+        setAiProgress(70);
+        setAiStageMessage('Sequencing milestone dates & assigning team roles...');
+      }, 900);
+
+      const timer3 = setTimeout(() => {
+        setAiProgress(88);
+        setAiStageMessage('Finalizing operational checklist & logistics...');
+      }, 1400);
 
       const isHours = aiDurationUnit === 'HOURS';
       const durationVal = parseFloat(aiDurationValue) || (isHours ? 3 : 1);
 
       const requestPayload = {
-        title: aiTitle.trim(),
+        prompt: aiPrompt.trim(),
         event_type: aiType,
         expected_attendees: parseInt(aiAttendees) || 60,
         focus_areas: aiFocus.trim(),
+        budget: parseFloat(aiBudget) || 0,
+        start_date: aiTargetDate || undefined,
       };
 
       if (isHours) {
@@ -147,16 +177,28 @@ export default function EventsPage() {
       }
 
       const res = await planEventWithAI(activeClub.id, requestPayload);
+
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+
       if (res.success) {
+        setAiProgress(100);
+        setAiStageMessage('Blueprint finalized successfully!');
         setAiPlanResult(res.data);
         setEditableMilestones(res.data.timeline || []);
 
         // Compute start and end dates with clean local times
-        const today = new Date();
-        const start = new Date(today);
-        start.setDate(today.getDate() + 14); // 2 weeks out
-        start.setHours(10, 0, 0, 0); // 10:00 AM start
+        let baseDate;
+        if (aiTargetDate) {
+          baseDate = new Date(aiTargetDate + 'T10:00:00');
+        } else {
+          baseDate = new Date();
+          baseDate.setDate(baseDate.getDate() + 14);
+          baseDate.setHours(10, 0, 0, 0);
+        }
 
+        const start = new Date(baseDate);
         const end = new Date(start);
         if (isHours) {
           end.setTime(start.getTime() + durationVal * 60 * 60 * 1000);
@@ -165,14 +207,19 @@ export default function EventsPage() {
           end.setHours(18, 0, 0, 0); // 6:00 PM
         }
 
+        const resolvedBudget =
+          res.data.suggested_budget !== undefined && res.data.suggested_budget !== null
+            ? res.data.suggested_budget
+            : (parseFloat(aiBudget) || 0);
+
         setFormData({
-          title: aiTitle.trim(),
-          description: res.data.suggested_description,
+          title: res.data.suggested_title || 'Campus Event',
+          description: res.data.suggested_description || '',
           location: 'Campus Innovation Center',
           event_type: aiType,
           start_date: formatLocalISO(start),
           end_date: formatLocalISO(end),
-          budget: res.data.suggested_budget,
+          budget: resolvedBudget,
         });
       }
     } catch (err) {
@@ -465,20 +512,56 @@ export default function EventsPage() {
           {createTab === 'ai' && !aiPlanResult && (
             <form onSubmit={handleGenerateAiPlan} className="space-y-4 pt-1">
               <p className="text-xs text-slate-500 leading-relaxed">
-                Describe your campus event or workshop. Our AI engine will craft a tailored description, realistic budget estimate, multi-phase milestones, and operational checklists.
+                Describe your campus event vision below. Enter your event prompt and budget—our AI will invent an engaging event title, compute concrete milestone dates, and assign tasks to your Club Head, Volunteers, and President.
               </p>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Event Name or Prompt
+                  Event Prompt & Vision <span className="text-emerald-600">*</span>
                 </label>
-                <Input
+                <textarea
                   required
-                  placeholder="e.g. Hands-on PowerBI 3-Hour Workshop for 60 students"
-                  value={aiTitle}
-                  onChange={(e) => setAiTitle(e.target.value)}
-                  className="text-sm"
+                  rows={3}
+                  placeholder="e.g. Host a hands-on PowerBI & data analytics masterclass for 60 students featuring real-world dashboard projects and a certification challenge."
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  className="w-full text-xs bg-white border border-slate-200 rounded-lg p-3 font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                 />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  AI will suggest an executive title and complete operational blueprint based on your prompt.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Allocated Budget (₹) <span className="text-emerald-600">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="500"
+                    required
+                    placeholder="e.g. 15000"
+                    value={aiBudget}
+                    onChange={(e) => setAiBudget(e.target.value)}
+                    className="text-xs"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-0.5">User-defined budget is preserved across all milestones.</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Target Event Date <span className="text-emerald-600">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={aiTargetDate}
+                    onChange={(e) => setAiTargetDate(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 rounded-lg p-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-0.5">Milestone deadlines are automatically scheduled before this date.</p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -547,15 +630,42 @@ export default function EventsPage() {
                 />
               </div>
 
+              {/* Dynamic Animated AI Progress Bar */}
+              {aiGenerating && (
+                <div className="p-4 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-600/10 border border-emerald-200 rounded-xl space-y-2.5 animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-emerald-600 animate-pulse" />
+                      <span className="text-xs font-bold text-slate-800">
+                        AI Event Architect Synthesizing Blueprint
+                      </span>
+                    </div>
+                    <span className="text-xs font-extrabold text-emerald-700 font-mono">
+                      {aiProgress}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-300 ease-out"
+                      style={{ width: `${aiProgress}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] text-slate-600">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600 shrink-0" />
+                    <span className="font-medium text-emerald-950">{aiStageMessage || 'Analyzing requirements...'}</span>
+                  </div>
+                </div>
+              )}
+
               <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
                 <Button variant="outline" type="button" onClick={() => setIsCreateModalOpen(false)}>
                   Cancel
                 </Button>
-                <Button variant="primary" type="submit" disabled={aiGenerating || !aiTitle.trim()}>
+                <Button variant="primary" type="submit" disabled={aiGenerating || !aiPrompt.trim()}>
                   {aiGenerating ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Generating Blueprint with AI...</span>
+                      <span>Generating Blueprint ({aiProgress}%)...</span>
                     </>
                   ) : (
                     <>
@@ -580,7 +690,7 @@ export default function EventsPage() {
                       AI Operational Blueprint Ready
                     </span>
                     <span className="text-[11px] text-emerald-700">
-                      Generated for "{aiTitle}" ({aiDurationValue} {aiDurationUnit.toLowerCase()})
+                      Generated title: <span className="font-bold text-emerald-900">"{formData.title}"</span> ({aiDurationValue} {aiDurationUnit.toLowerCase()})
                     </span>
                   </div>
                 </div>
@@ -597,7 +707,7 @@ export default function EventsPage() {
               <form onSubmit={handleCreateSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Event Title</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Event Title (AI Suggested)</label>
                     <Input
                       required
                       value={formData.title}
@@ -638,7 +748,7 @@ export default function EventsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Estimated Budget (₹)</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Allocated Budget (₹)</label>
                     <Input
                       type="number"
                       required
@@ -673,7 +783,7 @@ export default function EventsPage() {
                         <span>AI-Generated Milestones ({editableMilestones.length})</span>
                       </h4>
                       <p className="text-[11px] text-slate-500 mt-0.5">
-                        You can edit titles, assign roles, tweak deadlines, or add new milestones directly below.
+                        Concrete dates & real team role assignments (Club Head, Volunteer, President).
                       </p>
                     </div>
                     <button
@@ -705,22 +815,25 @@ export default function EventsPage() {
                           className="flex-1 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                         />
 
-                        {/* Assigned lead */}
-                        <input
-                          type="text"
-                          value={m.assigned_to || ''}
+                        {/* Assigned role select */}
+                        <select
+                          value={['President', 'Club Head', 'Volunteer'].includes(m.assigned_to) ? m.assigned_to : 'Volunteer'}
                           onChange={(e) => updateMilestoneField(idx, 'assigned_to', e.target.value)}
-                          placeholder="Assigned to..."
-                          className="w-full sm:w-36 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        />
+                          className="w-full sm:w-36 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+                          title="Assignee Role"
+                        >
+                          <option value="Club Head">Club Head</option>
+                          <option value="Volunteer">Volunteer</option>
+                          <option value="President">President</option>
+                        </select>
 
                         {/* Target Date */}
                         <input
-                          type="text"
+                          type="date"
                           value={m.target_date || ''}
                           onChange={(e) => updateMilestoneField(idx, 'target_date', e.target.value)}
-                          placeholder="e.g. 2 Weeks Prior"
-                          className="w-full sm:w-28 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          className="w-full sm:w-36 text-xs bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          title="Target Milestone Date"
                         />
 
                         {/* Remove button */}
