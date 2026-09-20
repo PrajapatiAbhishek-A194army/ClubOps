@@ -13,7 +13,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { getClubMeetings, createMeeting, convertActionItems } from '../services/api';
+import { getClubMeetings, createMeeting, convertActionItems, getClubMembers } from '../services/api';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { Card, CardContent } from '../components/ui/Card';
@@ -22,6 +22,8 @@ import { Textarea, Input } from '../components/ui/Input';
 export default function MeetingsPage() {
   const { activeClub, activeRole } = useAuth();
   const [meetings, setMeetings] = useState([]);
+  const [clubMembers, setClubMembers] = useState([]);
+  const [assignedOwners, setAssignedOwners] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -34,6 +36,18 @@ export default function MeetingsPage() {
   const [successMsg, setSuccessMsg] = useState(null);
 
   const isManagement = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(activeRole);
+
+  const fetchClubMembers = async () => {
+    if (!activeClub?.id) return;
+    try {
+      const res = await getClubMembers(activeClub.id);
+      if (res.success) {
+        setClubMembers(res.data || []);
+      }
+    } catch (err) {
+      console.warn('Failed to load club members:', err);
+    }
+  };
 
   const fetchMeetings = async () => {
     if (!activeClub?.id) return;
@@ -56,7 +70,54 @@ export default function MeetingsPage() {
 
   useEffect(() => {
     fetchMeetings();
+    fetchClubMembers();
   }, [activeClub?.id]);
+
+  const findMatchingMemberId = (suggestedOwner, members) => {
+    if (!suggestedOwner || !members || members.length === 0) return '';
+    const cleanOwner = suggestedOwner.toLowerCase().trim();
+
+    // 1. Exact full name match
+    let matched = members.find((m) => m.full_name?.toLowerCase() === cleanOwner);
+    if (matched) return matched.user_id;
+
+    // 2. First name match (e.g. "Rahul" matches "Rahul Gupta")
+    matched = members.find((m) => {
+      const firstName = m.full_name?.toLowerCase().split(' ')[0];
+      return firstName === cleanOwner || cleanOwner.startsWith(firstName);
+    });
+    if (matched) return matched.user_id;
+
+    // 3. Email prefix match (e.g. "rahul" in "vol.rahul@clubops.ai")
+    matched = members.find((m) => {
+      const emailPrefix = m.email?.toLowerCase().split('@')[0];
+      return emailPrefix.includes(cleanOwner) || cleanOwner.includes(emailPrefix);
+    });
+    if (matched) return matched.user_id;
+
+    // 4. Substring match
+    matched = members.find((m) => m.full_name?.toLowerCase().includes(cleanOwner));
+    if (matched) return matched.user_id;
+
+    return '';
+  };
+
+  // Pre-match action items with club members whenever meeting or member list updates
+  useEffect(() => {
+    if (!selectedMeeting?.action_items || clubMembers.length === 0) return;
+    setAssignedOwners((prev) => {
+      const next = { ...prev };
+      selectedMeeting.action_items.forEach((it) => {
+        if (!next[it.id] && it.suggested_owner) {
+          const matchedId = findMatchingMemberId(it.suggested_owner, clubMembers);
+          if (matchedId) {
+            next[it.id] = matchedId;
+          }
+        }
+      });
+      return next;
+    });
+  }, [selectedMeeting, clubMembers]);
 
   const handleProcessTranscript = async (e) => {
     e.preventDefault();
@@ -93,9 +154,16 @@ export default function MeetingsPage() {
     setConverting(true);
     try {
       const ids = unconverted.map((it) => it.id);
-      const res = await convertActionItems(selectedMeeting.id, ids);
+      const assignmentsMap = {};
+      ids.forEach((id) => {
+        if (assignedOwners[id]) {
+          assignmentsMap[id] = assignedOwners[id];
+        }
+      });
+
+      const res = await convertActionItems(selectedMeeting.id, ids, assignmentsMap);
       if (res.success) {
-        setSuccessMsg(`Successfully converted ${res.data.converted_task_count} items to Kanban tasks!`);
+        setSuccessMsg(`Successfully converted ${res.data.converted_task_count} items to Kanban tasks assigned directly to responsible member accounts!`);
         fetchMeetings();
       }
     } catch (err) {
@@ -310,14 +378,41 @@ Arjun will prepare social media creatives by Thursday."
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4 mt-3 pt-2.5 border-t border-slate-100 text-xs text-slate-500">
-                        <div className="flex items-center gap-1">
-                          <User className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Owner: <strong className="text-slate-800">{it.suggested_owner || 'Unassigned'}</strong></span>
+                      <div className="flex flex-wrap items-center justify-between gap-3 mt-3 pt-2.5 border-t border-slate-100 text-xs text-slate-600">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-1 text-slate-500">
+                            <User className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>AI Owner: <strong className="text-slate-800 font-semibold">{it.suggested_owner || 'Unassigned'}</strong></span>
+                          </div>
+
+                          {isManagement && it.status !== 'CONVERTED' ? (
+                            <div className="flex items-center gap-1.5 ml-1">
+                              <span className="text-[11px] text-slate-400 font-medium">Assign to:</span>
+                              <select
+                                value={assignedOwners[it.id] || ''}
+                                onChange={(e) => setAssignedOwners((prev) => ({ ...prev, [it.id]: e.target.value }))}
+                                className="text-xs bg-slate-50 hover:bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-slate-800 font-medium focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-colors"
+                              >
+                                <option value="">Auto-detect / Creator</option>
+                                {clubMembers.map((m) => (
+                                  <option key={m.user_id} value={m.user_id}>
+                                    {m.full_name} ({m.role})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : (
+                            assignedOwners[it.id] && (
+                              <span className="inline-flex items-center gap-1 text-[11px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full font-medium border border-emerald-200">
+                                Assigned: {clubMembers.find((m) => m.user_id === assignedOwners[it.id])?.full_name || 'Member'}
+                              </span>
+                            )
+                          )}
                         </div>
-                        <div className="flex items-center gap-1">
+
+                        <div className="flex items-center gap-1 text-slate-500">
                           <Clock className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Due: <strong className="text-slate-800">{it.suggested_deadline ? new Date(it.suggested_deadline).toLocaleDateString() : 'TBD'}</strong></span>
+                          <span>Due: <strong className="text-slate-800 font-semibold">{it.suggested_deadline ? new Date(it.suggested_deadline).toLocaleDateString() : 'TBD'}</strong></span>
                         </div>
                       </div>
                     </div>

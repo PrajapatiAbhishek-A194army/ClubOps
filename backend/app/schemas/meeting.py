@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 from app.models.meeting import ActionItemStatus
 
@@ -44,3 +44,4 @@ class MeetingResponse(BaseModel):
 
 class ConvertActionItemsRequest(BaseModel):
     action_item_ids: List[str]
+    assignments: Optional[Dict[str, str]] = None  # map of action_item_id -> user_id

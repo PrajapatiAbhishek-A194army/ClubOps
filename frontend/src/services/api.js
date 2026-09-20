@@ -1,7 +1,9 @@
 import axios from 'axios';
+import { getCookie, setCookie, deleteCookie } from '../utils/cookies';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -9,9 +11,16 @@ const api = axios.create({
 
 // Request interceptor to attach JWT token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('clubops_token');
+  const token = localStorage.getItem('clubops_token') || getCookie('clubops_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    // Sync storage and cookie
+    if (!localStorage.getItem('clubops_token')) {
+      localStorage.setItem('clubops_token', token);
+    }
+    if (!getCookie('clubops_token')) {
+      setCookie('clubops_token', token, 30);
+    }
   }
   return config;
 });
@@ -21,9 +30,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      const currentToken = localStorage.getItem('clubops_token');
+      const currentToken = localStorage.getItem('clubops_token') || getCookie('clubops_token');
       if (currentToken) {
         localStorage.removeItem('clubops_token');
+        deleteCookie('clubops_token');
         if (window.location.pathname.startsWith('/app')) {
           window.location.href = '/login';
         }
@@ -48,6 +58,16 @@ export const loginUser = async (email, password) => {
 export const signupUser = async (userData) => {
   const response = await api.post('/auth/signup', userData);
   return response.data;
+};
+
+export const logoutUser = async () => {
+  try {
+    await api.post('/auth/logout');
+  } catch (e) {
+    // Ignore error on logout endpoint
+  }
+  localStorage.removeItem('clubops_token');
+  deleteCookie('clubops_token');
 };
 
 export const getCurrentUser = async () => {
@@ -301,8 +321,12 @@ export const createMeeting = async (clubId, meetingData) => {
   return response.data;
 };
 
-export const convertActionItems = async (meetingId, actionItemIds) => {
-  const response = await api.post(`/meetings/${meetingId}/convert-items`, { action_item_ids: actionItemIds });
+export const convertActionItems = async (meetingId, actionItemIds, assignments = null) => {
+  const payload = { action_item_ids: actionItemIds };
+  if (assignments && Object.keys(assignments).length > 0) {
+    payload.assignments = assignments;
+  }
+  const response = await api.post(`/meetings/${meetingId}/convert-items`, payload);
   return response.data;
 };
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db
 from app.models.user import User
@@ -15,9 +15,11 @@ from app.services.auth_service import AuthService
 
 router = APIRouter()
 
+COOKIE_MAX_AGE = 30 * 24 * 60 * 60  # 30 days
+
 
 @router.post("/auth/signup", response_model=ApiResponse[Token])
-def signup(req: UserRegisterRequest, db: Session = Depends(get_db)):
+def signup(req: UserRegisterRequest, response: Response, db: Session = Depends(get_db)):
     """Registers a new volunteer or initial club user."""
     try:
         user, club, join_req = AuthService.register_user(db, req)
@@ -34,20 +36,31 @@ def signup(req: UserRegisterRequest, db: Session = Depends(get_db)):
         active_role=assigned_role,
     )
     
+    # Store token in persistent cookie for seamless session recovery
+    response.set_cookie(
+        key="clubops_token",
+        value=token_str,
+        max_age=COOKIE_MAX_AGE,
+        httponly=False,
+        samesite="lax",
+        secure=False,
+        path="/",
+    )
+
     msg = "Volunteer registration submitted! Application sent to Club Head for approval." if join_req else "Account registered successfully"
     return ApiResponse(
         success=True,
         data=Token(
             access_token=token_str,
             token_type="bearer",
-            expires_in=60 * 60 * 24,
+            expires_in=COOKIE_MAX_AGE,
         ),
         message=msg,
     )
 
 
 @router.post("/auth/login", response_model=ApiResponse[Token])
-def login(credentials: LoginRequest, db: Session = Depends(get_db)):
+def login(credentials: LoginRequest, response: Response, db: Session = Depends(get_db)):
     """Authenticates credentials against PostgreSQL and returns JWT token."""
     user = AuthService.authenticate_user(db, credentials.email, credentials.password)
     if not user:
@@ -58,14 +71,38 @@ def login(credentials: LoginRequest, db: Session = Depends(get_db)):
         )
 
     token_str = AuthService.create_user_token(user)
+
+    # Store token in persistent cookie for seamless session recovery
+    response.set_cookie(
+        key="clubops_token",
+        value=token_str,
+        max_age=COOKIE_MAX_AGE,
+        httponly=False,
+        samesite="lax",
+        secure=False,
+        path="/",
+    )
+
     return ApiResponse(
         success=True,
         data=Token(
             access_token=token_str,
             token_type="bearer",
-            expires_in=60 * 60 * 24,
+            expires_in=COOKIE_MAX_AGE,
         ),
         message="Authentication successful",
+    )
+
+
+@router.post("/auth/logout", response_model=ApiResponse[dict])
+def logout(response: Response):
+    """Terminates session by clearing authentication cookies."""
+    response.delete_cookie(key="clubops_token", path="/")
+    response.delete_cookie(key="access_token", path="/")
+    return ApiResponse(
+        success=True,
+        data={"logged_out": True},
+        message="Session successfully terminated",
     )
 
 

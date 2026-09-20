@@ -74,6 +74,7 @@ def convert_action_items(
             meeting_id=meeting_id,
             action_item_ids=req.action_item_ids,
             creator_id=current_user.id,
+            assignments_map=req.assignments,
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

@@ -1,5 +1,5 @@
 from typing import Generator, List, Optional
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.config.settings import settings
@@ -24,8 +24,13 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def get_current_token_payload(
+    request: Request,
     token: Optional[str] = Depends(oauth2_scheme),
 ) -> TokenPayload:
+    # Check Authorization header first, fallback to persistent cookie
+    if not token:
+        token = request.cookies.get("clubops_token") or request.cookies.get("access_token")
+
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

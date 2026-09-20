@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     # Security & JWT
     JWT_SECRET: str = "default-insecure-secret-key-change-in-production-32chars"
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 30  # 30 days persistent login
 
     # Database
     DATABASE_URL: str = "sqlite:///./clubops.db"

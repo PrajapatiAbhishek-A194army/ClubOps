@@ -2,13 +2,16 @@ import json
 import logging
 import re
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import Dict, List, Optional
 from sqlalchemy.orm import Session
 
 from app.config.settings import settings
+from app.models.club import ClubMembership
 from app.models.meeting import ActionItem, ActionItemStatus, Meeting
-from app.models.task import Task, TaskCreatedSource, TaskPriority, TaskStatus
+from app.models.task import AssignmentSource, AssignmentStatus, Task, TaskAssignment, TaskCreatedSource, TaskPriority, TaskStatus
+from app.models.user import User
 from app.schemas.meeting import ActionItemResponse, MeetingResponse
+from app.services.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
 
@@ -75,10 +78,60 @@ class MeetingService:
         meeting_id: str,
         action_item_ids: List[str],
         creator_id: str,
+        assignments_map: Optional[Dict[str, str]] = None,
     ) -> List[Task]:
         meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
         if not meeting:
             raise ValueError("Meeting not found")
+
+        # Load all members of the active club for matching suggested owners
+        club_members = (
+            db.query(User)
+            .join(ClubMembership, ClubMembership.user_id == User.id)
+            .filter(ClubMembership.club_id == meeting.club_id)
+            .all()
+        )
+
+        all_users = None  # Lazy load system users if needed
+
+        def resolve_owner_user(owner_name: Optional[str]) -> Optional[User]:
+            if not owner_name or not str(owner_name).strip():
+                return None
+            target = str(owner_name).strip().lower()
+
+            # 1. Exact match on full name or email within club
+            for u in club_members:
+                full = (u.full_name or "").strip().lower()
+                email = (u.email or "").strip().lower()
+                email_prefix = email.split("@")[0]
+                if target == full or target == email or target == email_prefix:
+                    return u
+
+            # 2. First name match or name starts with target within club (e.g. "Rahul" -> "Rahul Gupta")
+            for u in club_members:
+                full = (u.full_name or "").strip().lower()
+                first = full.split()[0] if full else ""
+                if target == first or full.startswith(target) or target in full:
+                    return u
+
+            # 3. Fuzzy email username match (e.g. target in "vol.rahul")
+            for u in club_members:
+                email_prefix = (u.email or "").split("@")[0].lower()
+                if target in email_prefix:
+                    return u
+
+            # 4. Search across all system users if not yet in club roster
+            nonlocal all_users
+            if all_users is None:
+                all_users = db.query(User).all()
+            for u in all_users:
+                full = (u.full_name or "").strip().lower()
+                first = full.split()[0] if full else ""
+                email_prefix = (u.email or "").split("@")[0].lower()
+                if target == full or target == first or full.startswith(target) or target in full or target in email_prefix:
+                    return u
+
+            return None
 
         created_tasks: List[Task] = []
         for ai_id in action_item_ids:
@@ -90,10 +143,20 @@ class MeetingService:
             if not item or item.status == ActionItemStatus.CONVERTED:
                 continue
 
+            # Determine assignee user: explicit mapping overrides, else match from suggested_owner
+            assigned_user_id = None
+            if assignments_map and ai_id in assignments_map and assignments_map[ai_id]:
+                assigned_user_id = assignments_map[ai_id]
+            elif item.suggested_owner:
+                matched_user = resolve_owner_user(item.suggested_owner)
+                if matched_user:
+                    assigned_user_id = matched_user.id
+
             task = Task(
                 club_id=meeting.club_id,
                 event_id=meeting.event_id,
                 creator_id=creator_id,
+                assignee_id=assigned_user_id,
                 title=item.title,
                 description=f"Extracted from meeting '{meeting.title}'. {item.description or ''}".strip(),
                 priority=TaskPriority.HIGH if "urgent" in item.title.lower() else TaskPriority.MEDIUM,
@@ -103,6 +166,30 @@ class MeetingService:
             )
             db.add(task)
             db.flush()
+
+            # If assigned, create auditable TaskAssignment and dispatch notification
+            if assigned_user_id:
+                assignment = TaskAssignment(
+                    task_id=task.id,
+                    user_id=assigned_user_id,
+                    assigned_by_id=creator_id,
+                    assignment_source=AssignmentSource.AI_APPROVED,
+                    status=AssignmentStatus.ACCEPTED,
+                )
+                db.add(assignment)
+
+                try:
+                    NotificationService.create_notification(
+                        db=db,
+                        user_id=assigned_user_id,
+                        club_id=meeting.club_id,
+                        title="New Task Assigned from Meeting",
+                        message=f"You have been assigned '{task.title}' from meeting '{meeting.title}'.",
+                        category="TASK",
+                        action_url="/app/tasks",
+                    )
+                except Exception as notif_err:
+                    logger.warning(f"Failed to dispatch meeting task notification: {notif_err}")
 
             item.status = ActionItemStatus.CONVERTED
             item.created_task_id = task.id
