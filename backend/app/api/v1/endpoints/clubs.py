@@ -2,7 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db, require_club_role
-from app.models.club import Club, ClubMembership, ClubRole
+from app.models.club import Club, ClubMembership, ClubRole, MembershipStatus
 from app.models.notification import Notification, NotificationType
 from app.models.user import User
 from app.schemas.club import (
@@ -265,6 +265,25 @@ def assign_club_head(
     club = db.query(Club).filter(Club.id == club_id).first()
     if not club:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Club not found")
+
+    # Enforce: A user can only be the Club Head of ONE club across the platform
+    other_club_headship = (
+        db.query(ClubMembership)
+        .filter(
+            ClubMembership.user_id == target_user.id,
+            ClubMembership.club_id != club_id,
+            ClubMembership.role == ClubRole.CLUB_HEAD,
+            ClubMembership.status == MembershipStatus.ACTIVE,
+        )
+        .first()
+    )
+    if other_club_headship:
+        other_club = db.query(Club).filter(Club.id == other_club_headship.club_id).first()
+        other_club_name = other_club.name if other_club else "another club"
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User {target_user.full_name} is already the active Club Head of '{other_club_name}'. A user can only be the Club Head of one club.",
+        )
 
     # Demote existing Club Head in this club to VOLUNTEER
     existing_head = (

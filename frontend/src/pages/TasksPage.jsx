@@ -114,8 +114,8 @@ export default function TasksPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const isManagement = ['PRESIDENT', 'ORGANIZER', 'TEAM_LEAD'].includes(activeRole);
-  const canUpdateStatus = ['PRESIDENT', 'ORGANIZER', 'TEAM_LEAD', 'VOLUNTEER'].includes(activeRole);
+  const isManagement = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER', 'TEAM_LEAD'].includes(activeRole);
+  const canUpdateStatus = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER', 'TEAM_LEAD', 'VOLUNTEER'].includes(activeRole);
 
   // Fetch initial tasks, events, and members
   const loadData = async () => {

@@ -16,7 +16,7 @@ import { getDashboardMetrics } from '../services/api';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import PresidentDashboard from '../components/dashboards/PresidentDashboard';
-import OrganizerDashboard from '../components/dashboards/OrganizerDashboard';
+import ClubHeadDashboard from '../components/dashboards/ClubHeadDashboard';
 import TeamLeadDashboard from '../components/dashboards/TeamLeadDashboard';
 import VolunteerDashboard from '../components/dashboards/VolunteerDashboard';
 
@@ -27,18 +27,21 @@ export default function DashboardOverview() {
   // Roles available for perspective switching
   const PERSPECTIVES = [
     { id: 'PRESIDENT', label: 'President', icon: Crown, desc: 'Executive oversight & approvals' },
-    { id: 'ORGANIZER', label: 'Organizer', icon: ClipboardList, desc: 'Operations, tasks & meetings' },
+    { id: 'CLUB_HEAD', label: 'Club Head', icon: ClipboardList, desc: 'Operations, tasks & meetings' },
     { id: 'TEAM_LEAD', label: 'Team Lead', icon: Wrench, desc: 'Workload, blocked tasks & deadlines' },
     { id: 'VOLUNTEER', label: 'Volunteer', icon: HeartHandshake, desc: 'Assignments & instant check-in' },
   ];
 
+  const resolveRolePerspective = (role) => {
+    const roleUpper = (role || 'PRESIDENT').toUpperCase();
+    if (roleUpper === 'ORGANIZER' || roleUpper === 'CLUB_HEAD') return 'CLUB_HEAD';
+    if (['PRESIDENT', 'TEAM_LEAD', 'VOLUNTEER'].includes(roleUpper)) return roleUpper;
+    return 'PRESIDENT';
+  };
+
   // Default perspective based on active club membership role or fallback to PRESIDENT
   const [selectedPerspective, setSelectedPerspective] = useState(() => {
-    const roleUpper = (activeRole || 'PRESIDENT').toUpperCase();
-    if (['PRESIDENT', 'ORGANIZER', 'TEAM_LEAD', 'VOLUNTEER'].includes(roleUpper)) {
-      return roleUpper;
-    }
-    return 'PRESIDENT';
+    return resolveRolePerspective(activeRole);
   });
 
   const [dashboardData, setDashboardData] = useState(null);
@@ -48,10 +51,7 @@ export default function DashboardOverview() {
   // Sync default perspective if activeRole changes
   useEffect(() => {
     if (activeRole) {
-      const roleUpper = activeRole.toUpperCase();
-      if (['PRESIDENT', 'ORGANIZER', 'TEAM_LEAD', 'VOLUNTEER'].includes(roleUpper)) {
-        setSelectedPerspective(roleUpper);
-      }
+      setSelectedPerspective(resolveRolePerspective(activeRole));
     }
   }, [activeRole]);
 
@@ -215,9 +215,9 @@ export default function DashboardOverview() {
             />
           )}
 
-          {selectedPerspective === 'ORGANIZER' && (
-            <OrganizerDashboard
-              data={dashboardData.data || dashboardData.organizer_data || dashboardData}
+          {(selectedPerspective === 'CLUB_HEAD' || selectedPerspective === 'ORGANIZER') && (
+            <ClubHeadDashboard
+              data={dashboardData.data || dashboardData.club_head_data || dashboardData.organizer_data || dashboardData}
               clubId={activeClub?.id}
               onRefresh={loadMetrics}
             />

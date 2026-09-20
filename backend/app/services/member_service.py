@@ -1,6 +1,6 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from app.models.club import ClubMembership, ClubRole
+from app.models.club import Club, ClubMembership, ClubRole
 from app.models.user import User
 from app.schemas.club import MemberCreate, MemberUpdate
 from app.utils.security import get_password_hash
@@ -39,8 +39,25 @@ class MemberService:
         if existing:
             raise ValueError(f"User '{email}' is already a member of this club.")
 
-        # Hard Rule: A club can have at most ONE active Club Head.
+        # Hard Rule 1: A user can be Club Head of at most ONE club across the platform.
         if member_in.role == ClubRole.CLUB_HEAD:
+            head_in_other = (
+                db.query(ClubMembership)
+                .filter(
+                    ClubMembership.user_id == user.id,
+                    ClubMembership.role == ClubRole.CLUB_HEAD,
+                    ClubMembership.club_id != club_id,
+                )
+                .first()
+            )
+            if head_in_other:
+                other_club = db.query(Club).filter(Club.id == head_in_other.club_id).first()
+                other_name = other_club.name if other_club else head_in_other.club_id
+                raise ValueError(
+                    f"User is already the active Club Head of '{other_name}'. A user can only be the Club Head of one club."
+                )
+
+            # Hard Rule 2: A club can have at most ONE active Club Head.
             existing_head = (
                 db.query(ClubMembership)
                 .filter(ClubMembership.club_id == club_id, ClubMembership.role == ClubRole.CLUB_HEAD)
@@ -95,19 +112,37 @@ class MemberService:
     @staticmethod
     def update_member(db: Session, membership: ClubMembership, update_in: MemberUpdate) -> ClubMembership:
         if update_in.role is not None:
-            # Hard Rule: A club can have at most ONE active Club Head.
-            if update_in.role == ClubRole.CLUB_HEAD and membership.role != ClubRole.CLUB_HEAD:
-                existing_head = (
+            if update_in.role == ClubRole.CLUB_HEAD:
+                # Hard Rule 1: A user can be Club Head of at most ONE club across the platform.
+                head_in_other = (
                     db.query(ClubMembership)
                     .filter(
-                        ClubMembership.club_id == membership.club_id,
+                        ClubMembership.user_id == membership.user_id,
                         ClubMembership.role == ClubRole.CLUB_HEAD,
-                        ClubMembership.id != membership.id,
+                        ClubMembership.club_id != membership.club_id,
                     )
                     .first()
                 )
-                if existing_head:
-                    existing_head.role = ClubRole.VOLUNTEER
+                if head_in_other:
+                    other_club = db.query(Club).filter(Club.id == head_in_other.club_id).first()
+                    other_name = other_club.name if other_club else head_in_other.club_id
+                    raise ValueError(
+                        f"User is already the active Club Head of '{other_name}'. A user can only be the Club Head of one club."
+                    )
+
+                # Hard Rule 2: A club can have at most ONE active Club Head.
+                if membership.role != ClubRole.CLUB_HEAD:
+                    existing_head = (
+                        db.query(ClubMembership)
+                        .filter(
+                            ClubMembership.club_id == membership.club_id,
+                            ClubMembership.role == ClubRole.CLUB_HEAD,
+                            ClubMembership.id != membership.id,
+                        )
+                        .first()
+                    )
+                    if existing_head:
+                        existing_head.role = ClubRole.VOLUNTEER
 
             membership.role = update_in.role
         if update_in.department is not None:

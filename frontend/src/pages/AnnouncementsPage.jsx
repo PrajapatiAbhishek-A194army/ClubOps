@@ -581,7 +581,7 @@ export default function AnnouncementsPage() {
                       {isDraft ? (
                         <span className="text-amber-800 font-medium flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5 text-amber-600" />
-                          Visible to club organizers. Awaiting leadership approval to broadcast.
+                          Visible to club heads. Awaiting leadership approval to broadcast.
                         </span>
                       ) : (
                         <>

@@ -133,7 +133,7 @@ def seed_demo_data():
         gdsc = clubs_by_code["gdsc-campus"]
         memberships_to_add = [
             (users_by_email["president@clubops.ai"], gdsc, ClubRole.PRESIDENT, "Executive Board"),
-            (users_by_email["organizer@clubops.ai"], gdsc, ClubRole.ORGANIZER, "Operations & Events"),
+            (users_by_email["organizer@clubops.ai"], gdsc, ClubRole.CLUB_HEAD, "Club Head / Operations & Events"),
             (users_by_email["techlead@clubops.ai"], gdsc, ClubRole.TEAM_LEAD, "Technical Committee"),
             (users_by_email["medialead@clubops.ai"], gdsc, ClubRole.TEAM_LEAD, "Design & PR"),
             (users_by_email["volunteer@clubops.ai"], gdsc, ClubRole.VOLUNTEER, "Logistics & Desk"),
@@ -141,7 +141,7 @@ def seed_demo_data():
             # Cross-club memberships
             (users_by_email["president@clubops.ai"], clubs_by_code["ras-campus"], ClubRole.PRESIDENT, "Executive Board"),
             (users_by_email["techlead@clubops.ai"], clubs_by_code["ras-campus"], ClubRole.TEAM_LEAD, "Hardware & Embedded"),
-            (users_by_email["organizer@clubops.ai"], clubs_by_code["acm-campus"], ClubRole.PRESIDENT, "Executive Board"),
+            (users_by_email["organizer@clubops.ai"], clubs_by_code["acm-campus"], ClubRole.MEMBER, "Advisory Member"),
         ]
 
         for user, club, role, dept in memberships_to_add:

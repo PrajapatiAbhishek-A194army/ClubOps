@@ -26,7 +26,7 @@ def test_club_head_uniqueness_enforced():
             db=db,
             club_id=club.id,
             member_in=MemberCreate(
-                email="firsthead@test.clubops",
+                email=f"firsthead_{uid}@test.clubops",
                 role=ClubRole.CLUB_HEAD,
                 department="Leadership",
             ),
@@ -38,7 +38,7 @@ def test_club_head_uniqueness_enforced():
             db=db,
             club_id=club.id,
             member_in=MemberCreate(
-                email="secondhead@test.clubops",
+                email=f"secondhead_{uid}@test.clubops",
                 role=ClubRole.CLUB_HEAD,
                 department="Leadership",
             ),
@@ -59,3 +59,48 @@ def test_club_head_uniqueness_enforced():
     finally:
         db.rollback()
         db.close()
+
+
+def test_user_cannot_be_head_of_multiple_clubs():
+    import pytest
+    db = SessionLocal()
+    import uuid
+    uid = uuid.uuid4().hex[:6]
+    try:
+        club_a = Club(name=f"Club A {uid}", code=f"club_a_{uid}", status=ClubStatus.ACTIVE)
+        club_b = Club(name=f"Club B {uid}", code=f"club_b_{uid}", status=ClubStatus.ACTIVE)
+        db.add(club_a)
+        db.add(club_b)
+        db.flush()
+
+        head_email = f"singlehead_{uid}@test.clubops"
+
+        # Appoint user as Club Head in Club A -> Success
+        m_a = MemberService.add_member(
+            db=db,
+            club_id=club_a.id,
+            member_in=MemberCreate(
+                email=head_email,
+                role=ClubRole.CLUB_HEAD,
+                department="Leadership",
+            ),
+        )
+        assert m_a.role == ClubRole.CLUB_HEAD
+
+        # Attempt to appoint the same user as Club Head in Club B -> Must fail with ValueError
+        with pytest.raises(ValueError) as excinfo:
+            MemberService.add_member(
+                db=db,
+                club_id=club_b.id,
+                member_in=MemberCreate(
+                    email=head_email,
+                    role=ClubRole.CLUB_HEAD,
+                    department="Leadership",
+                ),
+            )
+        assert "already the active Club Head" in str(excinfo.value)
+
+    finally:
+        db.rollback()
+        db.close()
+

@@ -44,9 +44,9 @@ export default function LoginPage() {
       color: 'emerald',
     },
     {
-      role: 'Event Organizer',
+      role: 'Club Head',
       email: 'organizer@clubops.ai',
-      desc: 'Manage tasks, meeting notes, and AI announcements',
+      desc: 'Operational leadership over club tasks, meetings, and announcements',
       color: 'info',
     },
     {

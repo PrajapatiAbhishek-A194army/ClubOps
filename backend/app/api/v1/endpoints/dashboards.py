@@ -31,13 +31,13 @@ ALL_ROLES = [
 @router.get("/clubs/{club_id}/dashboard", response_model=ApiResponse[UnifiedDashboardResponse])
 def get_club_dashboard(
     club_id: str,
-    perspective: Optional[str] = Query("PRESIDENT", description="PRESIDENT, ORGANIZER, TEAM_LEAD, VOLUNTEER"),
+    perspective: Optional[str] = Query("PRESIDENT", description="PRESIDENT, CLUB_HEAD, TEAM_LEAD, VOLUNTEER"),
     current_user: User = Depends(get_current_user),
     membership=Depends(require_club_role(ALL_ROLES)),
     db: Session = Depends(get_db),
 ):
     """
-    Returns unified role-based dashboard metrics for President, Organizer,
+    Returns unified role-based dashboard metrics for President, Club Head,
     Team Lead, or Volunteer in a single fast network round-trip.
     """
     club = db.query(Club).filter(Club.id == club_id).first()
@@ -47,12 +47,12 @@ def get_club_dashboard(
     role_key = (perspective or "PRESIDENT").upper()
 
     data_payload = {}
-    if role_key in ["PRESIDENT", "CLUB_HEAD"]:
+    if role_key == "PRESIDENT":
         pres_data = DashboardService.get_president_metrics(db=db, club_id=club_id)
         data_payload = pres_data.model_dump()
-    elif role_key == "ORGANIZER":
-        org_data = DashboardService.get_organizer_metrics(db=db, club_id=club_id)
-        data_payload = org_data.model_dump()
+    elif role_key in ["CLUB_HEAD", "ORGANIZER"]:
+        head_data = DashboardService.get_club_head_metrics(db=db, club_id=club_id)
+        data_payload = head_data.model_dump()
     elif role_key == "TEAM_LEAD":
         lead_data = DashboardService.get_team_lead_metrics(db=db, club_id=club_id)
         data_payload = lead_data.model_dump()
@@ -60,8 +60,8 @@ def get_club_dashboard(
         vol_data = DashboardService.get_volunteer_metrics(db=db, club_id=club_id, user_id=current_user.id)
         data_payload = vol_data.model_dump()
     else:
-        pres_data = DashboardService.get_president_metrics(db=db, club_id=club_id)
-        data_payload = pres_data.model_dump()
+        head_data = DashboardService.get_club_head_metrics(db=db, club_id=club_id)
+        data_payload = head_data.model_dump()
 
     return ApiResponse(
         success=True,

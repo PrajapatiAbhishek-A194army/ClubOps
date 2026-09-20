@@ -42,7 +42,8 @@ class GovernanceRule(BaseModel):
     category: str
     description: str
     president: str  # "ALLOW", "DENY", "APPROVAL_REQUIRED"
-    organizer: str
+    club_head: Optional[str] = None
+    organizer: Optional[str] = None
     team_lead: str
     volunteer: str
     member: str

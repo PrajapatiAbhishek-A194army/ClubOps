@@ -64,7 +64,7 @@ class PresidentDashboardData(BaseModel):
     recent_risks: List[Dict[str, Any]] = []
 
 
-class OrganizerDashboardData(BaseModel):
+class ClubHeadDashboardData(BaseModel):
     today_tasks: List[TaskMini] = []
     upcoming_tasks: List[TaskMini] = []
     total_active_events: int = 0
@@ -76,6 +76,9 @@ class OrganizerDashboardData(BaseModel):
     }
     meeting_action_items: List[ActionItemMini] = []
     recent_announcements: List[AnnouncementMini] = []
+
+
+OrganizerDashboardData = ClubHeadDashboardData
 
 
 class TeamMemberWorkload(BaseModel):

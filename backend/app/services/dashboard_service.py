@@ -241,6 +241,8 @@ class DashboardService:
             recent_announcements=ann_minis,
         )
 
+    get_club_head_metrics = get_organizer_metrics
+
     @staticmethod
     def get_team_lead_metrics(db: Session, club_id: str) -> TeamLeadDashboardData:
         # 1. Team Workload distribution

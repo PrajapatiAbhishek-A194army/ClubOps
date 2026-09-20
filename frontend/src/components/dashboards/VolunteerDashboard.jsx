@@ -275,7 +275,7 @@ export default function VolunteerDashboard({ data, clubId, onRefresh }) {
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-sm">Club Notices & Announcements</CardTitle>
-                <CardDescription>Live updates from organizers</CardDescription>
+                <CardDescription>Live updates from club leadership</CardDescription>
               </div>
               <Radio className="w-4 h-4 text-emerald-600 animate-pulse" />
             </CardHeader>

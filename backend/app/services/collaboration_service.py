@@ -150,8 +150,8 @@ class CollaborationService:
             ChannelSummary(
                 id="organizers",
                 name="organizers",
-                label="# Organizers & Leads",
-                description="Planning sync for event heads, media leads, and executive committee.",
+                label="# Club Heads & Leads",
+                description="Planning sync for club heads, team leads, and executive committee.",
                 is_event=False,
                 icon="ShieldCheck",
             ),

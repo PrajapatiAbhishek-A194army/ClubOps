@@ -39,7 +39,7 @@ export default function LandingPage() {
       id: 0,
       title: '1. Create Event',
       badge: 'Event Init',
-      desc: 'Club organizers initialize an event with title, tentative dates, venue preferences, and preliminary budget.',
+      desc: 'Club heads initialize an event with title, tentative dates, venue preferences, and preliminary budget.',
       simulation: {
         input: 'Event: "HackOut 2026: 36-hour Inter-College Hackathon"',
         state: 'Event initialized with status "Active" in Google Developer Student Club.',
@@ -141,8 +141,23 @@ export default function LandingPage() {
         { label: 'Risk Score', val: 'Low (94%)' },
       ],
     },
+    CLUB_HEAD: {
+      role: 'Club Head',
+      tagline: 'End-to-end event execution, meeting intelligence, and tasks.',
+      features: [
+        'Generate end-to-end event checklists with Groq AI Planner',
+        'Convert meeting minutes into Kanban tasks in seconds',
+        'Automate Brevo email announcements with one click',
+        'Track multi-tier task dependencies with block warnings',
+      ],
+      previewStats: [
+        { label: 'Tasks in Progress', val: '18' },
+        { label: 'Meetings Processed', val: '7 Notes' },
+        { label: 'Deadlines Today', val: '3' },
+      ],
+    },
     ORGANIZER: {
-      role: 'Event Organizer',
+      role: 'Club Head',
       tagline: 'End-to-end event execution, meeting intelligence, and tasks.',
       features: [
         'Generate end-to-end event checklists with Groq AI Planner',
@@ -440,7 +455,7 @@ export default function LandingPage() {
             Designed for Every Club Member
           </h2>
           <p className="text-sm sm:text-base text-slate-600">
-            Tailored interfaces with deny-by-default permissions ensure presidents, organizers, team leads, and volunteers see exactly what they need.
+            Tailored interfaces with deny-by-default permissions ensure presidents, club heads, team leads, and volunteers see exactly what they need.
           </p>
         </div>
 
@@ -449,7 +464,7 @@ export default function LandingPage() {
           <Tabs
             tabs={[
               { id: 'PRESIDENT', label: 'Club President' },
-              { id: 'ORGANIZER', label: 'Event Organizer' },
+              { id: 'CLUB_HEAD', label: 'Club Head' },
               { id: 'TEAM_LEAD', label: 'Team Lead' },
               { id: 'VOLUNTEER', label: 'Volunteer' },
             ]}

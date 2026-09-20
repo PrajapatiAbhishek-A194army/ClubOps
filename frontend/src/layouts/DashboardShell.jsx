@@ -65,7 +65,7 @@ export default function DashboardShell({ children }) {
 
   const roles = [
     { id: 'PRESIDENT', label: 'Club President', badge: 'Admin' },
-    { id: 'ORGANIZER', label: 'Event Organizer', badge: 'Lead' },
+    { id: 'CLUB_HEAD', label: 'Club Head', badge: 'Lead' },
     { id: 'TEAM_LEAD', label: 'Team Lead', badge: 'Manager' },
     { id: 'VOLUNTEER', label: 'Volunteer', badge: 'Member' },
     { id: 'MEMBER', label: 'Club Member', badge: 'Student' },
