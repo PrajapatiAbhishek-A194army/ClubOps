@@ -64,29 +64,6 @@ def test_organizer_dashboard_metrics():
         db.close()
 
 
-def test_lead_volunteer_dashboard_metrics():
-    client = TestClient(app)
-    db = SessionLocal()
-    try:
-        user = db.query(User).filter(User.email == "techlead@clubops.ai").first()
-        if not user:
-            user = db.query(User).filter(User.email == "president@clubops.ai").first()
-        club = db.query(Club).filter(Club.code == "gdsc-campus").first()
-
-        token = AuthService.create_user_token(user=user, active_club_id=club.id, active_role="VOLUNTEER")
-        headers = {"Authorization": f"Bearer {token}"}
-
-        resp = client.get(f"/api/v1/clubs/{club.id}/dashboard?perspective=VOLUNTEER", headers=headers)
-        assert resp.status_code == 200
-        body = resp.json()
-        assert body["success"] is True
-        assert body["data"]["perspective"] == "VOLUNTEER"
-        d = body["data"]["data"]
-        assert "my_tasks" in d
-        assert "my_checkin_status" in d
-    finally:
-        db.close()
-
 
 def test_volunteer_dashboard_and_checkin():
     client = TestClient(app)

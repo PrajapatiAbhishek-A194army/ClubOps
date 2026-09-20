@@ -206,9 +206,7 @@ ClubOps AI centralizes the entire lifecycle of student organizations into an int
 |:---|:---|:---|
 | **President** | `president@clubops.ai` | `ClubOps2026!` |
 | **Club Head** | `organizer@clubops.ai` | `ClubOps2026!` |
-| **Lead Volunteer (Tech Squad)** | `techlead@clubops.ai` | `ClubOps2026!` |
-| **Lead Volunteer (Media Squad)** | `medialead@clubops.ai` | `ClubOps2026!` |
-| **Operations Volunteer** | `volunteer@clubops.ai` | `ClubOps2026!` |
+| **Volunteer** | `volunteer@clubops.ai` | `ClubOps2026!` |
 | **Club Member** | `member@clubops.ai` | `ClubOps2026!` |
 
 ---
