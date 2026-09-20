@@ -132,7 +132,19 @@ export const createEvent = async (clubId, eventData) => {
 };
 
 export const getEventDetails = async (clubId, eventId) => {
-  const response = await api.get(`/clubs/${clubId}/events/${eventId}`);
+  if (clubId) {
+    try {
+      const response = await api.get(`/clubs/${clubId}/events/${eventId}`);
+      return response.data;
+    } catch (err) {
+      if (err.response?.status === 404) {
+        const fallback = await api.get(`/events/${eventId}`);
+        return fallback.data;
+      }
+      throw err;
+    }
+  }
+  const response = await api.get(`/events/${eventId}`);
   return response.data;
 };
 

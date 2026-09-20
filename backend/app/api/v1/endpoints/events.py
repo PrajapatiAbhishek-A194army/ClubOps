@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db, require_club_role
-from app.models.club import ClubRole
+from app.models.club import ClubMembership, ClubRole
 from app.models.event import Event, EventStatus
 from app.models.task import AssignmentSource, AssignmentStatus, Task, TaskAssignment, TaskCreatedSource, TaskPriority, TaskStatus
 from app.models.user import User
@@ -68,8 +68,8 @@ def create_event(
         event = EventService.create_event(
             db=db,
             club_id=club_id,
-            creator_id=current_user.id,
             event_in=event_in,
+            creator_id=current_user.id,
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -77,16 +77,16 @@ def create_event(
     return ApiResponse(
         success=True,
         data=EventResponse.model_validate(event),
-        message=f"Event '{event.title}' successfully created",
+        message=f"Event '{event.title}' scheduled successfully",
     )
 
 
 @router.post("/clubs/{club_id}/events/plan-ai", response_model=ApiResponse[AIPlanResponse])
-def plan_event_with_ai(
+def plan_event_ai(
     club_id: str,
     plan_req: AIPlanRequest,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
+    membership=Depends(require_club_role(ALL_ROLES)),
     db: Session = Depends(get_db),
 ):
     """Generates an AI event plan using Groq LLM with deterministic fallback."""
@@ -95,6 +95,31 @@ def plan_event_with_ai(
         success=True,
         data=plan,
         message="AI event plan generated successfully",
+    )
+
+
+@router.get("/events/{event_id}", response_model=ApiResponse[EventResponse])
+def get_event_by_id(
+    event_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Retrieves full details for a single event by event_id across any club accessible by the user."""
+    event = db.query(Event).filter(Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
+
+    membership = (
+        db.query(ClubMembership)
+        .filter(ClubMembership.club_id == event.club_id, ClubMembership.user_id == current_user.id)
+        .first()
+    )
+    if not membership and not current_user.is_superuser and getattr(current_user, "role", None) != "PRESIDENT":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to this club's event")
+
+    return ApiResponse(
+        success=True,
+        data=EventResponse.model_validate(event),
     )
 
 
@@ -109,6 +134,18 @@ def get_event(
     """Retrieves full details for a single event."""
     event = EventService.get_event_by_id(db=db, event_id=event_id, club_id=club_id)
     if not event:
+        fallback_event = db.query(Event).filter(Event.id == event_id).first()
+        if fallback_event:
+            has_access = (
+                db.query(ClubMembership)
+                .filter(ClubMembership.club_id == fallback_event.club_id, ClubMembership.user_id == current_user.id)
+                .first()
+            )
+            if has_access or current_user.is_superuser or getattr(current_user, "role", None) == "PRESIDENT":
+                return ApiResponse(
+                    success=True,
+                    data=EventResponse.model_validate(fallback_event),
+                )
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found in this club")
 
     return ApiResponse(

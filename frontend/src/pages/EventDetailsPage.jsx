@@ -37,7 +37,7 @@ import Modal from '../components/ui/Modal';
 export default function EventDetailsPage() {
   const { eventId } = useParams();
   const navigate = useNavigate();
-  const { activeClub, activeRole } = useAuth();
+  const { activeClub, activeRole, clubs, switchClub } = useAuth();
 
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,6 +61,10 @@ export default function EventDetailsPage() {
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState(null);
 
+  // Delete Event Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+
   // AI Staffing & Volunteer Estimation State
   const [staffingPlan, setStaffingPlan] = useState(null);
   const [staffingLoading, setStaffingLoading] = useState(false);
@@ -71,11 +75,12 @@ export default function EventDetailsPage() {
   const isPresident = activeRole === 'PRESIDENT';
 
   const handleLoadStaffing = async () => {
-    if (!activeClub?.id || !eventId) return;
+    const targetClubId = event?.club_id || activeClub?.id;
+    if (!targetClubId || !eventId) return;
     setStaffingLoading(true);
     setStaffingSuccessMsg(null);
     try {
-      const res = await getEventStaffingPlan(activeClub.id, eventId);
+      const res = await getEventStaffingPlan(targetClubId, eventId);
       if (res.success) {
         setStaffingPlan(res.data);
       }
@@ -87,10 +92,11 @@ export default function EventDetailsPage() {
   };
 
   const handleApprovePlan = async () => {
-    if (!activeClub?.id || !eventId || !staffingPlan) return;
+    const targetClubId = event?.club_id || activeClub?.id;
+    if (!targetClubId || !eventId || !staffingPlan) return;
     setStaffingLoading(true);
     try {
-      const res = await approveEventStaffingPlan(activeClub.id, eventId, {
+      const res = await approveEventStaffingPlan(targetClubId, eventId, {
         tasks: staffingPlan.proposed_tasks,
         dispatch_notifications: true,
       });
@@ -106,22 +112,30 @@ export default function EventDetailsPage() {
   };
 
   const fetchEvent = async () => {
-    if (!activeClub?.id || !eventId) return;
+    if (!eventId) return;
     try {
       setLoading(true);
       setError(null);
-      const res = await getEventDetails(activeClub.id, eventId);
+      const res = await getEventDetails(activeClub?.id, eventId);
       if (res.success) {
-        setEvent(res.data);
+        const evData = res.data;
+        setEvent(evData);
         setEditFormData({
-          title: res.data.title,
-          description: res.data.description || '',
-          location: res.data.location || '',
-          status: res.data.status,
-          budget: res.data.budget,
-          start_date: new Date(res.data.start_date).toISOString().slice(0, 16),
-          end_date: new Date(res.data.end_date).toISOString().slice(0, 16),
+          title: evData.title,
+          description: evData.description || '',
+          location: evData.location || '',
+          status: evData.status,
+          budget: evData.budget,
+          start_date: new Date(evData.start_date).toISOString().slice(0, 16),
+          end_date: new Date(evData.end_date).toISOString().slice(0, 16),
         });
+        // If event belongs to a different club than activeClub, sync activeClub so context matches
+        if (evData.club_id && (!activeClub || activeClub.id !== evData.club_id)) {
+          const matchingClub = clubs?.find((c) => c.id === evData.club_id);
+          if (matchingClub && switchClub) {
+            switchClub(matchingClub);
+          }
+        }
       }
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to load event details.');
@@ -136,10 +150,12 @@ export default function EventDetailsPage() {
 
   const handleMilestoneToggle = async (milestoneId, currentCompleted) => {
     if (!canToggleMilestone) return;
+    const targetClubId = event?.club_id || activeClub?.id;
+    if (!targetClubId) return;
     try {
       setTogglingMilestoneId(milestoneId);
       const res = await toggleMilestone(
-        activeClub.id,
+        targetClubId,
         eventId,
         milestoneId,
         !currentCompleted
@@ -156,6 +172,8 @@ export default function EventDetailsPage() {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    const targetClubId = event?.club_id || activeClub?.id;
+    if (!targetClubId) return;
     try {
       setEditSubmitting(true);
       setEditError(null);
@@ -169,7 +187,7 @@ export default function EventDetailsPage() {
         end_date: new Date(editFormData.end_date).toISOString(),
       };
 
-      const res = await updateEvent(activeClub.id, eventId, payload);
+      const res = await updateEvent(targetClubId, eventId, payload);
       if (res.success) {
         setEvent(res.data);
         setIsEditModalOpen(false);
@@ -182,9 +200,11 @@ export default function EventDetailsPage() {
   };
 
   const handleDeleteSubmit = async () => {
+    const targetClubId = event?.club_id || activeClub?.id;
+    if (!targetClubId) return;
     try {
       setDeleteSubmitting(true);
-      const res = await deleteEvent(activeClub.id, eventId);
+      const res = await deleteEvent(targetClubId, eventId);
       if (res.success) {
         navigate('/app/events');
       }
@@ -269,7 +289,10 @@ export default function EventDetailsPage() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
           <div className="space-y-2">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-xs font-bold tracking-wider uppercase text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+              <span className="text-xs font-bold tracking-wider uppercase text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded border border-emerald-300">
+                Operations Dashboard
+              </span>
+              <span className="text-xs font-bold tracking-wider uppercase text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200">
                 {event.event_type}
               </span>
               {getStatusBadge(event.status)}
