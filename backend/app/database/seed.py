@@ -624,4 +624,9 @@ def seed_demo_data():
 
 
 if __name__ == "__main__":
-    seed_demo_data()
+    if "--reset" in sys.argv:
+        from reset_and_seed import reset_and_seed
+        reset_and_seed()
+    else:
+        seed_demo_data()
+
