@@ -33,6 +33,7 @@ export default function DashboardOverview() {
   };
 
   const userRole = resolveUserRole(activeRole);
+  const isLeadership = userRole === 'PRESIDENT' || userRole === 'CLUB_HEAD';
 
   const roleMeta = {
     PRESIDENT: {
@@ -118,14 +119,16 @@ export default function DashboardOverview() {
             >
               {loading ? 'Syncing...' : 'Refresh'}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              leftIcon={FileText}
-              onClick={() => navigate('/app/meetings')}
-            >
-              Meeting Notes
-            </Button>
+            {isLeadership && (
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={FileText}
+                onClick={() => navigate('/app/meetings')}
+              >
+                Meeting Notes
+              </Button>
+            )}
             <Button
               variant="primary"
               size="sm"
