@@ -20,9 +20,23 @@ import CollaborationPage from '../pages/CollaborationPage';
 import AnalyticsPage from '../pages/AnalyticsPage';
 import AuditPage from '../pages/AuditPage';
 import PlaceholderFeature from '../pages/PlaceholderFeature';
+import { useAuth } from '../context/AuthContext';
 
+function LeadershipRoute({ children }) {
+  const { activeRole, user, loading } = useAuth();
+  if (loading) return null;
+  const isLeadership =
+    user?.is_superuser ||
+    user?.email === 'president@clubops.ai' ||
+    ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(activeRole) ||
+    ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(user?.active_role) ||
+    ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(user?.role);
 
-
+  if (!isLeadership) {
+    return <Navigate to="/app" replace />;
+  }
+  return children;
+}
 
 export default function AppRoutes() {
   return (
@@ -60,7 +74,6 @@ export default function AppRoutes() {
         }
       />
 
-
       <Route
         path="/app/events"
         element={
@@ -92,7 +105,9 @@ export default function AppRoutes() {
         path="/app/volunteers"
         element={
           <DashboardShell>
-            <VolunteersPage />
+            <LeadershipRoute>
+              <VolunteersPage />
+            </LeadershipRoute>
           </DashboardShell>
         }
       />
@@ -101,7 +116,9 @@ export default function AppRoutes() {
         path="/app/meetings"
         element={
           <DashboardShell>
-            <MeetingsPage />
+            <LeadershipRoute>
+              <MeetingsPage />
+            </LeadershipRoute>
           </DashboardShell>
         }
       />
@@ -110,7 +127,9 @@ export default function AppRoutes() {
         path="/app/knowledge"
         element={
           <DashboardShell>
-            <KnowledgePage />
+            <LeadershipRoute>
+              <KnowledgePage />
+            </LeadershipRoute>
           </DashboardShell>
         }
       />
@@ -119,7 +138,9 @@ export default function AppRoutes() {
         path="/app/risks"
         element={
           <DashboardShell>
-            <RisksPage />
+            <LeadershipRoute>
+              <RisksPage />
+            </LeadershipRoute>
           </DashboardShell>
         }
       />
@@ -146,28 +167,31 @@ export default function AppRoutes() {
         path="/app/analytics"
         element={
           <DashboardShell>
-            <AnalyticsPage />
+            <LeadershipRoute>
+              <AnalyticsPage />
+            </LeadershipRoute>
           </DashboardShell>
         }
       />
-
-
 
       <Route
         path="/app/audit"
         element={
           <DashboardShell>
-            <AuditPage />
+            <LeadershipRoute>
+              <AuditPage />
+            </LeadershipRoute>
           </DashboardShell>
         }
       />
-
 
       <Route
         path="/app/settings"
         element={
           <DashboardShell>
-            <ClubSettingsPage />
+            <LeadershipRoute>
+              <ClubSettingsPage />
+            </LeadershipRoute>
           </DashboardShell>
         }
       />

@@ -114,6 +114,12 @@ export default function DashboardShell({ children }) {
     { id: 'MEMBER', label: 'Club Member', badge: 'Student' },
   ];
 
+  const isLeadership =
+    isPlatformPresident ||
+    ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(activeRole) ||
+    ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(user?.active_role) ||
+    ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(user?.role);
+
   const navigationSections = [
     {
       title: 'Operations',
@@ -123,35 +129,39 @@ export default function DashboardShell({ children }) {
         { path: '/app/events', label: 'Events', icon: Calendar, badge: 'Active' },
         { path: '/app/tasks', label: 'Kanban Tasks', icon: CheckSquare },
         { path: '/app/members', label: 'Club Roster', icon: Users, badge: 'Members' },
-        { path: '/app/volunteers', label: 'Volunteer Pool', icon: Users },
+        ...(isLeadership ? [{ path: '/app/volunteers', label: 'Volunteer Pool', icon: Users }] : []),
       ],
     },
 
     {
       title: 'AI Intelligence',
       items: [
-        { path: '/app/meetings', label: 'Meeting Intelligence', icon: FileText, ai: true },
-        { path: '/app/knowledge', label: 'Knowledge Base (RAG)', icon: BookOpen },
-        {
-          path: '/app/risks',
-          label: 'Risk & Deadlines Radar',
-          icon: AlertTriangle,
-          badge: openRiskCount > 0 ? `${openRiskCount} ${openRiskCount === 1 ? 'Alert' : 'Alerts'}` : null,
-          alert: openRiskCount > 0,
-        },
+        ...(isLeadership ? [{ path: '/app/meetings', label: 'Meeting Intelligence', icon: FileText, ai: true }] : []),
+        ...(isLeadership ? [{ path: '/app/knowledge', label: 'Knowledge Base (RAG)', icon: BookOpen }] : []),
+        ...(isLeadership
+          ? [
+              {
+                path: '/app/risks',
+                label: 'Risk & Deadlines Radar',
+                icon: AlertTriangle,
+                badge: openRiskCount > 0 ? `${openRiskCount} ${openRiskCount === 1 ? 'Alert' : 'Alerts'}` : null,
+                alert: openRiskCount > 0,
+              },
+            ]
+          : []),
         { path: '/app/announcements', label: 'Announcements', icon: Bell },
-        { path: '/app/analytics', label: 'Operations Analytics', icon: BarChart3, badge: 'Insights' },
+        ...(isLeadership ? [{ path: '/app/analytics', label: 'Operations Analytics', icon: BarChart3, badge: 'Insights' }] : []),
       ],
     },
 
     {
       title: 'Governance',
       items: [
-        { path: '/app/audit', label: 'Audit Trail', icon: History },
-        { path: '/app/settings', label: 'Club Settings', icon: Settings },
+        ...(isLeadership ? [{ path: '/app/audit', label: 'Audit Trail', icon: History }] : []),
+        ...(isLeadership ? [{ path: '/app/settings', label: 'Club Settings', icon: Settings }] : []),
       ],
     },
-  ];
+  ].filter((section) => section.items.length > 0);
 
 
   return (

@@ -3,13 +3,20 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, require_club_role
+from app.models.club import ClubRole
 from app.models.document import Document
 from app.models.user import User
 from app.schemas.common import ApiResponse
 from app.services.knowledge_service import KnowledgeService
 
 router = APIRouter()
+
+LEADERSHIP_ROLES = [
+    ClubRole.PRESIDENT,
+    ClubRole.CLUB_HEAD,
+    getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD),
+]
 
 
 class DocumentUploadRequest(BaseModel):
@@ -30,9 +37,10 @@ def upload_document(
     club_id: str = Query(..., description="Target club ID"),
     doc_in: DocumentUploadRequest = ...,
     current_user: User = Depends(get_current_user),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
     db: Session = Depends(get_db),
 ):
-    """Uploads institutional memory document and creates searchable chunks."""
+    """Uploads institutional memory document and creates searchable chunks. Restricted to Club Head and President."""
     doc = KnowledgeService.ingest_document(
         db=db,
         club_id=club_id,
@@ -57,10 +65,14 @@ def search_knowledge(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Executes natural language semantic query against club documents with citations."""
+    """Executes natural language semantic query against club documents with citations. Restricted to Club Head and President."""
     target_club_id = club_id or search_req.club_id
     if not target_club_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="club_id must be provided in query or body")
+
+    # Enforce leadership role on search
+    require_club_role(LEADERSHIP_ROLES)(club_id=target_club_id, user=current_user, db=db)
+
     result = KnowledgeService.search_knowledge(
         db=db,
         club_id=target_club_id,
@@ -77,9 +89,10 @@ def search_knowledge(
 def list_documents(
     club_id: str = Query(..., description="Target club ID"),
     current_user: User = Depends(get_current_user),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
     db: Session = Depends(get_db),
 ):
-    """Lists indexed documents in the club knowledge repository."""
+    """Lists indexed documents in the club knowledge repository. Restricted to Club Head and President."""
     docs = db.query(Document).filter(Document.club_id == club_id).order_by(Document.created_at.desc()).all()
     results = [
         {
@@ -96,3 +109,4 @@ def list_documents(
         data=results,
         message="Documents retrieved",
     )
+

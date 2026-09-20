@@ -7,13 +7,24 @@ import {
   Users, 
   ArrowRight,
   Sparkles,
-  Command
+  Command,
+  Radio,
+  CheckSquare
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function CommandPalette({ isOpen, onClose }) {
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
+  const { user, activeRole } = useAuth();
+
+  const isLeadership =
+    user?.is_superuser ||
+    user?.email === 'president@clubops.ai' ||
+    ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(activeRole) ||
+    ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(user?.active_role) ||
+    ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(user?.role);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -38,60 +49,84 @@ export default function CommandPalette({ isOpen, onClose }) {
 
   const actions = [
     {
-      id: 'create-event',
-      title: 'Create New Event',
-      category: 'Events',
-      icon: CalendarPlus,
-      shortcut: 'C',
+      id: 'team-live',
+      title: 'Team Live Hub & War Room',
+      category: 'Operations',
+      icon: Radio,
+      shortcut: 'H',
       action: () => {
-        navigate('/app/events');
+        navigate('/app/collaboration');
         onClose();
       },
     },
     {
-      id: 'ai-plan',
-      title: 'AI Event Planner (Prompt: "Organize Hackathon")',
-      category: 'AI Workflows',
-      icon: Sparkles,
-      shortcut: 'P',
+      id: 'my-tasks',
+      title: 'View Kanban Tasks',
+      category: 'Tasks',
+      icon: CheckSquare,
+      shortcut: 'T',
       action: () => {
-        navigate('/app/events');
+        navigate('/app/tasks');
         onClose();
       },
     },
-    {
-      id: 'process-meeting',
-      title: 'Process Meeting Minutes & Extract Tasks',
-      category: 'Intelligence',
-      icon: FileText,
-      shortcut: 'M',
-      action: () => {
-        navigate('/app/meetings');
-        onClose();
+    ...(isLeadership ? [
+      {
+        id: 'create-event',
+        title: 'Create New Event',
+        category: 'Events',
+        icon: CalendarPlus,
+        shortcut: 'C',
+        action: () => {
+          navigate('/app/events');
+          onClose();
+        },
       },
-    },
-    {
-      id: 'risk-scan',
-      title: 'Run Real-time Risk & Dependency Radar',
-      category: 'Risks',
-      icon: AlertTriangle,
-      shortcut: 'R',
-      action: () => {
-        navigate('/app/risks');
-        onClose();
+      {
+        id: 'ai-plan',
+        title: 'AI Event Planner (Prompt: "Organize Hackathon")',
+        category: 'AI Workflows',
+        icon: Sparkles,
+        shortcut: 'P',
+        action: () => {
+          navigate('/app/events');
+          onClose();
+        },
       },
-    },
-    {
-      id: 'volunteer-match',
-      title: 'Find Volunteers by Skills & Availability',
-      category: 'Volunteers',
-      icon: Users,
-      shortcut: 'V',
-      action: () => {
-        navigate('/app/volunteers');
-        onClose();
+      {
+        id: 'process-meeting',
+        title: 'Process Meeting Minutes & Extract Tasks',
+        category: 'Intelligence',
+        icon: FileText,
+        shortcut: 'M',
+        action: () => {
+          navigate('/app/meetings');
+          onClose();
+        },
       },
-    },
+      {
+        id: 'risk-scan',
+        title: 'Run Real-time Risk & Dependency Radar',
+        category: 'Risks',
+        icon: AlertTriangle,
+        shortcut: 'R',
+        action: () => {
+          navigate('/app/risks');
+          onClose();
+        },
+      },
+      {
+        id: 'volunteer-match',
+        title: 'Find Volunteers by Skills & Availability',
+        category: 'Volunteers',
+        icon: Users,
+        shortcut: 'V',
+        action: () => {
+          navigate('/app/volunteers');
+          onClose();
+        },
+      },
+    ] : []),
   ];
 
   const filtered = actions.filter((a) =>

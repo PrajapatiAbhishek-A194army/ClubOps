@@ -16,11 +16,9 @@ from app.services.audit_service import AuditService
 
 router = APIRouter()
 
-ALL_ROLES = [
+LEADERSHIP_ROLES = [
     ClubRole.PRESIDENT,
     ClubRole.CLUB_HEAD,
-    ClubRole.VOLUNTEER,
-    ClubRole.MEMBER,
     getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD),
 ]
 
@@ -36,11 +34,12 @@ def get_audit_logs(
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role(ALL_ROLES)),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
     db: Session = Depends(get_db),
 ):
     """
     Returns filterable, paginated cryptographic audit logs for the club.
+    Restricted to Club Head and President.
     """
     club = db.query(Club).filter(Club.id == club_id).first()
     if not club:
@@ -48,7 +47,6 @@ def get_audit_logs(
 
     entries, total = AuditService.query_logs(
         club_id=club_id,
-        db=db,
         action=action,
         entity_type=entity_type,
         result=result,
@@ -56,6 +54,7 @@ def get_audit_logs(
         search=search,
         limit=limit,
         offset=offset,
+        db=db,
     )
 
     return ApiResponse(
@@ -72,12 +71,13 @@ def get_audit_logs(
 def verify_audit_integrity(
     club_id: str,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role(ALL_ROLES)),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
     db: Session = Depends(get_db),
 ):
     """
     Cryptographically validates every SHA-256 hash in the club's audit chain
     from genesis to the latest record, detecting any unauthorized tampering.
+    Restricted to Club Head and President.
     """
     club = db.query(Club).filter(Club.id == club_id).first()
     if not club:
@@ -91,12 +91,12 @@ def verify_audit_integrity(
 def get_security_summary(
     club_id: str,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role(ALL_ROLES)),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
     db: Session = Depends(get_db),
 ):
     """
     Returns security telemetry overview including total events, denied attempts,
-    and live integrity status.
+    and live integrity status. Restricted to Club Head and President.
     """
     club = db.query(Club).filter(Club.id == club_id).first()
     if not club:
@@ -110,11 +110,12 @@ def get_security_summary(
 def get_governance_matrix(
     club_id: str,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role(ALL_ROLES)),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
     db: Session = Depends(get_db),
 ):
     """
     Returns the student organization separation of duties permissions matrix.
+    Restricted to Club Head and President.
     """
     club = db.query(Club).filter(Club.id == club_id).first()
     if not club:

@@ -10,11 +10,9 @@ from app.services.analytics_service import AnalyticsService
 
 router = APIRouter()
 
-ALL_ROLES = [
+LEADERSHIP_ROLES = [
     ClubRole.PRESIDENT,
     ClubRole.CLUB_HEAD,
-    ClubRole.VOLUNTEER,
-    ClubRole.MEMBER,
     getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD),
 ]
 
@@ -23,12 +21,13 @@ ALL_ROLES = [
 def get_analytics_overview(
     club_id: str,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role(ALL_ROLES)),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
     db: Session = Depends(get_db),
 ):
     """
     Returns unified operations analytics report, health score breakdown,
     Recharts time-series data, and AI executive recommendations.
+    Restricted to Club Head and President.
     """
     club = db.query(Club).filter(Club.id == club_id).first()
     if not club:
@@ -42,11 +41,12 @@ def get_analytics_overview(
 def get_ai_insights(
     club_id: str,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role(ALL_ROLES)),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
     db: Session = Depends(get_db),
 ):
     """
     Generates on-demand AI executive operational assessment powered by Groq LLM.
+    Restricted to Club Head and President.
     """
     club = db.query(Club).filter(Club.id == club_id).first()
     if not club:
@@ -60,7 +60,7 @@ def get_ai_insights(
 def export_analytics_csv(
     club_id: str,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role(ALL_ROLES)),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
     db: Session = Depends(get_db),
 ):
     """
