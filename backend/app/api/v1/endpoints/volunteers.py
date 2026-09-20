@@ -31,7 +31,7 @@ def list_volunteers(
     skill: Optional[str] = Query(None, description="Filter by skill tag (e.g. AV, Python, Registration)"),
     search: Optional[str] = Query(None, description="Search by name, email, department, or skill"),
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.CLUB_HEAD, ClubRole.TEAM_LEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER])),
+    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.CLUB_HEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER])),
     db: Session = Depends(get_db),
 ):
     """Lists all volunteers in the club with skills, availability, and active task workloads."""
@@ -54,7 +54,7 @@ def get_volunteer_details(
     club_id: str,
     volunteer_id: str,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.CLUB_HEAD, ClubRole.TEAM_LEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER])),
+    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.CLUB_HEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER])),
     db: Session = Depends(get_db),
 ):
     """Retrieves full volunteer profile including assigned tasks and check-in history."""
@@ -72,7 +72,7 @@ def create_volunteer_profile(
     club_id: str,
     payload: VolunteerCreate,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.TEAM_LEAD])),
+    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.CLUB_HEAD])),
     db: Session = Depends(get_db),
 ):
     """Creates or updates a volunteer's profile and initial skill mapping."""
@@ -90,7 +90,7 @@ def update_volunteer_profile(
     volunteer_id: str,
     payload: VolunteerUpdate,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.TEAM_LEAD, ClubRole.VOLUNTEER])),
+    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.CLUB_HEAD, ClubRole.VOLUNTEER])),
     db: Session = Depends(get_db),
 ):
     """Updates volunteer profile details, skills, department, and weekly capacity."""
@@ -112,7 +112,7 @@ def update_availability(
     volunteer_id: str,
     payload: VolunteerAvailabilityUpdate,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.TEAM_LEAD, ClubRole.VOLUNTEER])),
+    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.CLUB_HEAD, ClubRole.VOLUNTEER])),
     db: Session = Depends(get_db),
 ):
     """Fast-toggle availability status (AVAILABLE, BUSY, ON_SHIFT, UNAVAILABLE)."""
@@ -137,7 +137,7 @@ def toggle_check_in(
     volunteer_id: str,
     payload: VolunteerCheckInUpdate,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.TEAM_LEAD, ClubRole.VOLUNTEER])),
+    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.CLUB_HEAD, ClubRole.VOLUNTEER])),
     db: Session = Depends(get_db),
 ):
     """Check in or check out a volunteer on-site for event attendance."""
@@ -159,7 +159,7 @@ def match_volunteers_with_ai(
     club_id: str,
     req: AIVolunteerMatchRequest,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.TEAM_LEAD])),
+    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.CLUB_HEAD])),
     db: Session = Depends(get_db),
 ):
     """AI recommendations for assigning the best volunteer to a task based on skills and workload."""
@@ -176,7 +176,7 @@ def assign_volunteer(
     club_id: str,
     payload: VolunteerAssignRequest,
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.TEAM_LEAD])),
+    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.ORGANIZER, ClubRole.CLUB_HEAD])),
     db: Session = Depends(get_db),
 ):
     """Assigns an AI-recommended or selected volunteer directly to a task."""

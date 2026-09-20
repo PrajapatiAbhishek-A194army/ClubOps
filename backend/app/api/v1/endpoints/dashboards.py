@@ -9,7 +9,6 @@ from app.schemas.common import ApiResponse
 from app.schemas.dashboard import (
     OrganizerDashboardData,
     PresidentDashboardData,
-    TeamLeadDashboardData,
     UnifiedDashboardResponse,
     VolunteerCheckInRequest,
     VolunteerDashboardData,
@@ -23,22 +22,20 @@ ALL_ROLES = [
     ClubRole.CLUB_HEAD,
     ClubRole.VOLUNTEER,
     ClubRole.MEMBER,
-    getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD),
-    getattr(ClubRole, "TEAM_LEAD", ClubRole.VOLUNTEER),
 ]
 
 
 @router.get("/clubs/{club_id}/dashboard", response_model=ApiResponse[UnifiedDashboardResponse])
 def get_club_dashboard(
     club_id: str,
-    perspective: Optional[str] = Query("PRESIDENT", description="PRESIDENT, CLUB_HEAD, TEAM_LEAD, VOLUNTEER"),
+    perspective: Optional[str] = Query("PRESIDENT", description="PRESIDENT, CLUB_HEAD, VOLUNTEER"),
     current_user: User = Depends(get_current_user),
     membership=Depends(require_club_role(ALL_ROLES)),
     db: Session = Depends(get_db),
 ):
     """
     Returns unified role-based dashboard metrics for President, Club Head,
-    Team Lead, or Volunteer in a single fast network round-trip.
+    or Volunteer in a single fast network round-trip.
     """
     club = db.query(Club).filter(Club.id == club_id).first()
     if not club:
@@ -53,15 +50,9 @@ def get_club_dashboard(
     elif role_key in ["CLUB_HEAD", "ORGANIZER"]:
         head_data = DashboardService.get_club_head_metrics(db=db, club_id=club_id)
         data_payload = head_data.model_dump()
-    elif role_key == "TEAM_LEAD":
-        lead_data = DashboardService.get_team_lead_metrics(db=db, club_id=club_id)
-        data_payload = lead_data.model_dump()
-    elif role_key in ["VOLUNTEER", "MEMBER"]:
+    else:
         vol_data = DashboardService.get_volunteer_metrics(db=db, club_id=club_id, user_id=current_user.id)
         data_payload = vol_data.model_dump()
-    else:
-        head_data = DashboardService.get_club_head_metrics(db=db, club_id=club_id)
-        data_payload = head_data.model_dump()
 
     return ApiResponse(
         success=True,

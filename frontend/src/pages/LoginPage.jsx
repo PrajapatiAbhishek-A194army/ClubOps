@@ -50,13 +50,13 @@ export default function LoginPage() {
       color: 'info',
     },
     {
-      role: 'Technical Lead',
+      role: 'Lead Volunteer (Tech Squad)',
       email: 'techlead@clubops.ai',
-      desc: 'Team delegation, volunteer allocations, and dependencies',
+      desc: 'Squad coordination, technical setup, and volunteer execution',
       color: 'purple',
     },
     {
-      role: 'Volunteer',
+      role: 'Operations Volunteer',
       email: 'volunteer@clubops.ai',
       desc: 'View personal tasks, shifts, and event check-ins',
       color: 'warning',

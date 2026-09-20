@@ -75,7 +75,6 @@ export default function DashboardShell({ children }) {
   const roles = [
     ...(isPlatformPresident ? [{ id: 'PRESIDENT', label: 'Club President', badge: 'Admin' }] : []),
     { id: 'CLUB_HEAD', label: 'Club Head', badge: 'Lead' },
-    { id: 'TEAM_LEAD', label: 'Team Lead', badge: 'Manager' },
     { id: 'VOLUNTEER', label: 'Volunteer', badge: 'Member' },
     { id: 'MEMBER', label: 'Club Member', badge: 'Student' },
   ];

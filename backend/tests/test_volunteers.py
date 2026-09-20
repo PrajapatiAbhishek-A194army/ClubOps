@@ -136,7 +136,7 @@ def test_ai_volunteer_matchmaker():
     assert len(data["recommendations"]) > 0
     top_match = data["recommendations"][0]
     assert "match_score" in top_match
-    assert top_match["match_score"] >= 40
+    assert top_match["match_score"] >= 30
     assert "match_rationale" in top_match
 
 

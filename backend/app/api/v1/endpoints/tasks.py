@@ -22,8 +22,8 @@ from app.services.task_service import TaskService, enrich_task_response
 
 router = APIRouter()
 
-ALL_ROLES = [ClubRole.PRESIDENT, ClubRole.CLUB_HEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER, getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD), getattr(ClubRole, "TEAM_LEAD", ClubRole.VOLUNTEER)]
-LEADERSHIP_ROLES = [ClubRole.PRESIDENT, ClubRole.CLUB_HEAD, getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD), getattr(ClubRole, "TEAM_LEAD", ClubRole.VOLUNTEER)]
+ALL_ROLES = [ClubRole.PRESIDENT, ClubRole.CLUB_HEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER, getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD)]
+LEADERSHIP_ROLES = [ClubRole.PRESIDENT, ClubRole.CLUB_HEAD, getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD)]
 
 
 class TaskAssignRequest(BaseModel):

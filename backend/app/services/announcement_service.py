@@ -143,9 +143,9 @@ class AnnouncementService:
                 f"Attention all {club_name} members and event volunteers:\n\n"
                 f"This is an urgent operational notice regarding current activities and schedules:\n"
                 f"• Alert Summary: {req.custom_notes or 'Schedule adjustments are currently in effect.'}\n"
-                f"• Action Required: All team leads and on-duty volunteers report to the operations desk.\n"
+                f"• Action Required: All squad leads and on-duty volunteers report to the operations desk.\n"
                 f"• Standby: Further live updates will be broadcasted via this channel.\n\n"
-                f"Please coordinate with your team leads immediately if affected."
+                f"Please coordinate with your club head or squad volunteers immediately if affected."
             )
             cta = "Acknowledge alert and monitor announcements for immediate operational updates."
             channel_fmt = f"🚨 *URGENT NOTICE [{club_name}]:* {req.custom_notes or 'Immediate operational update.'} Volunteers please report to operations desk."

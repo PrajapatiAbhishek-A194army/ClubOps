@@ -32,7 +32,7 @@ ClubOps AI centralizes the entire lifecycle of student organizations into an int
 ```
 +-----------------------------------------------------------------------------------+
 |                             React 19 + Vite Frontend                              |
-|  - 4 Role-Tailored Dashboards: President | Organizer | Team Lead | Volunteer      |
+|  - Role-Tailored Workspaces: President | Club Head | Volunteer                        |
 |  - Visual Kanban Task Progression Board (TODO -> IN_PROGRESS -> DONE -> BLOCKED)  |
 |  - Real-Time Collaboration Gateway (WebSockets, Channels, Activity Ticker)        |
 |  - Event Creator with AI Staffing & Skill Breakdown Modal                         |
@@ -80,7 +80,7 @@ ClubOps AI centralizes the entire lifecycle of student organizations into an int
 | **LangGraph Agent Workflows** | Multi-node state machine, allowlisted tool execution, human approval gate | LangGraph, `ClubOpsTools` |
 | **Multi-Channel Announcements** | AI drafting, Brevo email broadcast, in-app push, category templates | Brevo Transactional API, Groq LLM |
 | **Institutional Knowledge** | Document ingestion, text chunking, grounded search synthesis | RAG Pipeline, Full-text Search |
-| **Role Dashboard Suite** | Dedicated dashboards for President, Organizer, Team Lead, and Volunteer | React 19, Lucide Icons |
+| **Role Dashboard Suite** | Dedicated dashboards for President, Club Head, and Volunteer | React 19, Lucide Icons |
 | **Real-Time Collaboration** | Full-duplex WebSocket gateway, chat channels, live presence, activity ticker | FastAPI WebSockets, `ConnectionManager` |
 | **Operational Analytics** | Deterministic Health Score (0-100), Recharts cadence & velocity, CSV compliance | Recharts, NumPy-like Scoring Formula |
 | **Cryptographic Audit Trail** | SHA-256 hash chaining, live mathematical tamper detection, SoD policy matrix | SHA-256 Engine, `/verify-integrity` |
@@ -90,15 +90,15 @@ ClubOps AI centralizes the entire lifecycle of student organizations into an int
 
 ## User Roles & Permissions
 
-| Capability | President | Organizer (Club Head) | Team Lead | Volunteer |
+| Capability | President | Club Head | Volunteer | Member |
 |:---|:---:|:---:|:---:|:---:|
 | **Transfer Leadership / Manage Club** | ✅ | ❌ | ❌ | ❌ |
 | **Approve / Reject Join Requests** | ✅ | ✅ | ❌ | ❌ |
 | **Create Events & Approve AI Plans** | ✅ | ✅ | ❌ | ❌ |
-| **Manage Department Tasks & Kanban** | ✅ | ✅ | ✅ | ❌ |
-| **Update Own Assigned Task Status** | ✅ | ✅ | ✅ | ✅ |
-| **Run Risk Radar Scan** | ✅ | ✅ | ✅ | ❌ |
-| **Ingest Meetings & Convert Items** | ✅ | ✅ | ✅ | ❌ |
+| **Manage Department Tasks & Kanban** | ✅ | ✅ | ❌ | ❌ |
+| **Update Own Assigned Task Status** | ✅ | ✅ | ✅ | ❌ |
+| **Run Risk Radar Scan** | ✅ | ✅ | ❌ | ❌ |
+| **Ingest Meetings & Convert Items** | ✅ | ✅ | ❌ | ❌ |
 | **Publish Announcements & Email Broadcast** | ✅ | ✅ | ❌ | ❌ |
 | **Real-Time Operations Chat** | ✅ | ✅ | ✅ | ✅ |
 | **View Cryptographic Audit Chain & Verify** | ✅ | ❌ | ❌ | ❌ |
@@ -205,11 +205,11 @@ ClubOps AI centralizes the entire lifecycle of student organizations into an int
 | Role | Email | Default Password |
 |:---|:---|:---|
 | **President** | `president@clubops.ai` | `ClubOps2026!` |
-| **Organizer (Club Head)** | `organizer@clubops.ai` | `ClubOps2026!` |
-| **Tech Lead** | `techlead@clubops.ai` | `ClubOps2026!` |
-| **Media Lead** | `medialead@clubops.ai` | `ClubOps2026!` |
-| **Volunteer** | `volunteer@clubops.ai` | `ClubOps2026!` |
-| **Member** | `member@clubops.ai` | `ClubOps2026!` |
+| **Club Head** | `organizer@clubops.ai` | `ClubOps2026!` |
+| **Lead Volunteer (Tech Squad)** | `techlead@clubops.ai` | `ClubOps2026!` |
+| **Lead Volunteer (Media Squad)** | `medialead@clubops.ai` | `ClubOps2026!` |
+| **Operations Volunteer** | `volunteer@clubops.ai` | `ClubOps2026!` |
+| **Club Member** | `member@clubops.ai` | `ClubOps2026!` |
 
 ---
 

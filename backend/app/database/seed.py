@@ -134,14 +134,14 @@ def seed_demo_data():
         memberships_to_add = [
             (users_by_email["president@clubops.ai"], gdsc, ClubRole.PRESIDENT, "Executive Board"),
             (users_by_email["organizer@clubops.ai"], gdsc, ClubRole.CLUB_HEAD, "Club Head / Operations & Events"),
-            (users_by_email["techlead@clubops.ai"], gdsc, ClubRole.TEAM_LEAD, "Technical Committee"),
-            (users_by_email["medialead@clubops.ai"], gdsc, ClubRole.TEAM_LEAD, "Design & PR"),
+            (users_by_email["techlead@clubops.ai"], gdsc, ClubRole.VOLUNTEER, "Technical Squad / Lead Volunteer"),
+            (users_by_email["medialead@clubops.ai"], gdsc, ClubRole.VOLUNTEER, "Design & PR Squad"),
             (users_by_email["volunteer@clubops.ai"], gdsc, ClubRole.VOLUNTEER, "Logistics & Desk"),
             (users_by_email["member@clubops.ai"], gdsc, ClubRole.MEMBER, "General Member"),
             # Cross-club memberships - Single President oversees all campus clubs
             (users_by_email["president@clubops.ai"], clubs_by_code["ras-campus"], ClubRole.PRESIDENT, "Executive Board"),
             (users_by_email["president@clubops.ai"], clubs_by_code["acm-campus"], ClubRole.PRESIDENT, "Executive Board"),
-            (users_by_email["techlead@clubops.ai"], clubs_by_code["ras-campus"], ClubRole.TEAM_LEAD, "Hardware & Embedded"),
+            (users_by_email["techlead@clubops.ai"], clubs_by_code["ras-campus"], ClubRole.VOLUNTEER, "Hardware & Embedded Squad"),
         ]
 
         for user, club, role, dept in memberships_to_add:

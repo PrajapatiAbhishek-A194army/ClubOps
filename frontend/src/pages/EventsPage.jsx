@@ -82,7 +82,7 @@ export default function EventsPage() {
         id: 'm-' + Date.now(),
         title: '',
         target_date: '1 Week Prior',
-        assigned_to: 'Team Lead',
+        assigned_to: 'Volunteer Lead',
         completed: false,
       },
     ]);

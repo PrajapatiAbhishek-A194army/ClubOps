@@ -169,7 +169,7 @@ def get_club_members(
     role: Optional[ClubRole] = Query(None),
     department: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user),
-    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.CLUB_HEAD, ClubRole.ORGANIZER, ClubRole.TEAM_LEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER])),
+    membership=Depends(require_club_role([ClubRole.PRESIDENT, ClubRole.CLUB_HEAD, ClubRole.ORGANIZER, ClubRole.VOLUNTEER, ClubRole.MEMBER])),
     db: Session = Depends(get_db),
 ):
     """Lists all members of the specified club."""

@@ -67,7 +67,7 @@ export default function EventDetailsPage() {
   const [staffingSuccessMsg, setStaffingSuccessMsg] = useState(null);
 
   const canEditEvent = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(activeRole);
-  const canToggleMilestone = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER', 'TEAM_LEAD'].includes(activeRole);
+  const canToggleMilestone = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER', 'VOLUNTEER'].includes(activeRole);
   const isPresident = activeRole === 'PRESIDENT';
 
   const handleLoadStaffing = async () => {

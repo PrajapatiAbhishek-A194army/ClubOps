@@ -20,7 +20,6 @@ from app.schemas.dashboard import (
     OrganizerDashboardData,
     PresidentDashboardData,
     TaskMini,
-    TeamLeadDashboardData,
     TeamMemberWorkload,
     VolunteerDashboardData,
 )
@@ -242,63 +241,6 @@ class DashboardService:
         )
 
     get_club_head_metrics = get_organizer_metrics
-
-    @staticmethod
-    def get_team_lead_metrics(db: Session, club_id: str) -> TeamLeadDashboardData:
-        # 1. Team Workload distribution
-        memberships = (
-            db.query(ClubMembership)
-            .filter(ClubMembership.club_id == club_id)
-            .all()
-        )
-
-        all_tasks = db.query(Task).filter(Task.club_id == club_id).all()
-
-        workload_list = []
-        for m in memberships:
-            if not m.user:
-                continue
-            u_id = m.user_id
-            assigned_count = sum(1 for t in all_tasks if t.assignee_id == u_id)
-            completed_count = sum(1 for t in all_tasks if t.assignee_id == u_id and t.status in [TaskStatus.COMPLETED, TaskStatus.DONE])
-            in_prog_count = sum(1 for t in all_tasks if t.assignee_id == u_id and t.status == TaskStatus.IN_PROGRESS)
-
-            workload_list.append(
-                TeamMemberWorkload(
-                    user_id=u_id,
-                    full_name=m.user.full_name,
-                    role=m.role.value if hasattr(m.role, "value") else str(m.role),
-                    assigned_tasks_count=assigned_count,
-                    completed_tasks_count=completed_count,
-                    in_progress_count=in_prog_count,
-                )
-            )
-
-        # 2. Blocked Tasks
-        blocked_tasks = [
-            _enrich_task_mini(t, db)
-            for t in all_tasks
-            if t.status == TaskStatus.BLOCKED or (hasattr(t, "dependencies") and t.dependencies)
-        ]
-
-        # 3. Upcoming Deadlines
-        active_tasks = [t for t in all_tasks if t.status not in [TaskStatus.COMPLETED, TaskStatus.DONE] and t.due_datetime]
-        active_tasks.sort(key=lambda x: x.due_datetime)
-        upcoming_deadlines = [_enrich_task_mini(t, db) for t in active_tasks[:6]]
-
-        department_stats = {
-            "total_squad_tasks": len(all_tasks),
-            "blocked_count": len(blocked_tasks),
-            "in_progress_count": sum(1 for t in all_tasks if t.status == TaskStatus.IN_PROGRESS),
-            "completed_count": sum(1 for t in all_tasks if t.status in [TaskStatus.COMPLETED, TaskStatus.DONE]),
-        }
-
-        return TeamLeadDashboardData(
-            team_workload=workload_list[:8],
-            blocked_tasks=blocked_tasks[:5],
-            upcoming_deadlines=upcoming_deadlines,
-            department_stats=department_stats,
-        )
 
     @staticmethod
     def get_volunteer_metrics(db: Session, club_id: str, user_id: str) -> VolunteerDashboardData:

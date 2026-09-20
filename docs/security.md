@@ -17,21 +17,21 @@ Role privileges in ClubOps AI are **club-scoped**, never globally elevated:
 
 ---
 
-## 2. Four-Tier Role Hierarchy & Permissions Matrix
+## 2. Role Hierarchy & Permissions Matrix
 
-| Capability / Operation | President | Organizer (Club Head) | Team Lead | Volunteer / Member |
+| Capability / Operation | President | Club Head | Volunteer | Member |
 |:---|:---:|:---:|:---:|:---:|
 | **Transfer Club Presidency** | ✅ | ❌ | ❌ | ❌ |
 | **Manage Club Settings & Code** | ✅ | ❌ | ❌ | ❌ |
 | **Approve / Reject Join Requests** | ✅ | ✅ | ❌ | ❌ |
 | **Create & Edit Events** | ✅ | ✅ | ❌ | ❌ |
 | **Trigger AI Staffing & Plan Approval** | ✅ | ✅ | ❌ | ❌ |
-| **Manage Department Tasks & Kanban** | ✅ | ✅ | ✅ | ❌ |
-| **Update Own Task Status (`TODO` -> `DONE`)** | ✅ | ✅ | ✅ | ✅ |
-| **Assign Volunteers to Tasks** | ✅ | ✅ | ✅ | ❌ |
-| **Run Deterministic Risk Radar Scan** | ✅ | ✅ | ✅ | ❌ |
-| **Ingest Meeting Notes & Convert Items** | ✅ | ✅ | ✅ | ❌ |
-| **Generate AI Announcement Drafts** | ✅ | ✅ | ✅ | ❌ |
+| **Manage Department Tasks & Kanban** | ✅ | ✅ | ❌ | ❌ |
+| **Update Own Task Status (`TODO` -> `DONE`)** | ✅ | ✅ | ✅ | ❌ |
+| **Assign Volunteers to Tasks** | ✅ | ✅ | ❌ | ❌ |
+| **Run Deterministic Risk Radar Scan** | ✅ | ✅ | ❌ | ❌ |
+| **Ingest Meeting Notes & Convert Items** | ✅ | ✅ | ❌ | ❌ |
+| **Generate AI Announcement Drafts** | ✅ | ✅ | ❌ | ❌ |
 | **Publish Announcements & Email Broadcast** | ✅ | ✅ | ❌ | ❌ |
 | **Real-Time Operations Chat** | ✅ | ✅ | ✅ | ✅ |
 | **Access Executive Analytics & Health Score** | ✅ | ✅ | ❌ | ❌ |

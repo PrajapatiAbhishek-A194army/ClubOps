@@ -16,7 +16,6 @@ ALL_ROLES = [
     ClubRole.VOLUNTEER,
     ClubRole.MEMBER,
     getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD),
-    getattr(ClubRole, "TEAM_LEAD", ClubRole.VOLUNTEER),
 ]
 
 

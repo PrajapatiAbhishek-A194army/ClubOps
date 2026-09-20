@@ -25,7 +25,7 @@ from app.services.staffing_service import StaffingService
 router = APIRouter()
 
 LEADERSHIP_ROLES = [ClubRole.PRESIDENT, ClubRole.CLUB_HEAD, getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD)]
-ALL_ROLES = [ClubRole.PRESIDENT, ClubRole.CLUB_HEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER, getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD), getattr(ClubRole, "TEAM_LEAD", ClubRole.VOLUNTEER)]
+ALL_ROLES = [ClubRole.PRESIDENT, ClubRole.CLUB_HEAD, ClubRole.VOLUNTEER, ClubRole.MEMBER, getattr(ClubRole, "ORGANIZER", ClubRole.CLUB_HEAD)]
 
 
 @router.get("/clubs/{club_id}/events", response_model=ApiResponse[List[EventResponse]])

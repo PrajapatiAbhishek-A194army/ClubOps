@@ -167,8 +167,7 @@ All responses follow the standard JSON envelope:
 ### `GET /clubs/{club_id}/dashboard?perspective={ROLE}`
 - Returns role-customized operational metrics:
   - `PRESIDENT`: High-level governance, club health, risk overview.
-  - `ORGANIZER`: Today's tasks, volunteer shifts, pending announcements.
-  - `TEAM_LEAD`: Squad workloads, blocked dependencies, upcoming deadlines.
+  - `CLUB_HEAD`: Today's tasks, volunteer shifts, pending announcements.
   - `VOLUNTEER`: Personal task assignments, shift times, check-in status.
 
 ---

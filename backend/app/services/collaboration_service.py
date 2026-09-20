@@ -151,7 +151,7 @@ class CollaborationService:
                 id="organizers",
                 name="organizers",
                 label="# Club Heads & Leads",
-                description="Planning sync for club heads, team leads, and executive committee.",
+                description="Planning sync for club heads, squad volunteers, and executive committee.",
                 is_event=False,
                 icon="ShieldCheck",
             ),

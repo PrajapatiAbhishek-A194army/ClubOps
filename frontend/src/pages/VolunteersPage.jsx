@@ -135,7 +135,7 @@ export default function VolunteersPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const isManagement = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER', 'TEAM_LEAD'].includes(activeRole);
+  const isManagement = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(activeRole);
 
   const loadData = async () => {
     if (!activeClub) return;

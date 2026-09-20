@@ -17,7 +17,6 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import PresidentDashboard from '../components/dashboards/PresidentDashboard';
 import ClubHeadDashboard from '../components/dashboards/ClubHeadDashboard';
-import TeamLeadDashboard from '../components/dashboards/TeamLeadDashboard';
 import VolunteerDashboard from '../components/dashboards/VolunteerDashboard';
 
 export default function DashboardOverview() {
@@ -30,7 +29,6 @@ export default function DashboardOverview() {
   const PERSPECTIVES = [
     ...(isPlatformPresident ? [{ id: 'PRESIDENT', label: 'President', icon: Crown, desc: 'Executive oversight & approvals' }] : []),
     { id: 'CLUB_HEAD', label: 'Club Head', icon: ClipboardList, desc: 'Operations, tasks & meetings' },
-    { id: 'TEAM_LEAD', label: 'Team Lead', icon: Wrench, desc: 'Workload, blocked tasks & deadlines' },
     { id: 'VOLUNTEER', label: 'Volunteer', icon: HeartHandshake, desc: 'Assignments & instant check-in' },
   ];
 
@@ -38,8 +36,8 @@ export default function DashboardOverview() {
     const roleUpper = (role || (isPlatformPresident ? 'PRESIDENT' : 'CLUB_HEAD')).toUpperCase();
     if (!isPlatformPresident && roleUpper === 'PRESIDENT') return 'CLUB_HEAD';
     if (roleUpper === 'ORGANIZER' || roleUpper === 'CLUB_HEAD') return 'CLUB_HEAD';
-    if (['PRESIDENT', 'TEAM_LEAD', 'VOLUNTEER'].includes(roleUpper)) return roleUpper;
-    return isPlatformPresident ? 'PRESIDENT' : 'CLUB_HEAD';
+    if (roleUpper === 'PRESIDENT' && isPlatformPresident) return 'PRESIDENT';
+    return 'VOLUNTEER';
   };
 
   // Default perspective based on active club membership role or fallback
@@ -221,14 +219,6 @@ export default function DashboardOverview() {
           {(selectedPerspective === 'CLUB_HEAD' || selectedPerspective === 'ORGANIZER') && (
             <ClubHeadDashboard
               data={dashboardData.data || dashboardData.club_head_data || dashboardData.organizer_data || dashboardData}
-              clubId={activeClub?.id}
-              onRefresh={loadMetrics}
-            />
-          )}
-
-          {selectedPerspective === 'TEAM_LEAD' && (
-            <TeamLeadDashboard
-              data={dashboardData.data || dashboardData.team_lead_data || dashboardData}
               clubId={activeClub?.id}
               onRefresh={loadMetrics}
             />

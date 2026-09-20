@@ -90,18 +90,6 @@ class TeamMemberWorkload(BaseModel):
     in_progress_count: int = 0
 
 
-class TeamLeadDashboardData(BaseModel):
-    team_workload: List[TeamMemberWorkload] = []
-    blocked_tasks: List[TaskMini] = []
-    upcoming_deadlines: List[TaskMini] = []
-    department_stats: Dict[str, Any] = {
-        "total_squad_tasks": 0,
-        "blocked_count": 0,
-        "in_progress_count": 0,
-        "completed_count": 0,
-    }
-
-
 class VolunteerDashboardData(BaseModel):
     my_tasks: List[TaskMini] = []
     my_checkin_status: str = "NOT_CHECKED_IN"

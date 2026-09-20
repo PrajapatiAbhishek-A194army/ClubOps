@@ -50,7 +50,7 @@ export default function LandingPage() {
       id: 1,
       title: '2. Meeting Minutes',
       badge: 'Input',
-      desc: 'Team leads conduct a kickoff meeting and paste unstructured meeting minutes or bullet notes.',
+      desc: 'Club heads and volunteers conduct a kickoff meeting and paste unstructured meeting minutes or bullet notes.',
       simulation: {
         input: '"Rahul books main auditorium before Friday. Priya finishes sponsor deck. Kabir handles judge outreach."',
         state: 'Unstructured notes parsed into structured committee action items.',
@@ -171,32 +171,20 @@ export default function LandingPage() {
         { label: 'Deadlines Today', val: '3' },
       ],
     },
-    TEAM_LEAD: {
-      role: 'Team Lead (Technical / Media / PR)',
-      tagline: 'Sub-team delegation, volunteer tracking, and velocity.',
-      features: [
-        'Match open tasks to volunteers based on declared skills',
-        'Resolve blocked dependencies before deadlines hit',
-        'Review sub-team task completion velocity',
-        'Coordinate shift handovers during live event days',
-      ],
-      previewStats: [
-        { label: 'Assigned Volunteers', val: '14' },
-        { label: 'Team Velocity', val: '92%' },
-        { label: 'Blocked Items', val: '1 Flag' },
-      ],
-    },
     VOLUNTEER: {
-      role: 'Student Volunteer',
-      tagline: 'Clear responsibilities, schedule clarity, and check-ins.',
+      role: 'Student Volunteer & Squad Lead',
+      tagline: 'Clear responsibilities, squad coordination, task execution, and check-ins.',
       features: [
         'Dedicated task inbox with deadline notifications',
+        'Match open tasks and squad duties based on declared skills',
         'One-tap event check-in via web and mobile',
+        'Coordinate shift handovers and resolve blocked dependencies',
         'Access event brief, emergency contacts, and maps',
         'Earn automated volunteer certificates and recognition',
       ],
       previewStats: [
         { label: 'My Tasks', val: '3 Active' },
+        { label: 'Squad Velocity', val: '94%' },
         { label: 'Next Shift', val: 'Tomorrow 9 AM' },
         { label: 'Badges Earned', val: '5' },
       ],
@@ -455,7 +443,7 @@ export default function LandingPage() {
             Designed for Every Club Member
           </h2>
           <p className="text-sm sm:text-base text-slate-600">
-            Tailored interfaces with deny-by-default permissions ensure presidents, club heads, team leads, and volunteers see exactly what they need.
+            Tailored interfaces with deny-by-default permissions ensure presidents, club heads, and volunteers see exactly what they need.
           </p>
         </div>
 
@@ -465,7 +453,6 @@ export default function LandingPage() {
             tabs={[
               { id: 'PRESIDENT', label: 'Club President' },
               { id: 'CLUB_HEAD', label: 'Club Head' },
-              { id: 'TEAM_LEAD', label: 'Team Lead' },
               { id: 'VOLUNTEER', label: 'Volunteer' },
             ]}
             activeTab={activeRolePerspective}

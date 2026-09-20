@@ -185,7 +185,6 @@ export default function ClubMembersPage() {
     PRESIDENT: 'emerald',
     CLUB_HEAD: 'info',
     ORGANIZER: 'info',
-    TEAM_LEAD: 'purple',
     VOLUNTEER: 'warning',
     MEMBER: 'neutral',
   };
@@ -274,7 +273,7 @@ export default function ClubMembersPage() {
           {/* Filter & Search Bar */}
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-              {['ALL', 'PRESIDENT', 'CLUB_HEAD', 'TEAM_LEAD', 'VOLUNTEER', 'MEMBER'].map((r) => (
+              {['ALL', 'PRESIDENT', 'CLUB_HEAD', 'VOLUNTEER', 'MEMBER'].map((r) => (
                 <button
                   key={r}
                   onClick={() => setFilterRole(r)}
@@ -366,7 +365,6 @@ export default function ClubMembersPage() {
                       >
                         <option value="PRESIDENT">President</option>
                         <option value="CLUB_HEAD">Club Head</option>
-                        <option value="TEAM_LEAD">Team Lead</option>
                         <option value="VOLUNTEER">Volunteer</option>
                         <option value="MEMBER">Member</option>
                       </select>
@@ -556,7 +554,6 @@ export default function ClubMembersPage() {
             >
               <option value="MEMBER">Club Member</option>
               <option value="VOLUNTEER">Volunteer</option>
-              <option value="TEAM_LEAD">Team Lead</option>
               <option value="CLUB_HEAD">Club Head</option>
               <option value="PRESIDENT">Club President</option>
             </select>

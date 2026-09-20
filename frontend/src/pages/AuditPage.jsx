@@ -495,7 +495,6 @@ export default function AuditPage() {
                     <th className="p-4">Category</th>
                     <th className="p-4 text-center">President</th>
                     <th className="p-4 text-center">Club Head</th>
-                    <th className="p-4 text-center">Team Lead</th>
                     <th className="p-4 text-center">Volunteer</th>
                     <th className="p-4 pr-5 text-center">Member</th>
                   </tr>
@@ -540,7 +539,6 @@ export default function AuditPage() {
                         </td>
                         <td className="p-4 text-center">{renderStatusBadge(rule.president)}</td>
                         <td className="p-4 text-center">{renderStatusBadge(rule.club_head || rule.organizer)}</td>
-                        <td className="p-4 text-center">{renderStatusBadge(rule.team_lead)}</td>
                         <td className="p-4 text-center">{renderStatusBadge(rule.volunteer)}</td>
                         <td className="p-4 pr-5 text-center">{renderStatusBadge(rule.member)}</td>
                       </tr>

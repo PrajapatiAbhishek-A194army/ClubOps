@@ -81,7 +81,7 @@ export default function AnnouncementsPage() {
   const [manualPublishNow, setManualPublishNow] = useState(false);
 
   const isLeadership = ['PRESIDENT', 'CLUB_HEAD'].includes(activeRole);
-  const canDraft = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER', 'TEAM_LEAD'].includes(activeRole);
+  const canDraft = ['PRESIDENT', 'CLUB_HEAD', 'ORGANIZER'].includes(activeRole);
 
   const fetchData = async () => {
     if (!activeClub?.id) return;

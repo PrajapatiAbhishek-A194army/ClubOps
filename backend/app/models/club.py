@@ -9,10 +9,10 @@ from app.database.session import Base
 class ClubRole(str, enum.Enum):
     PRESIDENT = "PRESIDENT"
     CLUB_HEAD = "CLUB_HEAD"
-    ORGANIZER = "ORGANIZER"
-    TEAM_LEAD = "TEAM_LEAD"
     VOLUNTEER = "VOLUNTEER"
     MEMBER = "MEMBER"
+    TEAM_LEAD = "VOLUNTEER"
+    ORGANIZER = "CLUB_HEAD"
 
 
 class ClubStatus(str, enum.Enum):

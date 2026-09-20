@@ -44,7 +44,6 @@ class GovernanceRule(BaseModel):
     president: str  # "ALLOW", "DENY", "APPROVAL_REQUIRED"
     club_head: Optional[str] = None
     organizer: Optional[str] = None
-    team_lead: str
     volunteer: str
     member: str
     requires_dual_approval: bool = False
