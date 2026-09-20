@@ -135,12 +135,16 @@ class StaffingService:
             (event.end_date - event.start_date).total_seconds() / 3600.0,
         )
 
+        # Pass event milestones into the AI so tasks can be linked to milestones
+        event_milestones = event.timeline or []
+
         plan_data = StaffingService._call_llm_or_fallback_estimation(
             event_title=event.title,
             event_desc=event.description or "",
             event_type=event.event_type.value,
             duration_hours=duration_hours,
             available_skills=[s.name for s in skills],
+            milestones=event_milestones,
         )
 
         min_volunteers = plan_data.get("min_volunteers_required", 6)
@@ -167,6 +171,9 @@ class StaffingService:
             .all()
         )
         active_user_ids = [m.user_id for m in active_memberships]
+
+        # Build a lookup: milestone_id -> milestone_title for display
+        milestone_lookup = {m.get("id"): m.get("title", "") for m in event_milestones}
 
         proposed_tasks: List[SuggestedTaskAssignment] = []
         assigned_user_ids = set()
@@ -199,6 +206,10 @@ class StaffingService:
                         sr.assigned_count += 1
 
             due_date = event.start_date - timedelta(days=t.get("deadline_offset_days", 2))
+            # Resolve milestone_id returned by AI
+            m_id = t.get("milestone_id") or None
+            m_title = milestone_lookup.get(m_id, "") if m_id else ""
+
             proposed_tasks.append(
                 SuggestedTaskAssignment(
                     task_title=t.get("task_title", "Operational Task"),
@@ -211,6 +222,8 @@ class StaffingService:
                     match_reason=match_reason,
                     skill_match_pct=match_pct,
                     status="TODO",
+                    milestone_id=m_id,
+                    milestone_title=m_title,
                 )
             )
 
@@ -336,6 +349,7 @@ class StaffingService:
         event_type: str,
         duration_hours: float,
         available_skills: List[str],
+        milestones: Optional[List[dict]] = None,
     ) -> dict:
         """
         Queries Groq LLM to estimate staffing counts and task breakdown,
@@ -346,6 +360,15 @@ class StaffingService:
                 from groq import Groq
                 client = Groq(api_key=settings.GROQ_API_KEY)
 
+                # Build milestone context string for the prompt
+                milestones_context = ""
+                if milestones:
+                    milestone_lines = [
+                        f"  - id: {m.get('id','')}, title: {m.get('title','')}"
+                        for m in milestones
+                    ]
+                    milestones_context = "Event Milestones (link each task to one of these milestone ids):\n" + "\n".join(milestone_lines) + "\n"
+
                 system_prompt = (
                     "You are the operations architect for ClubOps AI. "
                     "Analyze the given event and output a structured JSON with: "
@@ -353,8 +376,9 @@ class StaffingService:
                     "2. 'skill_requirements': array of objects with 'skill_name' (string) and 'required_count' (integer count). "
                     "3. 'proposed_tasks': array of 4 to 6 objects with 'task_title', 'task_description', "
                     "'priority' ('LOW'|'MEDIUM'|'HIGH'|'CRITICAL'), 'deadline_offset_days' (int, days prior to start), "
-                    "and 'required_skill' (string matching one of available skills or realistic skill). "
-                    "4. 'ai_explanation': concise paragraph explaining why this staffing level and skill breakdown was chosen. "
+                    "'required_skill' (string), and 'milestone_id' (string — MUST match one of the provided milestone ids, "
+                    "distribute tasks evenly across milestones). "
+                    "4. 'ai_explanation': concise paragraph explaining the staffing and milestone breakdown. "
                     "Output ONLY valid JSON."
                 )
                 user_content = (
@@ -363,6 +387,7 @@ class StaffingService:
                     f"Duration Hours: {duration_hours}\n"
                     f"Description: {event_desc}\n"
                     f"Available Skills: {', '.join(available_skills[:15])}\n"
+                    f"{milestones_context}"
                 )
 
                 res = client.chat.completions.create(
@@ -381,9 +406,12 @@ class StaffingService:
             except Exception as e:
                 logger.warning(f"Groq staffing estimator fallback due to: {e}")
 
-        # Deterministic Domain Fallback
+        # Deterministic Domain Fallback — assign tasks to milestones in round-robin
         is_tech = any(k in event_title.lower() for k in ["power bi", "python", "ai", "hackathon", "code", "data"])
         min_vols = 8 if is_tech else 6
+        ml = milestones or []
+        # Helper: get milestone_id by index (round-robin)
+        def mid(i): return ml[i % len(ml)].get("id") if ml else None
 
         return {
             "min_volunteers_required": min_vols,
@@ -400,6 +428,7 @@ class StaffingService:
                     "priority": "HIGH",
                     "deadline_offset_days": 3,
                     "required_skill": "Power BI" if is_tech else "Event Management",
+                    "milestone_id": mid(0),
                 },
                 {
                     "task_title": "Audio/Visual and projector setup in auditorium",
@@ -407,6 +436,7 @@ class StaffingService:
                     "priority": "HIGH",
                     "deadline_offset_days": 1,
                     "required_skill": "Audio/Visual",
+                    "milestone_id": mid(1),
                 },
                 {
                     "task_title": "Coordinate attendee check-in desks and name tags",
@@ -414,6 +444,7 @@ class StaffingService:
                     "priority": "MEDIUM",
                     "deadline_offset_days": 1,
                     "required_skill": "Logistics",
+                    "milestone_id": mid(2),
                 },
                 {
                     "task_title": "Design and publish social media recap teaser",
@@ -421,11 +452,12 @@ class StaffingService:
                     "priority": "MEDIUM",
                     "deadline_offset_days": 4,
                     "required_skill": "Design & Media",
+                    "milestone_id": mid(0),
                 },
             ],
             "ai_explanation": (
                 f"For a {duration_hours:.1f}-hour {event_type} ({event_title}), minimum {min_vols} volunteers are required "
                 f"to support technical guidance (3), A/V reliability (2), and crowd logistics (2). "
-                f"Staggered task deadlines ensure operational readiness before participants arrive."
+                f"Tasks are distributed across milestones so each milestone auto-completes when its tasks are done."
             ),
         }

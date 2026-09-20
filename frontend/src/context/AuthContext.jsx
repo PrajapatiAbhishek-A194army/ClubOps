@@ -40,13 +40,16 @@ export function AuthProvider({ children }) {
 
       if (userClubs.length > 0) {
         // Keep active club or default to first
-        setActiveClub((prev) => {
-          if (prev && userClubs.some((c) => c.id === prev.id)) {
-            return prev;
-          }
-          return userClubs[0];
+        const currentActive = await new Promise(resolve => {
+          setActiveClub((prev) => {
+            const kept = prev && userClubs.some((c) => c.id === prev.id) ? prev : userClubs[0];
+            resolve(kept);
+            return kept;
+          });
         });
-        setActiveRole(normalizeRole(userClubs[0].user_role));
+        // Set role from the actual active club
+        const activeClubData = userClubs.find(c => c.id === currentActive?.id) || userClubs[0];
+        setActiveRole(normalizeRole(activeClubData.user_role));
       } else {
         setActiveRole(normalizeRole(userData.active_role));
       }

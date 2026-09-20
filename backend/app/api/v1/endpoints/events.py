@@ -291,12 +291,16 @@ def approve_staffing_plan(
             club_id=club_id,
             event_id=event.id,
             creator_id=current_user.id,
+            # Set assignee_id directly so task.assignee relationship resolves on Kanban
+            assignee_id=item.suggested_volunteer_id if item.suggested_volunteer_id else None,
             title=item.task_title,
             description=item.task_description or "",
             priority=priority_enum,
             status=TaskStatus.TODO,
             due_datetime=due_date,
             created_source=TaskCreatedSource.AI,
+            # Link task to its parent milestone for auto-complete
+            milestone_id=item.milestone_id if item.milestone_id else None,
         )
         db.add(task)
         db.flush()

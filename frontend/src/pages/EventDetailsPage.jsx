@@ -29,6 +29,7 @@ import {
   deleteEvent,
   getEventStaffingPlan,
   approveEventStaffingPlan,
+  getClubTasks,
 } from '../services/api';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
@@ -48,6 +49,8 @@ export default function EventDetailsPage() {
 
   // Milestone toggling animation state
   const [togglingMilestoneId, setTogglingMilestoneId] = useState(null);
+  // Tasks for milestone progress display
+  const [eventTasks, setEventTasks] = useState([]);
 
   // Edit Event Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -149,6 +152,18 @@ export default function EventDetailsPage() {
 
   useEffect(() => {
     fetchEvent();
+  }, [activeClub?.id, eventId]);
+
+  // Load event tasks so we can display per-milestone progress
+  useEffect(() => {
+    const fetchTasks = async () => {
+      if (!activeClub?.id || !eventId) return;
+      try {
+        const res = await getClubTasks(activeClub.id, { event_id: eventId });
+        if (res.success) setEventTasks(res.data || []);
+      } catch (_) {}
+    };
+    fetchTasks();
   }, [activeClub?.id, eventId]);
 
   const handleMilestoneToggle = async (milestoneId, currentCompleted) => {
@@ -480,49 +495,81 @@ export default function EventDetailsPage() {
                   const isDone = m.completed;
                   const isToggling = togglingMilestoneId === m.id;
 
+                  // Compute per-milestone task progress
+                  const milestoneTasks = eventTasks.filter(t => t.milestone_id === m.id);
+                  const totalMTasks = milestoneTasks.length;
+                  const doneMTasks = milestoneTasks.filter(
+                    t => ['DONE', 'COMPLETED'].includes(t.status)
+                  ).length;
+                  const hasLinkedTasks = totalMTasks > 0;
+                  const taskPct = totalMTasks > 0 ? Math.round((doneMTasks / totalMTasks) * 100) : 0;
+
+                  // Auto-driven milestones can't be manually toggled (tasks drive them)
+                  const isAutoControlled = hasLinkedTasks;
+                  const clickable = canToggleMilestone && !isAutoControlled;
+
                   return (
                     <div
                       key={m.id || idx}
-                      onClick={() => handleMilestoneToggle(m.id, isDone)}
-                      className={`flex items-start justify-between gap-3 p-3.5 rounded-xl border transition-all ${
+                      onClick={() => clickable && handleMilestoneToggle(m.id, isDone)}
+                      className={`p-3.5 rounded-xl border transition-all ${
                         isDone
-                          ? 'bg-slate-50/70 border-slate-200 opacity-80'
-                          : 'bg-white border-slate-200 hover:border-emerald-300 shadow-2xs'
-                      } ${canToggleMilestone ? 'cursor-pointer' : 'cursor-default'}`}
+                          ? 'bg-emerald-50/60 border-emerald-200'
+                          : 'bg-white border-slate-200 hover:border-emerald-200 shadow-2xs'
+                      } ${clickable ? 'cursor-pointer' : 'cursor-default'}`}
                     >
-                      <div className="flex items-start gap-3">
-                        <button
-                          disabled={!canToggleMilestone || isToggling}
-                          className="mt-0.5 shrink-0 text-slate-400 hover:text-emerald-600 transition-colors"
-                        >
-                          {isToggling ? (
-                            <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
-                          ) : isDone ? (
-                            <CheckCircle2 className="w-5 h-5 text-emerald-600 fill-emerald-100" />
-                          ) : (
-                            <Circle className="w-5 h-5 text-slate-300 hover:text-emerald-500" />
-                          )}
-                        </button>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          {/* Status icon */}
+                          <div className="mt-0.5 shrink-0">
+                            {isToggling ? (
+                              <Loader2 className="w-5 h-5 animate-spin text-emerald-600" />
+                            ) : isDone ? (
+                              <CheckCircle2 className="w-5 h-5 text-emerald-600 fill-emerald-100" />
+                            ) : (
+                              <Circle className={`w-5 h-5 ${clickable ? 'text-slate-300 hover:text-emerald-500' : 'text-slate-200'}`} />
+                            )}
+                          </div>
 
-                        <div>
-                          <p
-                            className={`text-sm font-semibold ${
-                              isDone ? 'line-through text-slate-500' : 'text-slate-900'
-                            }`}
-                          >
-                            {m.title}
-                          </p>
-                          <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                            <span>Target: {m.target_date || 'Ongoing'}</span>
-                            <span>•</span>
-                            <span className="font-medium text-slate-600">Assigned: {m.assigned_to || 'Core Team'}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-semibold ${isDone ? 'line-through text-slate-500' : 'text-slate-900'}`}>
+                              {m.title}
+                            </p>
+                            <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                              <span>Target: {m.target_date || 'Ongoing'}</span>
+                              <span>•</span>
+                              <span className="font-medium text-slate-600">Assigned: {m.assigned_to || 'Core Team'}</span>
+                            </div>
+
+                            {/* Per-milestone task progress bar */}
+                            {hasLinkedTasks && (
+                              <div className="mt-2.5">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-[11px] font-medium text-slate-500">
+                                    {doneMTasks}/{totalMTasks} tasks done
+                                  </span>
+                                  <span className={`text-[11px] font-bold ${taskPct === 100 ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                    {taskPct}%
+                                  </span>
+                                </div>
+                                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full transition-all duration-500 ${taskPct === 100 ? 'bg-emerald-500' : 'bg-blue-400'}`}
+                                    style={{ width: `${taskPct}%` }}
+                                  />
+                                </div>
+                                <p className="text-[10px] text-slate-400 mt-1">
+                                  {taskPct === 100 ? '✅ Auto-completed from Kanban tasks' : '⚡ Completes automatically when all tasks are done'}
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </div>
-                      </div>
 
-                      <Badge variant={isDone ? 'success' : 'outline'} className="text-[11px] shrink-0">
-                        {isDone ? 'Done' : 'Pending'}
-                      </Badge>
+                        <Badge variant={isDone ? 'success' : (hasLinkedTasks ? 'info' : 'outline')} className="text-[11px] shrink-0">
+                          {isDone ? 'Done' : hasLinkedTasks ? `${doneMTasks}/${totalMTasks}` : 'Pending'}
+                        </Badge>
+                      </div>
                     </div>
                   );
                 })}

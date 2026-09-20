@@ -67,6 +67,8 @@ class Task(Base):
         self.due_datetime = value
 
     required_skill_id = Column(String(36), ForeignKey("skills.id", ondelete="SET NULL"), nullable=True)
+    # ID of the milestone (from event.timeline[].id) this task belongs to
+    milestone_id = Column(String(36), nullable=True, index=True)
     created_source = Column(Enum(TaskCreatedSource), default=TaskCreatedSource.MANUAL, nullable=False)
 
     parent_task_id = Column(String(36), ForeignKey("tasks.id", ondelete="SET NULL"), nullable=True)

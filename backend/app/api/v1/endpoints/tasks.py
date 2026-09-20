@@ -19,6 +19,8 @@ from app.schemas.task import (
 )
 from app.services.notification_service import NotificationService
 from app.services.task_service import TaskService, enrich_task_response
+from app.services.event_service import auto_complete_milestones_from_tasks
+from app.models.event import Event
 
 router = APIRouter()
 
@@ -100,14 +102,15 @@ def get_kanban_board(
 
     for t in tasks:
         # Check overdue
-        if t.status != TaskStatus.COMPLETED and t.deadline and t.deadline < now:
+        is_done = t.status in (TaskStatus.COMPLETED, TaskStatus.DONE)
+        if not is_done and t.deadline and t.deadline < now:
             overdue_count += 1
 
         if t.is_blocked or t.status == TaskStatus.BLOCKED:
             blocked_col.append(t)
         elif t.status == TaskStatus.IN_PROGRESS:
             in_progress_col.append(t)
-        elif t.status == TaskStatus.COMPLETED:
+        elif is_done:
             completed_col.append(t)
         else:
             todo_col.append(t)
@@ -291,6 +294,12 @@ def update_task_status(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found in this club")
 
     updated = TaskService.update_task_status(db=db, task=task, status_update=status_in)
+
+    # Auto-complete parent milestone if all its tasks are now done
+    if task.event_id and task.milestone_id:
+        event = db.query(Event).filter(Event.id == task.event_id).first()
+        if event:
+            auto_complete_milestones_from_tasks(db=db, event=event)
 
     return ApiResponse(
         success=True,

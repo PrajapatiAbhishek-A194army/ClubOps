@@ -20,6 +20,9 @@ class SuggestedTaskAssignment(BaseModel):
     match_reason: Optional[str] = None
     skill_match_pct: Optional[int] = None
     status: Optional[str] = "TODO"
+    # Which milestone (from event.timeline[].id) this task belongs to
+    milestone_id: Optional[str] = None
+    milestone_title: Optional[str] = None
 
 
 class AIEventPlanResponse(BaseModel):

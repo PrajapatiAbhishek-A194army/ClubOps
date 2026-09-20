@@ -76,6 +76,74 @@ def enrich_event_response(event: Event) -> Event:
     return event
 
 
+def auto_complete_milestones_from_tasks(db: Session, event: Event) -> bool:
+    """
+    Auto-completes milestones when ALL their linked tasks are DONE or COMPLETED.
+    Returns True if any milestone state changed (so caller can decide to commit).
+    
+    Logic:
+    - Group event tasks by milestone_id
+    - For each milestone that has tasks: if all tasks are DONE/COMPLETED → mark milestone completed
+    - If any task is not done → milestone stays/reverts to pending
+    - Milestones with no tasks linked are left untouched (manual toggle still works for them)
+    """
+    from app.models.task import Task, TaskStatus
+
+    timeline = list(event.timeline or [])
+    if not timeline:
+        return False
+
+    # Query all tasks for this event that have a milestone_id
+    event_tasks = (
+        db.query(Task)
+        .filter(Task.event_id == event.id, Task.milestone_id.isnot(None))
+        .all()
+    )
+
+    # Group tasks by milestone_id
+    tasks_by_milestone: dict = {}
+    for t in event_tasks:
+        mid = t.milestone_id
+        if mid not in tasks_by_milestone:
+            tasks_by_milestone[mid] = []
+        tasks_by_milestone[mid].append(t)
+
+    changed = False
+    for milestone in timeline:
+        mid = milestone.get("id")
+        if not mid or mid not in tasks_by_milestone:
+            # No linked tasks — leave milestone state as-is
+            continue
+
+        milestone_tasks = tasks_by_milestone[mid]
+        all_done = all(
+            (hasattr(t.status, "value") and t.status.value in ("DONE", "COMPLETED"))
+            or str(t.status) in ("DONE", "COMPLETED")
+            for t in milestone_tasks
+        )
+
+        prev = milestone.get("completed", False)
+        milestone["completed"] = all_done
+        if prev != all_done:
+            changed = True
+
+    if changed:
+        event.timeline = timeline
+
+        # Auto-adjust event status
+        all_completed = all(m.get("completed", False) for m in timeline)
+        if all_completed and len(timeline) > 0:
+            event.status = EventStatus.COMPLETED
+        elif any(m.get("completed", False) for m in timeline):
+            if event.status not in (EventStatus.COMPLETED, EventStatus.ON_TRACK):
+                event.status = EventStatus.ON_TRACK
+
+        db.commit()
+        db.refresh(event)
+
+    return changed
+
+
 class EventService:
     @staticmethod
     def get_club_events(
