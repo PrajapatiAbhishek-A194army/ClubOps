@@ -42,6 +42,7 @@ export default function ClubSettingsPage() {
   const [newClubName, setNewClubName] = useState('');
   const [newClubCode, setNewClubCode] = useState('');
   const [newClubDesc, setNewClubDesc] = useState('');
+  const [newClubHeadEmail, setNewClubHeadEmail] = useState('');
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState(null);
 
@@ -100,12 +101,14 @@ export default function ClubSettingsPage() {
         code: newClubCode.toLowerCase().replace(/\s+/g, '-'),
         description: newClubDesc,
         institution: institution || 'University Campus',
+        club_head_email: newClubHeadEmail.trim() || undefined,
       });
       await refreshProfile();
       setIsNewClubModalOpen(false);
       setNewClubName('');
       setNewClubCode('');
       setNewClubDesc('');
+      setNewClubHeadEmail('');
       if (res.data) {
         switchClub(res.data);
       }
@@ -136,13 +139,15 @@ export default function ClubSettingsPage() {
           </p>
         </div>
 
-        <Button
-          variant="outline"
-          leftIcon={Building2}
-          onClick={() => setIsNewClubModalOpen(true)}
-        >
-          Create Another Club
-        </Button>
+        {isPresident && (
+          <Button
+            variant="outline"
+            leftIcon={Building2}
+            onClick={() => setIsNewClubModalOpen(true)}
+          >
+            Create Another Club
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -540,6 +545,14 @@ export default function ClubSettingsPage() {
             placeholder="What does your student club do?"
             value={newClubDesc}
             onChange={(e) => setNewClubDesc(e.target.value)}
+          />
+
+          <Input
+            label="Appoint Initial Club Head (Email)"
+            placeholder="e.g. head@campus.edu"
+            value={newClubHeadEmail}
+            onChange={(e) => setNewClubHeadEmail(e.target.value)}
+            helperText="Appoint the initial Club Head who will lead this club's operations"
           />
 
           <div className="pt-3 flex items-center justify-end gap-2">

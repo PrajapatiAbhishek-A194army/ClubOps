@@ -13,7 +13,8 @@ class ClubBase(BaseModel):
 
 
 class ClubCreate(ClubBase):
-    pass
+    club_head_user_id: Optional[str] = None
+    club_head_email: Optional[str] = None
 
 
 class ClubUpdate(BaseModel):

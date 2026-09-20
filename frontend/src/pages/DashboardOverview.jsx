@@ -24,22 +24,25 @@ export default function DashboardOverview() {
   const navigate = useNavigate();
   const { activeClub, activeRole, user } = useAuth();
 
+  const isPlatformPresident = user?.is_superuser || user?.email === 'president@clubops.ai';
+
   // Roles available for perspective switching
   const PERSPECTIVES = [
-    { id: 'PRESIDENT', label: 'President', icon: Crown, desc: 'Executive oversight & approvals' },
+    ...(isPlatformPresident ? [{ id: 'PRESIDENT', label: 'President', icon: Crown, desc: 'Executive oversight & approvals' }] : []),
     { id: 'CLUB_HEAD', label: 'Club Head', icon: ClipboardList, desc: 'Operations, tasks & meetings' },
     { id: 'TEAM_LEAD', label: 'Team Lead', icon: Wrench, desc: 'Workload, blocked tasks & deadlines' },
     { id: 'VOLUNTEER', label: 'Volunteer', icon: HeartHandshake, desc: 'Assignments & instant check-in' },
   ];
 
   const resolveRolePerspective = (role) => {
-    const roleUpper = (role || 'PRESIDENT').toUpperCase();
+    const roleUpper = (role || (isPlatformPresident ? 'PRESIDENT' : 'CLUB_HEAD')).toUpperCase();
+    if (!isPlatformPresident && roleUpper === 'PRESIDENT') return 'CLUB_HEAD';
     if (roleUpper === 'ORGANIZER' || roleUpper === 'CLUB_HEAD') return 'CLUB_HEAD';
     if (['PRESIDENT', 'TEAM_LEAD', 'VOLUNTEER'].includes(roleUpper)) return roleUpper;
-    return 'PRESIDENT';
+    return isPlatformPresident ? 'PRESIDENT' : 'CLUB_HEAD';
   };
 
-  // Default perspective based on active club membership role or fallback to PRESIDENT
+  // Default perspective based on active club membership role or fallback
   const [selectedPerspective, setSelectedPerspective] = useState(() => {
     return resolveRolePerspective(activeRole);
   });

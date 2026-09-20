@@ -34,7 +34,7 @@ import CommandPalette from '../components/CommandPalette';
 import NotificationCenter from '../components/NotificationCenter';
 import UserProfileModal from '../components/UserProfileModal';
 import AIWorkflowModal from '../components/AIWorkflowModal';
-import { APP_NAME } from '../utils/constants';
+import { APP_NAME, USER_ROLES } from '../utils/constants';
 
 export default function DashboardShell({ children }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -63,8 +63,17 @@ export default function DashboardShell({ children }) {
     return () => window.removeEventListener('open-command-palette', handleOpenPalette);
   }, []);
 
+  const isPlatformPresident = user?.is_superuser || user?.email === 'president@clubops.ai';
+
+  const formatRole = (role) => {
+    if (!role) return 'Club Head';
+    const r = role.toUpperCase();
+    if (r === 'ORGANIZER' || r === 'CLUB_HEAD') return 'Club Head';
+    return USER_ROLES[r] || role.replace('_', ' ');
+  };
+
   const roles = [
-    { id: 'PRESIDENT', label: 'Club President', badge: 'Admin' },
+    ...(isPlatformPresident ? [{ id: 'PRESIDENT', label: 'Club President', badge: 'Admin' }] : []),
     { id: 'CLUB_HEAD', label: 'Club Head', badge: 'Lead' },
     { id: 'TEAM_LEAD', label: 'Team Lead', badge: 'Manager' },
     { id: 'VOLUNTEER', label: 'Volunteer', badge: 'Member' },
@@ -207,7 +216,7 @@ export default function DashboardShell({ children }) {
                       }`}
                     >
                       <div className="truncate font-semibold">{c.name}</div>
-                      <div className="text-[10px] text-slate-400">Role: {c.user_role}</div>
+                      <div className="text-[10px] text-slate-400">Role: {formatRole(c.user_role)}</div>
                     </button>
                   ))
                 ) : (
@@ -312,7 +321,7 @@ export default function DashboardShell({ children }) {
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                     <span className="text-xs font-semibold text-slate-800">
-                      {roles.find((r) => r.id === activeRole)?.label}
+                      {formatRole(activeRole)}
                     </span>
                   </div>
                   <Badge variant="emerald" size="sm">
@@ -393,8 +402,8 @@ export default function DashboardShell({ children }) {
                   <div className="text-xs font-bold text-slate-900 leading-tight">
                     {user.full_name}
                   </div>
-                  <div className="text-[10px] text-slate-500 capitalize">
-                    {activeRole.replace('_', ' ').toLowerCase()}
+                  <div className="text-[10px] text-slate-500 font-medium">
+                    {formatRole(activeRole)}
                   </div>
                 </div>
                 <button

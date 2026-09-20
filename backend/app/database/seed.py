@@ -106,7 +106,7 @@ def seed_demo_data():
                 "code": "acm-campus",
                 "description": "Advancing computing as a science & profession through hackathons and coding leagues.",
                 "institution": "Institute of Technology & Engineering",
-                "created_by": users_by_email["organizer@clubops.ai"],
+                "created_by": users_by_email["president@clubops.ai"],
             },
         ]
 
@@ -138,10 +138,10 @@ def seed_demo_data():
             (users_by_email["medialead@clubops.ai"], gdsc, ClubRole.TEAM_LEAD, "Design & PR"),
             (users_by_email["volunteer@clubops.ai"], gdsc, ClubRole.VOLUNTEER, "Logistics & Desk"),
             (users_by_email["member@clubops.ai"], gdsc, ClubRole.MEMBER, "General Member"),
-            # Cross-club memberships
+            # Cross-club memberships - Single President oversees all campus clubs
             (users_by_email["president@clubops.ai"], clubs_by_code["ras-campus"], ClubRole.PRESIDENT, "Executive Board"),
+            (users_by_email["president@clubops.ai"], clubs_by_code["acm-campus"], ClubRole.PRESIDENT, "Executive Board"),
             (users_by_email["techlead@clubops.ai"], clubs_by_code["ras-campus"], ClubRole.TEAM_LEAD, "Hardware & Embedded"),
-            (users_by_email["organizer@clubops.ai"], clubs_by_code["acm-campus"], ClubRole.MEMBER, "Advisory Member"),
         ]
 
         for user, club, role, dept in memberships_to_add:

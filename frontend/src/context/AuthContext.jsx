@@ -32,6 +32,12 @@ export function AuthProvider({ children }) {
       const userClubs = clubsRes.data || [];
       setClubs(userClubs);
 
+      const normalizeRole = (r) => {
+        if (!r) return 'CLUB_HEAD';
+        const up = r.toUpperCase();
+        return up === 'ORGANIZER' ? 'CLUB_HEAD' : up;
+      };
+
       if (userClubs.length > 0) {
         // Keep active club or default to first
         setActiveClub((prev) => {
@@ -40,9 +46,9 @@ export function AuthProvider({ children }) {
           }
           return userClubs[0];
         });
-        setActiveRole(userClubs[0].user_role || 'PRESIDENT');
+        setActiveRole(normalizeRole(userClubs[0].user_role));
       } else {
-        setActiveRole(userData.active_role || 'PRESIDENT');
+        setActiveRole(normalizeRole(userData.active_role));
       }
     } catch (err) {
       console.warn('Session expired or error fetching profile:', err);
@@ -88,7 +94,8 @@ export function AuthProvider({ children }) {
   const switchClub = (club) => {
     setActiveClub(club);
     if (club.user_role) {
-      setActiveRole(club.user_role);
+      const up = club.user_role.toUpperCase();
+      setActiveRole(up === 'ORGANIZER' ? 'CLUB_HEAD' : up);
     }
   };
 

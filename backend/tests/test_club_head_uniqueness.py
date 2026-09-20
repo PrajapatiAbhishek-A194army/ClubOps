@@ -104,3 +104,96 @@ def test_user_cannot_be_head_of_multiple_clubs():
         db.rollback()
         db.close()
 
+
+def test_club_head_cannot_be_made_president():
+    import pytest
+    db = SessionLocal()
+    import uuid
+    uid = uuid.uuid4().hex[:6]
+    try:
+        club = Club(name=f"Club Pres Test {uid}", code=f"club_pres_{uid}", status=ClubStatus.ACTIVE)
+        db.add(club)
+        db.flush()
+
+        head_email = f"head_nopres_{uid}@test.clubops"
+        m = MemberService.add_member(
+            db=db,
+            club_id=club.id,
+            member_in=MemberCreate(
+                email=head_email,
+                role=ClubRole.CLUB_HEAD,
+                department="Leadership",
+            ),
+        )
+        assert m.role == ClubRole.CLUB_HEAD
+
+        # Attempt to make Club Head into a President -> Must fail with ValueError
+        with pytest.raises(ValueError) as excinfo:
+            MemberService.update_member(
+                db=db,
+                membership=m,
+                update_in=MemberUpdate(role=ClubRole.PRESIDENT),
+            )
+        assert "cannot be made President" in str(excinfo.value)
+
+    finally:
+        db.rollback()
+        db.close()
+
+
+def test_president_assigns_club_head_during_creation():
+    from app.services.club_service import ClubService
+    from app.schemas.club import ClubCreate
+    db = SessionLocal()
+    import uuid
+    uid = uuid.uuid4().hex[:6]
+    try:
+        pres_user = db.query(User).filter(User.email == "president@clubops.ai").first()
+        if not pres_user:
+            pres_user = User(
+                email="president@clubops.ai",
+                full_name="Alex President",
+                hashed_password="hash",
+                is_superuser=True,
+            )
+            db.add(pres_user)
+            db.flush()
+
+        head_email = f"newclubhead_{uid}@test.clubops"
+        new_club = ClubService.create_club(
+            db=db,
+            user_id=pres_user.id,
+            club_in=ClubCreate(
+                name=f"CyberSec Guild {uid}",
+                code=f"cybersec_{uid}",
+                description="Ethical hacking and defense club",
+                club_head_email=head_email,
+            ),
+        )
+        assert new_club.id is not None
+
+        # Verify memberships: President is President, specified email is Club Head
+        pres_m = (
+            db.query(ClubMembership)
+            .filter(ClubMembership.club_id == new_club.id, ClubMembership.user_id == pres_user.id)
+            .first()
+        )
+        assert pres_m is not None
+        assert pres_m.role == ClubRole.PRESIDENT
+
+        head_user = db.query(User).filter(User.email == head_email).first()
+        assert head_user is not None
+
+        head_m = (
+            db.query(ClubMembership)
+            .filter(ClubMembership.club_id == new_club.id, ClubMembership.user_id == head_user.id)
+            .first()
+        )
+        assert head_m is not None
+        assert head_m.role == ClubRole.CLUB_HEAD
+
+    finally:
+        db.rollback()
+        db.close()
+
+

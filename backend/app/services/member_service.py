@@ -39,6 +39,14 @@ class MemberService:
         if existing:
             raise ValueError(f"User '{email}' is already a member of this club.")
 
+        # Single President Rule: President is the College Principal / Super Admin.
+        # No other user or Club Head can be made President.
+        if member_in.role == ClubRole.PRESIDENT:
+            if not getattr(user, "is_superuser", False) and user.email != "president@clubops.ai":
+                raise ValueError(
+                    "A member or Club Head cannot be made President. There is only one President (College Principal) across the platform."
+                )
+
         # Hard Rule 1: A user can be Club Head of at most ONE club across the platform.
         if member_in.role == ClubRole.CLUB_HEAD:
             head_in_other = (
@@ -112,6 +120,14 @@ class MemberService:
     @staticmethod
     def update_member(db: Session, membership: ClubMembership, update_in: MemberUpdate) -> ClubMembership:
         if update_in.role is not None:
+            # Single President Rule: Member or Club Head cannot be made President.
+            if update_in.role == ClubRole.PRESIDENT:
+                user = db.query(User).filter(User.id == membership.user_id).first()
+                if not getattr(user, "is_superuser", False) and getattr(user, "email", "") != "president@clubops.ai":
+                    raise ValueError(
+                        "A member or Club Head cannot be made President. There is only one President (College Principal) across the platform."
+                    )
+
             if update_in.role == ClubRole.CLUB_HEAD:
                 # Hard Rule 1: A user can be Club Head of at most ONE club across the platform.
                 head_in_other = (
