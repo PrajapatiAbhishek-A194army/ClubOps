@@ -86,6 +86,7 @@ To prevent misuse of operational authority, ClubOps AI enforces strict Separatio
 2. **Approval Gate Separation**: AI tools are strictly advisory. No AI pipeline may directly commit database mutations without explicit human approval by a qualified officer.
 3. **Broadcast Authorization**: Mass multi-channel dispatch (Email via Brevo, in-app push) requires Executive or Club Head clearance to eliminate spam or unauthorized campus communications.
 4. **Credential Isolation**: Third-party API keys (Groq, Brevo) are stored exclusively in backend environment variables and are never transmitted to client browsers.
+5. **Dashboard & Perspective Isolation**: Each user can strictly view only their own role's operational telemetry (President Executive Console, Club Head Operations Dashboard, or Volunteer Squad Dashboard). No cross-user perspective switching or unauthorized role tabs are exposed in the UI or telemetry data flows.
 
 ---
 

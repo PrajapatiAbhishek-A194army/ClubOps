@@ -23,45 +23,55 @@ export default function DashboardOverview() {
   const navigate = useNavigate();
   const { activeClub, activeRole, user } = useAuth();
 
-  const isPlatformPresident = user?.is_superuser || user?.email === 'president@clubops.ai';
+  const isPlatformPresident = user?.is_superuser || user?.email === 'president@clubops.ai' || activeRole?.toUpperCase() === 'PRESIDENT';
 
-  // Roles available for perspective switching
-  const PERSPECTIVES = [
-    ...(isPlatformPresident ? [{ id: 'PRESIDENT', label: 'President', icon: Crown, desc: 'Executive oversight & approvals' }] : []),
-    { id: 'CLUB_HEAD', label: 'Club Head', icon: ClipboardList, desc: 'Operations, tasks & meetings' },
-    { id: 'VOLUNTEER', label: 'Volunteer', icon: HeartHandshake, desc: 'Assignments & instant check-in' },
-  ];
-
-  const resolveRolePerspective = (role) => {
-    const roleUpper = (role || (isPlatformPresident ? 'PRESIDENT' : 'CLUB_HEAD')).toUpperCase();
-    if (!isPlatformPresident && roleUpper === 'PRESIDENT') return 'CLUB_HEAD';
+  const resolveUserRole = (role) => {
+    const roleUpper = (role || '').toUpperCase();
+    if (isPlatformPresident || roleUpper === 'PRESIDENT') return 'PRESIDENT';
     if (roleUpper === 'ORGANIZER' || roleUpper === 'CLUB_HEAD') return 'CLUB_HEAD';
-    if (roleUpper === 'PRESIDENT' && isPlatformPresident) return 'PRESIDENT';
     return 'VOLUNTEER';
   };
 
-  // Default perspective based on active club membership role or fallback
-  const [selectedPerspective, setSelectedPerspective] = useState(() => {
-    return resolveRolePerspective(activeRole);
-  });
+  const userRole = resolveUserRole(activeRole);
+
+  const roleMeta = {
+    PRESIDENT: {
+      label: 'President Executive Dashboard',
+      icon: Crown,
+      desc: 'Multi-club strategic governance, high-level approvals, and active risk radar.',
+      badgeVariant: 'emerald',
+    },
+    CLUB_HEAD: {
+      label: 'Club Head Operations Dashboard',
+      icon: ClipboardList,
+      desc: 'Active event pipelines, Kanban tasks, meeting intelligence, and squad assignments.',
+      badgeVariant: 'info',
+    },
+    VOLUNTEER: {
+      label: 'Volunteer Squad Dashboard',
+      icon: HeartHandshake,
+      desc: 'Assigned deliverables, squad velocity, upcoming shifts, and live check-in.',
+      badgeVariant: 'warning',
+    },
+  }[userRole] || {
+    label: 'Operations Dashboard',
+    icon: Sparkles,
+    desc: 'Campus event operations telemetry.',
+    badgeVariant: 'default',
+  };
+
+  const RoleIcon = roleMeta.icon;
 
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Sync default perspective if activeRole changes
-  useEffect(() => {
-    if (activeRole) {
-      setSelectedPerspective(resolveRolePerspective(activeRole));
-    }
-  }, [activeRole]);
 
   const loadMetrics = useCallback(async () => {
     if (!activeClub?.id) return;
     try {
       setLoading(true);
       setError(null);
-      const res = await getDashboardMetrics(activeClub.id, selectedPerspective);
+      const res = await getDashboardMetrics(activeClub.id, userRole);
       if (res.success && res.data) {
         setDashboardData(res.data);
       } else {
@@ -73,7 +83,7 @@ export default function DashboardOverview() {
     } finally {
       setLoading(false);
     }
-  }, [activeClub?.id, selectedPerspective]);
+  }, [activeClub?.id, userRole]);
 
   useEffect(() => {
     loadMetrics();
@@ -81,7 +91,7 @@ export default function DashboardOverview() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      {/* Top Welcome & Perspective Switcher Bar */}
+      {/* Top Welcome Bar */}
       <div className="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200/90 shadow-2xs space-y-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -127,52 +137,18 @@ export default function DashboardOverview() {
           </div>
         </div>
 
-        {/* Perspective Switcher Tabs */}
-        <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-            <span className="text-xs font-semibold text-slate-400 mr-2 shrink-0 hidden md:inline">
-              Perspective:
+        {/* User Role Indicator Banner */}
+        <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-500">Your Dashboard:</span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-900 border border-emerald-200/80">
+              <RoleIcon className="w-3.5 h-3.5 text-emerald-700" />
+              {roleMeta.label}
             </span>
-            {PERSPECTIVES.map((p) => {
-              const Icon = p.icon;
-              const isActive = selectedPerspective === p.id;
-              const isUserRole = activeRole?.toUpperCase() === p.id;
-
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => setSelectedPerspective(p.id)}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap border ${
-                    isActive
-                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                      : 'bg-slate-50 text-slate-600 border-slate-200/80 hover:bg-slate-100 hover:text-slate-900'
-                  }`}
-                  title={p.desc}
-                >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-slate-500'}`} />
-                  <span>{p.label}</span>
-                  {isUserRole && (
-                    <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
-                        isActive
-                          ? 'bg-emerald-700/80 text-emerald-100'
-                          : 'bg-emerald-100 text-emerald-800'
-                      }`}
-                    >
-                      You
-                    </span>
-                  )}
-                </button>
-              );
-            })}
           </div>
 
           <div className="text-[11px] text-slate-500 font-medium">
-            Active view:{' '}
-            <span className="text-emerald-700 font-bold">
-              {PERSPECTIVES.find((p) => p.id === selectedPerspective)?.label}
-            </span>{' '}
-            • {PERSPECTIVES.find((p) => p.id === selectedPerspective)?.desc}
+            {roleMeta.desc}
           </div>
         </div>
       </div>
@@ -205,10 +181,10 @@ export default function DashboardOverview() {
         </div>
       )}
 
-      {/* Render Current Perspective Component */}
+      {/* Render Exclusively Current User's Role Dashboard */}
       {dashboardData && (
         <div>
-          {selectedPerspective === 'PRESIDENT' && (
+          {userRole === 'PRESIDENT' && (
             <PresidentDashboard
               data={dashboardData.data || dashboardData.president_data || dashboardData}
               clubId={activeClub?.id}
@@ -216,7 +192,7 @@ export default function DashboardOverview() {
             />
           )}
 
-          {(selectedPerspective === 'CLUB_HEAD' || selectedPerspective === 'ORGANIZER') && (
+          {userRole === 'CLUB_HEAD' && (
             <ClubHeadDashboard
               data={dashboardData.data || dashboardData.club_head_data || dashboardData.organizer_data || dashboardData}
               clubId={activeClub?.id}
@@ -224,7 +200,7 @@ export default function DashboardOverview() {
             />
           )}
 
-          {selectedPerspective === 'VOLUNTEER' && (
+          {userRole === 'VOLUNTEER' && (
             <VolunteerDashboard
               data={dashboardData.data || dashboardData.volunteer_data || dashboardData}
               clubId={activeClub?.id}

@@ -42,7 +42,6 @@ export default function DashboardShell({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [clubMenuOpen, setClubMenuOpen] = useState(false);
-  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [workflowModalOpen, setWorkflowModalOpen] = useState(false);
   const [openRiskCount, setOpenRiskCount] = useState(0);
@@ -323,63 +322,23 @@ export default function DashboardShell({ children }) {
           ))}
         </nav>
 
-        {/* Sidebar Footer with Role Switcher */}
+        {/* Sidebar Footer with Active Role Display */}
         <div className="p-3 border-t border-slate-100 shrink-0 bg-slate-50/50">
           {!collapsed ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-500 font-medium">Role Perspective</span>
-                <button
-                  onClick={() => setRoleMenuOpen(!roleMenuOpen)}
-                  className="text-emerald-700 hover:text-emerald-800 font-semibold cursor-pointer"
-                >
-                  Switch
-                </button>
+            <div className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                <span className="text-xs font-semibold text-slate-800 truncate">
+                  {formatRole(activeRole)}
+                </span>
               </div>
-
-              {roleMenuOpen ? (
-                <div className="p-1 bg-white border border-slate-200 rounded-xl shadow-md space-y-1">
-                  {roles.map((r) => (
-                    <button
-                      key={r.id}
-                      onClick={() => {
-                        setActiveRole(r.id);
-                        setRoleMenuOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-2 py-1.5 text-xs rounded-lg cursor-pointer ${
-                        activeRole === r.id
-                          ? 'bg-emerald-50 text-emerald-900 font-bold'
-                          : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span>{r.label}</span>
-                      <span className="text-[10px] text-slate-400">{r.badge}</span>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                    <span className="text-xs font-semibold text-slate-800">
-                      {formatRole(activeRole)}
-                    </span>
-                  </div>
-                  <Badge variant="emerald" size="sm">
-                    {roles.find((r) => r.id === activeRole)?.badge}
-                  </Badge>
-                </div>
-              )}
+              <Badge variant="emerald" size="sm">
+                Active
+              </Badge>
             </div>
           ) : (
-            <div className="flex justify-center">
-              <button
-                onClick={() => setProfileModalOpen(true)}
-                className="w-8 h-8 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-800 flex items-center justify-center font-bold text-xs cursor-pointer transition-colors"
-                title="View & Edit Profile"
-              >
-                {activeRole ? activeRole[0] : 'U'}
-              </button>
+            <div className="flex justify-center" title={`Active Role: ${formatRole(activeRole)}`}>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-200" />
             </div>
           )}
         </div>

@@ -6,14 +6,14 @@ ClubOps AI is built around the foundational principle:
 > **HUMAN AUTHORITY + DETERMINISTIC CONSTRAINTS + AI INTELLIGENCE + CONTROLLED ACTIONS**
 
 The platform decouples into three enterprise-grade tiers:
-1. **Frontend Presentation Tier**: Modern React 19 Single-Page Application (SPA) powered by Vite, Tailwind CSS v4, Lucide Icons, and Recharts. Features role-tailored workspaces (President, Club Head, Volunteer), interactive Kanban task progression boards, WebSocket-powered operations chat, real-time activity tickers, and audit verifiers.
+1. **Frontend Presentation Tier**: Modern React 19 Single-Page Application (SPA) powered by Vite, Tailwind CSS v4, Lucide Icons, and Recharts. Features strict role-isolated workspaces (President Executive Console, Club Head Operations Dashboard, Volunteer Squad Dashboard with zero cross-role leakage), interactive Kanban task progression boards, WebSocket-powered operations chat, real-time activity tickers, and audit verifiers.
 2. **Backend Services & Orchestration Tier**: High-performance FastAPI (Python 3.10+) service layer with SQLAlchemy 2.0 ORM, context-derived JWT role authorization, deterministic constraint validators, transactional mutations, and an immutable cryptographic audit log engine.
 3. **AI Intelligence & Tool-Calling Tier**: Structured agent pipelines leveraging the Groq API (`openai/gpt-oss-120b`, `llama-3.3-70b-versatile`, with graceful deterministic fallbacks). The AI decomposes event milestones, calculates volunteer staffing ratios, parses unstructured meeting transcripts, and crafts targeted multi-channel announcements.
 
 ```
 +-----------------------------------------------------------------------------------+
 |                             React 19 + Vite Frontend                              |
-|  - Role-Tailored Dashboards (President, Club Head, Volunteer)                     |
+|  - Strict Role-Isolated Workspaces (President, Club Head, Volunteer)             |
 |  - Visual Kanban Task Progression Board (TODO, IN_PROGRESS, DONE, BLOCKED)        |
 |  - Real-Time Collaboration Gateway (Full-Duplex WebSockets, Chat Channels)        |
 |  - Event Creator with AI Staffing & Skill Breakdown Modal                         |

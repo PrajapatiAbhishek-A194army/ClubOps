@@ -32,7 +32,7 @@ ClubOps AI centralizes the entire lifecycle of student organizations into an int
 ```
 +-----------------------------------------------------------------------------------+
 |                             React 19 + Vite Frontend                              |
-|  - Role-Tailored Workspaces: President | Club Head | Volunteer                        |
+|  - Strict Role-Isolated Workspaces (President | Club Head | Volunteer)            |
 |  - Visual Kanban Task Progression Board (TODO -> IN_PROGRESS -> DONE -> BLOCKED)  |
 |  - Real-Time Collaboration Gateway (WebSockets, Channels, Activity Ticker)        |
 |  - Event Creator with AI Staffing & Skill Breakdown Modal                         |
@@ -80,7 +80,7 @@ ClubOps AI centralizes the entire lifecycle of student organizations into an int
 | **LangGraph Agent Workflows** | Multi-node state machine, allowlisted tool execution, human approval gate | LangGraph, `ClubOpsTools` |
 | **Multi-Channel Announcements** | AI drafting, Brevo email broadcast, in-app push, category templates | Brevo Transactional API, Groq LLM |
 | **Institutional Knowledge** | Document ingestion, text chunking, grounded search synthesis | RAG Pipeline, Full-text Search |
-| **Role Dashboard Suite** | Dedicated dashboards for President, Club Head, and Volunteer | React 19, Lucide Icons |
+| **Role Dashboard Suite** | Strict role-isolated workspaces for President, Club Head, and Volunteer (zero cross-user view leakage) | React 19, Lucide Icons |
 | **Real-Time Collaboration** | Full-duplex WebSocket gateway, chat channels, live presence, activity ticker | FastAPI WebSockets, `ConnectionManager` |
 | **Operational Analytics** | Deterministic Health Score (0-100), Recharts cadence & velocity, CSV compliance | Recharts, NumPy-like Scoring Formula |
 | **Cryptographic Audit Trail** | SHA-256 hash chaining, live mathematical tamper detection, SoD policy matrix | SHA-256 Engine, `/verify-integrity` |
