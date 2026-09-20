@@ -70,7 +70,7 @@ ClubOps AI centralizes the entire lifecycle of student organizations into an int
 | Domain | Core Capabilities | Underlying Technology |
 |:---|:---|:---|
 | **Context-Derived RBAC** | Deny-by-default access, club-scoped active roles, strict Club Head uniqueness | FastAPI, JWT (python-jose), SQLAlchemy |
-| **Club & Member Governance** | Join requests, skill profiles, transfer leadership, membership rosters | PostgreSQL, Pydantic V2 |
+| **Club & Volunteer Governance** | Join requests, skill profiles, transfer leadership, squad rosters | PostgreSQL, Pydantic V2 |
 | **Volunteer Matchmaking** | Skill tags, availability tracking, on-site check-in, workload scoring | Algorithmic Scorer + Groq AI |
 | **AI Staffing & Event Planning** | Min volunteer calculator, skill-count breakdown, milestone generator | Groq API (`openai/gpt-oss-120b`) |
 | **Visual Task Progression** | Kanban board, dependency resolution, automatic blocking, status patching | React Drag/Drop, State Machine |
@@ -90,18 +90,18 @@ ClubOps AI centralizes the entire lifecycle of student organizations into an int
 
 ## User Roles & Permissions
 
-| Capability | President | Club Head | Volunteer | Member |
-|:---|:---:|:---:|:---:|:---:|
-| **Transfer Leadership / Manage Club** | ✅ | ❌ | ❌ | ❌ |
-| **Approve / Reject Join Requests** | ✅ | ✅ | ❌ | ❌ |
-| **Create Events & Approve AI Plans** | ✅ | ✅ | ❌ | ❌ |
-| **Manage Department Tasks & Kanban** | ✅ | ✅ | ❌ | ❌ |
-| **Update Own Assigned Task Status** | ✅ | ✅ | ✅ | ❌ |
-| **Run Risk Radar Scan** | ✅ | ✅ | ❌ | ❌ |
-| **Ingest Meetings & Convert Items** | ✅ | ✅ | ❌ | ❌ |
-| **Publish Announcements & Email Broadcast** | ✅ | ✅ | ❌ | ❌ |
-| **Real-Time Operations Chat** | ✅ | ✅ | ✅ | ✅ |
-| **View Cryptographic Audit Chain & Verify** | ✅ | ❌ | ❌ | ❌ |
+| Capability | President | Club Head | Volunteer |
+|:---|:---:|:---:|:---:|
+| **Transfer Leadership / Manage Club** | ✅ | ❌ | ❌ |
+| **Approve / Reject Join Requests** | ✅ | ✅ | ❌ |
+| **Create Events & Approve AI Plans** | ✅ | ✅ | ❌ |
+| **Manage Department Tasks & Kanban** | ✅ | ✅ | ❌ |
+| **Update Own Assigned Task Status** | ✅ | ✅ | ✅ |
+| **Run Risk Radar Scan** | ✅ | ✅ | ❌ |
+| **Ingest Meetings & Convert Items** | ✅ | ✅ | ❌ |
+| **Publish Announcements & Email Broadcast** | ✅ | ✅ | ❌ |
+| **Real-Time Operations Chat** | ✅ | ✅ | ✅ |
+| **View Cryptographic Audit Chain & Verify** | ✅ | ❌ | ❌ |
 
 ---
 
@@ -227,21 +227,20 @@ ClubOps AI features an institutional memory engine powered by **FAISS (Facebook 
 | **President** | `president@clubops.ai` | `ClubOps2026!` |
 | **Club Head** | `organizer@clubops.ai` | `ClubOps2026!` |
 | **Volunteer** | `volunteer@clubops.ai` | `ClubOps2026!` |
-| **Club Member** | `member@clubops.ai` | `ClubOps2026!` |
 
 ---
 
 ## Verification & Testing
 
 ### Automated Backend Tests
-Run the entire test suite (48 tests covering Auth, Clubs, Events, Tasks, Volunteers, AI Workflows, Announcements, Dashboards, Collaboration, Analytics, Audit Trail, and End-to-End master workflow):
+Run the entire test suite (50 tests covering Auth, Clubs, Events, Tasks, Volunteers, AI Workflows, Announcements, Dashboards, Collaboration, Analytics, Audit Trail, FAISS Vector RAG, and End-to-End master workflow):
 ```bash
 cd backend
 .\venv\Scripts\pytest.exe -q
 ```
 Expected output:
 ```
-48 passed in ~45s (100% pass rate)
+50 passed in ~45s (100% pass rate)
 ```
 
 Run only the master end-to-end operational workflow test:
@@ -268,7 +267,7 @@ Deep technical documentation is organized in the `docs/` folder:
 - [System Architecture](docs/architecture.md): 3-tier decoupling, WebSocket gateways, and service layers.
 - [Security & Governance](docs/security.md): Deny-by-default RBAC, SHA-256 audit chaining, and SoD matrices.
 - [Workflows & State Machines](docs/workflows.md): Operational lifecycles and LangGraph state machines.
-- [API Contracts](docs/api-contracts.md): Request and response schemas for all 10 route groups.
+- [API Contracts](docs/api-contracts.md): Request and response schemas for all 11 route groups.
 - [Data Model & Schema](docs/data-model.md): Detailed ERD, table definitions, and index catalog.
 - [LLM Architecture & Research](docs/llm-research.md): Groq model evaluations, latency benchmarks, and prompt designs.
 - [AI Rules & Guardrails](docs/ai-rules.md): Strict boundaries, human-in-the-loop policies, and zero-SQL access rules.
