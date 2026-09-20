@@ -346,6 +346,16 @@ export const getClubDocuments = async (clubId) => {
   return response.data;
 };
 
+export const deleteDocument = async (clubId, documentId) => {
+  const response = await api.delete(`/knowledge/documents/${documentId}`, { params: { club_id: clubId } });
+  return response.data;
+};
+
+export const getKnowledgeStats = async (clubId) => {
+  const response = await api.get(`/knowledge/stats`, { params: { club_id: clubId } });
+  return response.data;
+};
+
 // AI Workflow Engine (LangGraph Orchestration)
 export const executeAIWorkflow = async (clubId, workflowData) => {
   const response = await api.post(`/clubs/${clubId}/workflows/execute`, workflowData);

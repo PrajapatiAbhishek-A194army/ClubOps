@@ -208,3 +208,25 @@ All responses follow the standard JSON envelope:
 
 ### `GET /clubs/{club_id}/audit/governance`
 - Returns active Separation of Duties (SoD) enforcement rules and security policies.
+
+---
+
+## 11. Institutional Knowledge Base & FAISS Vector Search (`/knowledge`)
+
+All endpoints in this section are strictly restricted to leadership roles (`PRESIDENT`, `CLUB_HEAD`).
+
+### `POST /knowledge/upload?club_id={club_id}`
+- Ingests text documents (SOPs, guidelines, rules) into persistent PostgreSQL and partitions content into overlapping chunks.
+- Computes 384-dimensional dense semantic vector embeddings and updates the club's local FAISS `IndexFlatIP` index on disk.
+
+### `POST /knowledge/search?club_id={club_id}`
+- Computes vector embeddings of the search query and queries FAISS for nearest neighbors using cosine similarity.
+- Synthesizes an accurate, hallucination-free answer via Groq LLM citing retrieved chunks and confidence scores.
+
+### `GET /knowledge/stats?club_id={club_id}`
+- Returns diagnostic FAISS vector database metrics (total vector count, embedding dimension, index type, number of indexed documents, training state).
+
+### `DELETE /knowledge/documents/{document_id}?club_id={club_id}`
+- Removes the document and its chunks from PostgreSQL.
+- Dynamically purges all vector embeddings from the club's FAISS index and persists the rebuilt index back to disk.
+

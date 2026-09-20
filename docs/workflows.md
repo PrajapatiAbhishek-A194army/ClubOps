@@ -117,3 +117,26 @@ Every state mutation follows an immutable commit sequence:
 4. `AuditService` retrieves latest sequential block (`prev_hash`).
 5. Computes `integrity_hash = SHA-256(prev_hash + ... + canonical_diff)`.
 6. Commits `AuditLog` row alongside state mutation.
+
+---
+
+## 7. FAISS Vector Database & RAG Search Workflow
+
+```
+[ Institutional Document Upload (SOP / Policy / Guide) ]
+                      ↓
+[ Sliding-Window Chunking (400 chars, 80-char stride) ]
+                      ↓
+[ 384-Dim Dense Vector Embedding Generation (L2 Normalized) ]
+                      ↓
+[ Persistent FAISS Indexing (faiss.IndexFlatIP + metadata.json) ]
+                      ↓
+[ Search Query Issued: "How to reserve auditorium?" ]
+                      ↓
+[ Query Dense Vector Computation & FAISS Nearest Neighbor Search ]
+                      ↓
+[ Top-K Cosine Similarity Filter & Confidence Scoring (%)]
+                      ↓
+[ Groq Context Injection & Grounded Answer Synthesis with Exact Citations ]
+```
+

@@ -34,8 +34,14 @@ def test_club_ops_tools_execution(db: Session):
 
     tools = ClubOpsTools(db=db, club_id=club.id, actor_id=user.id)
 
-    # 1. Test getUser tool
-    user_res = tools.get_user("Rahul")
+    # 1. Test getUser tool with active club member
+    member = (
+        db.query(ClubMembership)
+        .filter(ClubMembership.club_id == club.id, ClubMembership.status == MembershipStatus.ACTIVE)
+        .first()
+    )
+    query_name = member.user.full_name.split()[0] if (member and member.user) else "Alex"
+    user_res = tools.get_user(query_name)
     assert isinstance(user_res, dict)
     assert user_res.get("found") is True
     assert "user_id" in user_res

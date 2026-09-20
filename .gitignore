@@ -42,9 +42,12 @@ dist/
 dist-ssr/
 *.local
 
-# Database
+# Database & Vector Indices
 *.db
 *.sqlite3
+*.faiss
+backend/storage/faiss_indexes/
+storage/faiss_indexes/
 
 # Logs & Temp
 logs/

@@ -1,0 +1,573 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [7 0 R 9 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
+endobj
+7 0 obj
+<< /Type /Page
+   /Parent 2 0 R
+   /MediaBox [0 0 595.28 841.89]
+   /Contents 8 0 R
+   /Resources <<
+      /Font <<
+         /F1 3 0 R
+         /F2 4 0 R
+         /F3 5 0 R
+         /F4 6 0 R
+      >>
+   >>
+>>
+endobj
+8 0 obj
+<< /Length 5165 >>
+stream
+q
+0.080 0.200 0.380 rg
+0.00 755.00 595.28 86.89 re
+f
+Q
+BT
+/F2 13.00 Tf
+0.950 0.950 0.950 rg
+45.00 805.00 Td
+(INSTITUTIONAL STANDARD OPERATING PROCEDURE) Tj
+ET
+BT
+/F2 11.00 Tf
+0.850 0.920 1.000 rg
+45.00 788.00 Td
+(CAMPUS AUDITORIUM OPERATIONS & IT INFRASTRUCTURE \(2026\)) Tj
+ET
+BT
+/F1 8.50 Tf
+0.700 0.800 0.900 rg
+45.00 768.00 Td
+(DOCUMENT REF: SOP-AUD-IT-2026-V2 | EFFECTIVE: JAN 2026 - DEC 2026) Tj
+ET
+q
+0.750 0.820 0.920 RG
+1.00 w
+0.950 0.970 1.000 rg
+45.00 705.00 505.28 38.00 re
+B
+Q
+BT
+/F2 8.50 Tf
+0.100 0.200 0.400 rg
+55.00 727.00 Td
+(Target Audience: Student Clubs, Event Organizers, Technical Leads, IT Administrators) Tj
+ET
+BT
+/F1 8.00 Tf
+0.300 0.350 0.450 rg
+55.00 712.00 Td
+(Jurisdiction: Office of Student Affairs, Campus IT Infrastructure, Facilities & Safety Division) Tj
+ET
+BT
+/F2 11.00 Tf
+0.080 0.200 0.380 rg
+45.00 680.00 Td
+(1. PURPOSE & SCOPE) Tj
+ET
+q
+0.080 0.200 0.380 RG
+1.20 w
+45.00 676.00 m 550.00 676.00 l S
+Q
+BT
+/F1 9.00 Tf
+0.150 0.150 0.150 rg
+45.00 662.00 Td
+(This Standard Operating Procedure \(SOP\) governs all non-academic and co-curricular usage of the Main Campus) Tj
+ET
+BT
+/F1 9.00 Tf
+0.150 0.150 0.150 rg
+45.00 649.00 Td
+(Auditorium, AV control rooms, staging infrastructure, and associated campus network/hotspot reservations. All) Tj
+ET
+BT
+/F1 9.00 Tf
+0.150 0.150 0.150 rg
+45.00 636.00 Td
+(student organizations and technical societies must comply with these protocols prior to venue occupancy.) Tj
+ET
+BT
+/F2 11.00 Tf
+0.080 0.200 0.380 rg
+45.00 613.00 Td
+(2. PERMISSIONS REQUIRED FOR AUDITORIUM TECHNICAL WORKSHOPS) Tj
+ET
+q
+0.080 0.200 0.380 RG
+1.20 w
+45.00 609.00 m 550.00 609.00 l S
+Q
+BT
+/F3 9.00 Tf
+0.200 0.200 0.200 rg
+45.00 595.00 Td
+(To host technical workshops, hackathons, or robotics/hardware labs in the Auditorium, organizers MUST) Tj
+ET
+BT
+/F3 9.00 Tf
+0.200 0.200 0.200 rg
+45.00 583.00 Td
+(obtain all five \(5\) mandatory clearances listed below before key handover and system activation:) Tj
+ET
+q
+0.850 0.850 0.850 RG
+0.80 w
+0.980 0.980 0.990 rg
+45.00 523.00 505.28 48.00 re
+B
+Q
+BT
+/F2 9.50 Tf
+0.080 0.350 0.250 rg
+55.00 557.00 Td
+(A. Primary Facility Clearance \(Dean of Student Affairs - DoSA\)) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 543.00 Td
+(* Timeline: Form AUD-REQ-01 must be submitted at least 14 business days prior to the event date.) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 531.00 Td
+(* Sign-off: Requires written endorsement from the Club Faculty Advisor and authorized Club President.) Tj
+ET
+q
+0.850 0.850 0.850 RG
+0.80 w
+0.980 0.980 0.990 rg
+45.00 457.00 505.28 60.00 re
+B
+Q
+BT
+/F2 9.50 Tf
+0.080 0.350 0.250 rg
+55.00 503.00 Td
+(B. Technical & Audio-Visual \(AV\) Division Clearance) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 489.00 Td
+(* Technical Rider \(Form AUD-TECH-R2\): Requisition submitted to Chief AV Engineer >= 7 business days ahead.) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 477.00 Td
+(* Equipment Scope: Access to stage consoles \(Behringer X32/Wing\), motorized line-arrays, laser projectors,) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 465.00 Td
+(  and DMX lighting grids requires certified operator clearance; club operators must undergo pre-briefing.) Tj
+ET
+q
+0.850 0.850 0.850 RG
+0.80 w
+0.980 0.980 0.990 rg
+45.00 391.00 505.28 60.00 re
+B
+Q
+BT
+/F2 9.50 Tf
+0.080 0.350 0.250 rg
+55.00 437.00 Td
+(C. Electrical Maintenance Division \(EMD\) Load Clearance) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 423.00 Td
+(* Load Threshold: Mandatory when auxiliary equipment draws exceed 3.5 kW \(e.g. servers, soldering benches,) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 411.00 Td
+(  3D printer clusters, power supplies, high-intensity moving head lights, or fog systems\).) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 399.00 Td
+(* Inspection: EMD inspects temporary power distribution units \(PDUs\) and issues a 3-Phase Safety Seal.) Tj
+ET
+q
+0.850 0.850 0.850 RG
+0.80 w
+0.980 0.980 0.990 rg
+45.00 335.00 505.28 50.00 re
+B
+Q
+BT
+/F2 9.50 Tf
+0.080 0.350 0.250 rg
+55.00 371.00 Td
+(D. Fire & Safety Committee Clearance \(Disaster Management Cell\)) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 357.00 Td
+(* Required for soldering/heat guns, aerosol sprays, chemical prototyping, or stage smoke effects.) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 345.00 Td
+(* Dedicated CO2 fire extinguishers and safety-trained student marshals must be stationed at venue.) Tj
+ET
+q
+0.850 0.850 0.850 RG
+0.80 w
+0.980 0.980 0.990 rg
+45.00 279.00 505.28 50.00 re
+B
+Q
+BT
+/F2 9.50 Tf
+0.080 0.350 0.250 rg
+55.00 315.00 Td
+(E. Campus Security & Guest Gate Pass Approvals) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 301.00 Td
+(* Guest Speakers & Mentors: External mentor vehicle entry & equipment passes filed >= 3 days prior.) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 289.00 Td
+(* Extended Hours Access: Overnight sessions or setups beyond 8:00 PM require DoSA night permits.) Tj
+ET
+q
+0.800 0.800 0.800 RG
+0.80 w
+45.00 45.00 m 550.00 45.00 l S
+Q
+BT
+/F1 7.50 Tf
+0.400 0.400 0.400 rg
+45.00 33.00 Td
+(ClubOps Institutional Documentation System - Standard Operating Procedures) Tj
+ET
+BT
+/F2 7.50 Tf
+0.400 0.400 0.400 rg
+505.00 33.00 Td
+(Page 1 of 2) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page
+   /Parent 2 0 R
+   /MediaBox [0 0 595.28 841.89]
+   /Contents 10 0 R
+   /Resources <<
+      /Font <<
+         /F1 3 0 R
+         /F2 4 0 R
+         /F3 5 0 R
+         /F4 6 0 R
+      >>
+   >>
+>>
+endobj
+10 0 obj
+<< /Length 5252 >>
+stream
+q
+0.080 0.200 0.380 rg
+0.00 785.00 595.28 56.89 re
+f
+Q
+BT
+/F2 11.00 Tf
+0.950 0.950 0.950 rg
+45.00 815.00 Td
+(CAMPUS IT SERVICES & NETWORK RESERVATION GUIDELINES) Tj
+ET
+BT
+/F1 8.00 Tf
+0.700 0.800 0.900 rg
+45.00 799.00 Td
+(SOP-AUD-IT-2026-V2 | SECTION 3: WI-FI & HIGH-DENSITY NETWORK INFRASTRUCTURE) Tj
+ET
+BT
+/F2 11.00 Tf
+0.080 0.200 0.380 rg
+45.00 750.00 Td
+(3. CAMPUS WI-FI HOTSPOT & EVENT NETWORK RESERVATION PROCEDURES) Tj
+ET
+q
+0.080 0.200 0.380 RG
+1.20 w
+45.00 746.00 m 550.00 746.00 l S
+Q
+BT
+/F1 9.00 Tf
+0.150 0.150 0.150 rg
+45.00 732.00 Td
+(To provide dedicated wireless network connectivity for auditorium workshops, coding challenges, or guest) Tj
+ET
+BT
+/F1 9.00 Tf
+0.150 0.150 0.150 rg
+45.00 719.00 Td
+(delegations, clubs must follow the standard 4-phase reservation workflow detailed below:) Tj
+ET
+q
+0.780 0.860 0.950 RG
+0.80 w
+0.980 0.990 1.000 rg
+45.00 649.00 505.28 56.00 re
+B
+Q
+BT
+/F2 9.50 Tf
+0.100 0.300 0.600 rg
+55.00 690.00 Td
+(Phase 1: Online Portal Ticket Submission \(Timeline: >= 5 Working Days in Advance\)) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 676.00 Td
+(* Navigation: Log in to the ClubOps Management Portal -> IT Services -> Request Hotspot & Network Form.) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 664.00 Td
+(* Required Inputs: Expected concurrent attendees, duration, target auditorium zone \(Stage, Hall, Foyer\),) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 652.00 Td
+(  and estimated bandwidth quota \(e.g., 200 Mbps burstable pipe up to 1 Gbps backbone\).) Tj
+ET
+q
+0.780 0.860 0.950 RG
+0.80 w
+0.980 0.990 1.000 rg
+45.00 587.00 505.28 56.00 re
+B
+Q
+BT
+/F2 9.50 Tf
+0.100 0.300 0.600 rg
+55.00 628.00 Td
+(Phase 2: Technical Specifications & Firewall Exceptions \(Form IT-NET-WIFI-04\)) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 614.00 Td
+(* Technical Whitelisting: If the workshop requires Git operations over SSH \(port 22\), Docker Hub pulls,) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 602.00 Td
+(  custom TCP/UDP sockets, or live video streaming \(RTMP 1935\), list ports explicitly in Section 2B.) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 590.00 Td
+(* Approval: IT Network Security Admin signs off within 48 hours of ticket dispatch.) Tj
+ET
+q
+0.780 0.860 0.950 RG
+0.80 w
+0.980 0.990 1.000 rg
+45.00 525.00 505.28 56.00 re
+B
+Q
+BT
+/F2 9.50 Tf
+0.100 0.300 0.600 rg
+55.00 566.00 Td
+(Phase 3: Dedicated SSID Provisioning & Credentials Generation) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 552.00 Td
+(* Custom SSID: IT provisions an isolated virtual LAN \(VLAN\) broadcasting 'EVENT_<ClubName>_2026'.) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 540.00 Td
+(* Access Control: Organizers receive a secure QR Code and 16-character WPA3-Personal pre-shared key \(PSK\)) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 528.00 Td
+(  or temporary 802.1X enterprise tokens 24 hours prior to workshop start.) Tj
+ET
+q
+0.780 0.860 0.950 RG
+0.80 w
+0.980 0.990 1.000 rg
+45.00 463.00 505.28 56.00 re
+B
+Q
+BT
+/F2 9.50 Tf
+0.100 0.300 0.600 rg
+55.00 504.00 Td
+(Phase 4: Physical Portable Mesh Hotspot / AP Checkout & Return Protocol) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 490.00 Td
+(* Hardware Requisition: For outdoor workshops or auditorium dead-zones, request portable Wi-Fi 6 mesh kits.) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 478.00 Td
+(* Equipment Pickup: Collect portable units from IT Operations Room \(IT-104\) 1 hour prior by submitting) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+60.00 466.00 Td
+(  student ID card of Club Lead / Tech Coordinator.) Tj
+ET
+BT
+/F2 11.00 Tf
+0.080 0.200 0.380 rg
+45.00 443.00 Td
+(4. HANDOVER, COMPLIANCE & PENALTY CLAUSES) Tj
+ET
+q
+0.080 0.200 0.380 RG
+1.20 w
+45.00 439.00 m 550.00 439.00 l S
+Q
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+50.00 427.00 Td
+(1. Equipment Return Deadline: All portable hotspots, adapters, patch cables, and stage stageboxes must be) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+50.00 415.00 Td
+(   returned to Room IT-104 within strictly two \(2\) hours after the event adjournment.) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+50.00 401.00 Td
+(2. Facility Restoration: Auditorium stage, seating, and lighting settings must be reset to neutral baseline.) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+50.00 387.00 Td
+(3. Non-Compliance Sanction: Late return or unauthorized electrical modifications results in a 60-day club) Tj
+ET
+BT
+/F1 8.50 Tf
+0.200 0.200 0.200 rg
+50.00 375.00 Td
+(   suspension from reserving campus auditoriums and IT hotspot facilities, plus hardware replacement fines.) Tj
+ET
+q
+0.800 0.800 0.800 RG
+0.80 w
+0.960 0.960 0.970 rg
+45.00 305.00 505.28 48.00 re
+B
+Q
+BT
+/F2 8.50 Tf
+0.100 0.100 0.100 rg
+55.00 340.00 Td
+(AUTHORIZATION & INSTITUTIONAL SEAL) Tj
+ET
+BT
+/F1 8.00 Tf
+0.300 0.300 0.300 rg
+55.00 326.00 Td
+(Approved by: Prof. K. R. Sharma, Dean of Student Affairs \(DoSA\)) Tj
+ET
+BT
+/F1 8.00 Tf
+0.300 0.300 0.300 rg
+55.00 314.00 Td
+(Certified by: Dr. V. Sen, Chief Information Officer \(CIO\) & Head of Campus IT Infrastructure) Tj
+ET
+q
+0.800 0.800 0.800 RG
+0.80 w
+45.00 45.00 m 550.00 45.00 l S
+Q
+BT
+/F1 7.50 Tf
+0.400 0.400 0.400 rg
+45.00 33.00 Td
+(ClubOps Institutional Documentation System - Standard Operating Procedures) Tj
+ET
+BT
+/F2 7.50 Tf
+0.400 0.400 0.400 rg
+505.00 33.00 Td
+(Page 2 of 2) Tj
+ET
+endstream
+endobj
+xref
+0 11
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000127 00000 n 
+0000000224 00000 n 
+0000000326 00000 n 
+0000000431 00000 n 
+0000000526 00000 n 
+0000000751 00000 n 
+0000005968 00000 n 
+0000006194 00000 n 
+trailer
+<< /Size 11 /Root 1 0 R >>
+startxref
+11499
+%%EOF

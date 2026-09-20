@@ -110,3 +110,40 @@ def list_documents(
         message="Documents retrieved",
     )
 
+
+@router.delete("/documents/{document_id}", response_model=ApiResponse[bool])
+def delete_document(
+    document_id: str,
+    club_id: str = Query(..., description="Target club ID"),
+    current_user: User = Depends(get_current_user),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
+    db: Session = Depends(get_db),
+):
+    """Deletes document and removes vectors from FAISS index. Restricted to Club Head and President."""
+    deleted = KnowledgeService.delete_document(db=db, club_id=club_id, document_id=document_id)
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+
+    return ApiResponse(
+        success=True,
+        data=True,
+        message="Document and FAISS vectors deleted successfully",
+    )
+
+
+@router.get("/stats", response_model=ApiResponse[dict])
+def get_faiss_stats(
+    club_id: str = Query(..., description="Target club ID"),
+    current_user: User = Depends(get_current_user),
+    membership=Depends(require_club_role(LEADERSHIP_ROLES)),
+    db: Session = Depends(get_db),
+):
+    """Returns FAISS vector database diagnostic metrics for the club."""
+    stats = KnowledgeService.get_faiss_stats(club_id=club_id)
+    return ApiResponse(
+        success=True,
+        data=stats,
+        message="FAISS vector index metrics retrieved",
+    )
+
+

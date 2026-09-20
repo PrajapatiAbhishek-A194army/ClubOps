@@ -4,7 +4,7 @@
 [![React](https://img.shields.io/badge/Frontend-React_19_+_Vite-61DAFB?style=flat&logo=react)](https://react.dev)
 [![TailwindCSS](https://img.shields.io/badge/Styling-Tailwind_CSS_v4-06B6D4?style=flat&logo=tailwindcss)](https://tailwindcss.com)
 [![Groq](https://img.shields.io/badge/AI_Engine-Groq_LPU-F55036?style=flat)](https://groq.com)
-[![Tests](https://img.shields.io/badge/Pytest-48%2F48_Passed_(100%25)-brightgreen?style=flat)](file:///e:/ClubOps/backend/tests)
+[![Tests](https://img.shields.io/badge/Pytest-50%2F50_Passed_(100%25)-brightgreen?style=flat)](file:///e:/ClubOps/backend/tests)
 [![Build](https://img.shields.io/badge/Vite_Build-Passing_(0_errors)-brightgreen?style=flat)](file:///e:/ClubOps/frontend)
 
 > **Core Product Principle**:
@@ -79,7 +79,7 @@ ClubOps AI centralizes the entire lifecycle of student organizations into an int
 | **Deterministic Risk Radar** | Overdue scanner, blocked dependency detection, understaffing alerts | Deterministic Rule Engine |
 | **LangGraph Agent Workflows** | Multi-node state machine, allowlisted tool execution, human approval gate | LangGraph, `ClubOpsTools` |
 | **Multi-Channel Announcements** | AI drafting, Brevo email broadcast, in-app push, category templates | Brevo Transactional API, Groq LLM |
-| **Institutional Knowledge** | Document ingestion, text chunking, grounded search synthesis | RAG Pipeline, Full-text Search |
+| **Institutional Knowledge (RAG)** | Persistent FAISS vector database, 384-dim semantic embeddings, cosine similarity nearest neighbor search, grounded LLM synthesis with source citations | FAISS (`IndexFlatIP`), NumPy, Groq AI |
 | **Role Dashboard Suite** | Strict role-isolated workspaces for President, Club Head, and Volunteer (zero cross-user view leakage) | React 19, Lucide Icons |
 | **Real-Time Collaboration** | Full-duplex WebSocket gateway, chat channels, live presence, activity ticker | FastAPI WebSockets, `ConnectionManager` |
 | **Operational Analytics** | Deterministic Health Score (0-100), Recharts cadence & velocity, CSV compliance | Recharts, NumPy-like Scoring Formula |
@@ -109,10 +109,30 @@ ClubOps AI centralizes the entire lifecycle of student organizations into an int
 
 - **Frontend**: React 19, Vite, Tailwind CSS v4, React Router v7, Lucide Icons, Recharts.
 - **Backend**: FastAPI, Pydantic V2, SQLAlchemy 2.0, Alembic, Uvicorn, WebSockets.
+- **Vector Database**: FAISS (`IndexFlatIP`) with persistent disk serialization and L2-normalized 384-dimensional dense semantic embeddings.
 - **Database**: PostgreSQL (production) or SQLite (development).
 - **AI Intelligence**: Groq Cloud API (`openai/gpt-oss-120b`, `llama-3.3-70b-versatile`, with deterministic fallbacks).
 - **Email Delivery**: Brevo (formerly Sendinblue) Transactional API.
 - **Security**: Cryptographic SHA-256 hash chaining, JWT Bearer tokens, bcrypt password hashing.
+
+---
+
+## FAISS Vector Database & RAG Architecture
+
+ClubOps AI features an institutional memory engine powered by **FAISS (Facebook AI Similarity Search)** for real-time dense semantic vector search:
+
+1. **Sliding-Window Document Ingestion**:
+   - Institutional memory docs (SOPs, budget guidelines, venue protocols) are segmented into overlapping semantic chunks (400 chars, 80-char stride).
+2. **Deterministic 384-Dim Semantic Vector Space**:
+   - Chunks are vectorized into 384-dimensional dense float32 embeddings with sublinear token weights, bigrams, and character trigrams, L2-normalized to unit vectors.
+3. **Isolated Club Vector Indices**:
+   - Vector indexes are isolated per club (`storage/faiss_indexes/{club_id}/`) and backed by `faiss.IndexFlatIP(384)`, ensuring dot-product calculations equal exact cosine similarity.
+   - Indices and metadata are serialized directly to disk (`index.faiss` and `metadata.json`) for persistence across server restarts.
+4. **Retrieval-Augmented Synthesis**:
+   - Top-K nearest neighbors are retrieved from FAISS with exact similarity confidence scoring (`score * 100`).
+   - Context is injected into Groq LLM prompts to synthesize hallucination-free answers citing exact document names and section titles.
+5. **Dynamic Index Synchronization**:
+   - When documents are deleted, FAISS vectors are purged and the index is dynamically re-trained/re-saved.
 
 ---
 

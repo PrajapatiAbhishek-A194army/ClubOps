@@ -1,0 +1,69 @@
+INSTITUTIONAL STANDARD OPERATING PROCEDURE (SOP) 2026
+CAMPUS AUDITORIUM OPERATIONS & IT INFRASTRUCTURE
+Document Reference: SOP-AUD-IT-2026-V2
+Effective Date: January 1, 2026 - December 31, 2026
+Target Audience: Student Clubs, Event Organizers, Technical Committee Leads, Faculty Mentors
+Jurisdiction: Office of Student Affairs, Campus IT Infrastructure, Facilities & Safety Division
+
+
+1. PURPOSE & SCOPE
+This Standard Operating Procedure (SOP) governs all technical workshops, hackathons, seminars, stage productions, and co-curricular operations conducted inside the Main Campus Auditorium, AV control suites, and backstage technical zones. Additionally, it details mandatory procedures for reserving dedicated campus Wi-Fi hotspots and high-density network infrastructure for event participants.
+
+
+2. PERMISSIONS REQUIRED FOR AUDITORIUM TECHNICAL WORKSHOPS
+To host technical workshops, hackathons, or robotics/hardware labs in the Auditorium, organizers MUST obtain all five (5) mandatory clearances listed below before key handover and system activation:
+
+A. Primary Facility Clearance (Dean of Student Affairs - DoSA)
+- Form AUD-REQ-01 (Auditorium Facility Booking Application) must be submitted at least 14 business days prior to the event date.
+- Requires written endorsement and signatures from the Club Faculty Advisor and authorized Club President.
+- Confirms academic calendar compliance and ensures no scheduling conflicts with institutional university events.
+
+B. Technical & Audio-Visual (AV) Division Clearance
+- Technical Rider Requisition (Form AUD-TECH-R2) must be submitted to the Chief AV Engineer at least 7 business days ahead.
+- Access to stage consoles (Behringer X32/Wing), motorized line-arrays, laser projectors, and DMX lighting grids requires certified operator clearance.
+- A mandatory technical soundcheck, walkthrough, and projection test must be scheduled at least 24 hours prior to the event.
+
+C. Electrical Maintenance Division (EMD) Load Clearance
+- Mandatory whenever auxiliary equipment draws exceed 3.5 kW (e.g. servers, soldering benches, 3D printer clusters, power supplies, high-intensity moving head lights, or fog systems).
+- EMD inspects temporary power distribution units (PDUs), circuit breaker ratings, and cable ramps, issuing a signed 3-Phase Power Safety Seal.
+
+D. Fire & Safety Committee Clearance (Disaster Management Cell)
+- Mandatory for any workshops utilizing soldering/heat guns, aerosol sprays, chemical prototyping, aerial drone flight tests, or theatrical atmospheric effects (haze/fog).
+- Two dedicated, active CO2 fire extinguishers and safety-trained student marshals must be stationed at the venue throughout the workshop duration.
+
+E. Campus Security & Guest Gate Pass Approvals
+- External mentor vehicle entry passes, visitor badges, and external equipment entry clearances must be filed with the Campus Security Office at least 3 business days prior.
+- Overnight sessions or setups beyond 8:00 PM require a special Extended Hours Permit countersigned by DoSA and the Chief of Security.
+
+
+3. CAMPUS WI-FI HOTSPOT & EVENT NETWORK RESERVATION PROCEDURES
+To provide dedicated wireless network connectivity for auditorium workshops, coding challenges, or guest delegations, clubs must follow the standard 4-phase reservation workflow:
+
+Phase 1: Online Portal Ticket Submission (Timeline: >= 5 Working Days in Advance)
+- Log in to the ClubOps Management Portal -> IT Services -> Request Hotspot & Network Form.
+- Enter expected concurrent attendees, total active devices, target auditorium zones (Stage, Hall, Foyer), and estimated bandwidth quota (e.g., 200 Mbps burstable pipe up to 1 Gbps backbone).
+
+Phase 2: Technical Specifications & Firewall Exceptions (Form IT-NET-WIFI-04)
+- Technical Whitelisting: If the workshop requires Git operations over SSH (port 22), Docker Hub pulls, cloud APIs, custom TCP/UDP sockets, or live video streaming (RTMP 1935), list ports explicitly in Section 2B.
+- The IT Network Security Administrator reviews and signs off within 48 hours of ticket dispatch.
+
+Phase 3: Dedicated SSID Provisioning & Credentials Generation
+- IT Network Services provisions an isolated Virtual LAN (VLAN) broadcasting a custom SSID: 'EVENT_<ClubName>_2026' or 'WORKSHOP_GUEST_5G'.
+- Organizers receive a secure QR Code and 16-character WPA3-Personal pre-shared key (PSK) or temporary 802.1X enterprise tokens 24 hours prior to workshop start.
+- Quality of Service (QoS) guarantees minimum 15 Mbps per attendee device and prioritized 50 Mbps bandwidth for presenter workstations.
+
+Phase 4: Physical Portable Mesh Hotspot / AP Checkout & Return Protocol
+- For outdoor workshops or auditorium dead zones, request high-density portable Wi-Fi 6 mesh kits.
+- Pickup: Collect portable units from IT Operations Room (IT-104) 1 hour prior by submitting the student ID card of the Club Lead or Tech Coordinator.
+- Return: All hotspots, power adapters, and Cat6 patch cables must be returned and inspected within strictly two (2) hours after workshop adjournment.
+
+
+4. HANDOVER, COMPLIANCE & PENALTY CLAUSES
+1. Facility Neutral State: The auditorium stage, lighting faders, seating arrangements, and podium wiring must be restored to baseline condition immediately following the event.
+2. Equipment Return Deadline: All portable hotspots, adapters, patch cables, and stage stageboxes must be returned to Room IT-104 within strictly two (2) hours after the event adjournment.
+3. Non-Compliance Sanction: Late return or unauthorized electrical modifications results in an immediate 60-day suspension of club privileges from reserving campus auditoriums and IT hotspot facilities, plus hardware replacement fines.
+
+
+AUTHORIZATION & INSTITUTIONAL SEAL
+Approved by: Prof. K. R. Sharma, Dean of Student Affairs (DoSA)
+Certified by: Dr. V. Sen, Chief Information Officer (CIO) & Head of Campus IT Infrastructure

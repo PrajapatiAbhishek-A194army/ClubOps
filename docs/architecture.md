@@ -81,3 +81,12 @@ The platform decouples into three enterprise-grade tiers:
 - Intercepts state changes across all operational domains.
 - Maintains a continuous, unbroken cryptographic hash chain linking each action to the prior block.
 - Delivers instantaneous tamper detection through full mathematical chain traversal.
+
+### G. FAISS Vector Database & Institutional Knowledge (RAG)
+- **Vector Database**: FAISS (`IndexFlatIP`) with isolated index storage per club (`backend/storage/faiss_indexes/{club_id}/`).
+- **Dense Embedding Engine**: 384-dimensional dense semantic vectors with sublinear token frequencies, bigrams, and character trigrams, L2-normalized for exact cosine similarity dot products.
+- **Sliding-Window Ingestion**: Documents (SOPs, policies, guides) are partitioned into overlapping chunks with persistent metadata.
+- **Persistent Disk Serialization**: Indices (`index.faiss`) and metadata mappings (`metadata.json`) persist on disk across server lifecycles.
+- **Grounded LLM Retrieval**: Nearest-neighbor matches retrieve top-k chunks with confidence percentage metrics (`score * 100`) and prompt Groq to synthesize factual responses citing exact documents.
+- **Strict Role Isolation**: Knowledge ingestion, vector searching, and index deletion are restricted exclusively to Club Heads and Presidents (`require_club_role([PRESIDENT, CLUB_HEAD])`).
+
